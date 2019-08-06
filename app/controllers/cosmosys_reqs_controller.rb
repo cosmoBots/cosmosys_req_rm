@@ -274,6 +274,9 @@ class CosmosysReqsController < ApplicationController
           comando = "cd #{destdir}; git remote add origin #{remote_url}"
           print("\n\n #{comando}")
           `#{comando}`
+          comando = "cd #{destdir}; git pull origin master"
+          print("\n\n #{comando}")
+          `#{comando}`
           comando = "cd #{destdir}; git push -u origin --all; git push -u origin --tags"
           print("\n\n #{comando}")
           `#{comando}`
