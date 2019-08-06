@@ -318,23 +318,6 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 		link_str = "link"
 		url_pattern = "/cosmosys_baselines/9/execute?id=%id%"
 
-		# Issue part
-		# Create diagrams custom fields
-		rqhiediaglink = IssueCustomField.create!(:name => 'RqTree',
-			:field_format => 'link', :description => "A link to the Tree JSON file",
-			:url_pattern => url_pattern,
-			:default_value => link_str,
-		rqhiediaglink = IssueCustomField.create!(:name => 'RqTree',
-			:field_format => 'link', :description => "A link to the Tree JSON file",
-			:url_pattern => url_pattern,
-			:default_value => link_str,
-
-		tmp = IssueCustomField.find_by_name('RqPrefix')
-		if (tmp != nil) then
-			tmp.destroy
-		end
-			:is_for_all => true, :tracker_ids => [rqtrck.id, rqdoctrck.id])
-
 		Issue.find_each{|i|
 			if i.tracker == rqtrck or i.tracker == rqdoctrck then
 				foundhie = false
@@ -502,14 +485,6 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 		if (tmp != nil) then
 			tmp.destroy
 		end
-		tmp = IssueCustomField.find_by_name('RqTree')
-		if (tmp != nil) then
-			tmp.destroy
-		end
-		rqhiediaglink = IssueCustomField.create!(:name => 'RqTree',
-			:field_format => 'link', :description => "A link to the Tree JSON file",
-			:url_pattern => url_pattern,
-			:default_value => link_str,
 
 		tmp = IssueCustomField.find_by_name('RqPrefix')
 		if (tmp != nil) then
