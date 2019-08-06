@@ -1,0 +1,17 @@
+<h2>CosmosysReqsController#index</h2>
+
+<p>Actions:</p>
+<p><%= link_to 'Create', { :action => 'create'}, :method => :get %></p>
+<p><%= link_to 'Upload', { :action => 'upload'}, :method => :get %></p>
+<p><%= link_to 'Download(not yet)', { :action => 'download'}, :method => :get %></p>
+<p><%= link_to 'DstopImport(not yet)', { :action => 'dstopimport'}, :method => :get %></p>
+<p><%= link_to 'DstopExport(not yet)', { :action => 'dstopexport'}, :method => :get %></p>
+<p><%= link_to 'Report', { :action => 'report'}, :method => :get %></p>
+<p><%= link_to 'Validation(not yet)', { :action => 'validate'}, :method => :get %></p>
+<p><%= link_to 'Propagation(not yet)', { :action => 'propagate'}, :method => :get %></p>
+
+<% @cosmosys_reqs.each do |cr| %>
+  <p>
+  <%= cr.name %> <%= cr.result %> <%= link_to 'Show', { :action => 'show', :id => cr.id}, :method => :get %> <%= link_to 'Tree', { :action => 'tree', :id => cr.id}, :method => :get %>
+  </p>
+<% end %>

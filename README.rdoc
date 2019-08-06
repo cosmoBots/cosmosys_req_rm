@@ -1,0 +1,3 @@
+= cosmosys_req
+
+A plugin to convert a Redmine instance in a Requirements management cosmoSys Req one
