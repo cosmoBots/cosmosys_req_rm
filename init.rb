@@ -20,7 +20,7 @@ Redmine::Plugin.register :cosmosys_req do
   menu :project_menu, :cosmosys_reqs, { :controller => 'cosmosys_reqs', :action => 'project_menu' }, :caption => 'cosmoSys-Req', :after => :activity, :param => :project_id
 
   settings :default => {
-    'repo_local_path' => "/home/cosmobots/repos/%project_id%",
+    'repo_local_path' => "/home/cosmobots/repos/req_%project_id%",
     'repo_server_sync' => :false,
     'repo_server_path'  => 'http://gitlab.com/cosmobots/reqs/req_%project_id%.git',
     'repo_template_id'  => 'template',
