@@ -22,7 +22,7 @@ Redmine::Plugin.register :cosmosys_req do
   settings :default => {
     'repo_local_path' => "/home/cosmobots/repos/%project_id%",
     'repo_server_sync' => :false,
-    'repo_server_path'  => 'git@gitlab.com:cosmobots/reqs/req_%project_id%.git',
+    'repo_server_path'  => 'http://gitlab.com/cosmobots/reqs/req_%project_id%.git',
     'repo_template_id'  => 'req_template',
     'repo_redmine_path' => "/home/cosmobots/repos_redmine/req_%project_id%.git",
     'repo_redmine_sync' => :true,
