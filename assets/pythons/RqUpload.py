@@ -184,7 +184,7 @@ for t in data:
                     current_row += 1
                 else:
                     title_str = r[req_upload_title_column]
-                    print("title: ",title_str)
+                    #print("title: ",title_str)
                     if len(title_str) <= 0:
                         print("Saltamos una fila que no tiene suficientes celdas")
                     else:
@@ -192,34 +192,34 @@ for t in data:
                         rqidstr = r[req_upload_id_column]
                         print("rqid: "+rqidstr)
                         related_str = r[req_upload_related_column]
-                        print("related: "+related_str)
+                        #print("related: "+related_str)
                         title_str = r[req_upload_title_column]
-                        print("title: ",title_str)
+                        #print("title: ",title_str)
                         descr = r[req_upload_descr_column]
-                        print("description: ",descr)
+                        #print("description: ",descr)
                         reqsource = r[req_upload_source_column]
-                        print("reqsource: ",reqsource)
+                        #print("reqsource: ",reqsource)
                         reqtype = r[req_upload_type_column]
-                        print("reqtype: ",reqtype)
+                        #print("reqtype: ",reqtype)
                         reqlevel = r[req_upload_level_column]
-                        print("reqlevel: ",reqlevel)
+                        #print("reqlevel: ",reqlevel)
                         reqrationale = r[req_upload_rationale_column]
-                        print("reqrationale: ",reqrationale)
+                        #print("reqrationale: ",reqrationale)
                         reqvar = r[req_upload_var_column]
-                        print("reqvar: ",reqvar)
+                        #print("reqvar: ",reqvar)
                         reqvalue = r[req_upload_value_column]
-                        print("reqvalue: ",reqvalue)
+                        #print("reqvalue: ",reqvalue)
                         rqchapter = reqDocPrefix+str(r[req_upload_chapter_column])
-                        print("rqchapter: ",rqchapter)
+                        #print("rqchapter: ",rqchapter)
                         rqtarget = r[req_upload_target_column]
-                        print("rqtarget: ",rqtarget)
+                        #print("rqtarget: ",rqtarget)
                         findVersionSuccess = False
                         thisVersionId = None
                         print("num versiones: ",len(my_project_versions))
                         for v in my_project_versions:
-                            print("version: ",v)
+                            #print("version: ",v)
                             if not(findVersionSuccess):
-                                print("--->",v.name,":",rqtarget)
+                                #print("--->",v.name,":",rqtarget)
                                 if (v.name == rqtarget):
                                     print("LO ENCONTRE!!")
                                     findVersionSuccess = True

@@ -69,7 +69,7 @@ for doc in my_doc_issues:
     prj_graphb = Digraph(name="clusterD", graph_attr={'labeljust':'l','labelloc':'t','label':'Dependences','margin':'5'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
     for i in my_project_issues:
         title_str = i.custom_fields.get(req_title_cf_id).value
-        print("title: ",title_str)
+        #print("title: ",title_str)
         nodelabel = "{"+i.subject+"|"+title_str+"}"
         prj_graph.node(str(i.id),nodelabel,URL=req_server_url+'/issues/'+str(i.id),tooltip=i.description)
         print(i.id,": ",i.subject)
