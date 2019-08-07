@@ -1,7 +1,7 @@
 # This section configures the connection between the CosmoSys_Req tools and the Redmine instance which implements the requirements database
 # TODO: move this information to the requirement project folder
 req_server_url = 'http://localhost:5555'			# The Redmine URL
-req_key_txt = '552a4b949c5d05644d3063ecf2e1b9e6857bce5a'	# The API key of the user (or bot) in which name the actions are undertaken.
+req_key_txt = 'd32df1cc535477adb95998fb4633bc50e8e664e3'	# The API key of the user (or bot) in which name the actions are undertaken.
 req_project_id_str = 'rqtest3'					# The ID of the Redmine project where the requirements are stored.
 req_cf_base = 0
 req_rq_tracker_base = 3			# The numerical ID of the tracker used to model the requirements

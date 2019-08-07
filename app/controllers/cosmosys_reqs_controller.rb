@@ -241,8 +241,76 @@ class CosmosysReqsController < ApplicationController
   def propagate
   end
 
+  def tree
+    require 'json'
+
+    if request.get? then
+      print("GET!!!!!")
+      if (params[:node_id]) then
+        print("NODO!!!\n")
+        comando = "python3 plugins/cosmosys_req/assets/pythons/ReqTree.py #{params[:node_id]}"
+      else
+        comando = "python3 plugins/cosmosys_req/assets/pythons/ReqTree.py #{@project.id}"
+      end
+      print(comando)
+      require 'open3'
+      require 'json'
+
+      stdin, stdout, stderr = Open3.popen3("#{comando}")
+      stdout.each do |ele|
+        print ("ELE"+ele+"\n")
+        @output = ele
+        @jsonoutput = JSON.parse(ele)
+      end
+
+      respond_to do |format|
+        format.html {
+          if @output then 
+            if @output.size <= 255 then
+              flash[:notice] = "Reqtree:\n" + @output.to_s
+            else
+              flash[:notice] = "Reqtree too long response\n"
+            end
+          end
+        }
+        format.json { 
+          require 'json'
+          ActiveSupport.escape_html_entities_in_json = false
+          render json: @jsonoutput
+          ActiveSupport.escape_html_entities_in_json = true        
+        }
+      end
+    else
+      print("POST!!!!!")
+      structure_vector = params[:structure].to_s
+      st = structure_vector
+      #structure_vector.each { |st|
+        print("\n\n")
+        print(st)
+        structure = JSON.parse(st) 
+        structure_node(structure,nil)
+      #}
+      
+    end
+
+  end
+
+
+
   # -------------------------- Filters and actions --------------------
 
+  def structure_node(node_vector, parent_node)
+      node_vector.each{|node|
+        print(node.to_s+"\n")
+        my_issue = Issue.find(node['id'].to_i)
+        if (parent_node != nil) then
+          my_issue.parent_issue = parent_node
+        end
+        node['children'].each{|c|
+          structure_node(c,my_issue)
+        }
+      } 
+  end
 
   def git_commit_repo(pr,a_message)
     @output = ""
@@ -345,7 +413,11 @@ class CosmosysReqsController < ApplicationController
       @issue = Issue.find(params[:node_id])
       @project = @issue.project
     else
-      @project = Project.find(params[:project_id])
+      if(params[:project_id]) then
+        @project = Project.find(params[:project_id])
+      else
+        @project = Project.find(params[:id])
+      end
     end
   end
 

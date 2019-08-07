@@ -316,7 +316,7 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 
 
 		link_str = "link"
-		url_pattern = "/cosmosys_baselines/9/execute?id=%id%"
+		url_pattern = "/cosmosys_reqs/%id%/tree"
 
 		Issue.find_each{|i|
 			if i.tracker == rqtrck or i.tracker == rqdoctrck then
