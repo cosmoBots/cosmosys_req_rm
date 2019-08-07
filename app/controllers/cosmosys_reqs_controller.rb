@@ -110,7 +110,7 @@ class CosmosysReqsController < ApplicationController
           else
             uploadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_uploadfile_path']
             if (File.exists?(uploadfilepath)) then
-              comando = "python3 plugins/cosmosys_req/assets/pythons/RqUpload.py #{params[:project_id]} #{uploadfilepath}"
+              comando = "python3 plugins/cosmosys_req/assets/pythons/RqUpload.py #{@project.id} #{uploadfilepath}"
               output = `#{comando}`
               p output
             else
@@ -157,7 +157,7 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{params[:project_id]} #{reportingpath} #{imgpath}"
+                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
                 output = `#{comando}`
                 p output
                 git_commit_repo(@project,"[reqbot] reports generated")
@@ -209,7 +209,7 @@ class CosmosysReqsController < ApplicationController
             @output += "Error: the relative path to the downnload file is not set\n"
           else
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
-            comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{params[:project_id]} #{downloadfilepath}"
+            comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath}"
             output = `#{comando}`
             p output
             git_commit_repo(@project,"[reqbot] downloadfile generated")
@@ -248,10 +248,13 @@ class CosmosysReqsController < ApplicationController
       print("GET!!!!!")
       if (params[:node_id]) then
         print("NODO!!!\n")
-        comando = "python3 plugins/cosmosys_req/assets/pythons/ReqTree.py #{params[:node_id]}"
+        thisnodeid = params[:node_id]
       else
-        comando = "python3 plugins/cosmosys_req/assets/pythons/ReqTree.py #{@project.id}"
+        print("PROYECTO!!!\n")     
+        res = @project.issues.where(:parent => nil).limit(1)
+        thisnodeid = res.first.id
       end
+      comando = "python3 plugins/cosmosys_req/assets/pythons/ReqTree.py #{thisnodeid}"
       print(comando)
       require 'open3'
       require 'json'
@@ -413,10 +416,10 @@ class CosmosysReqsController < ApplicationController
       @issue = Issue.find(params[:node_id])
       @project = @issue.project
     else
-      if(params[:project_id]) then
-        @project = Project.find(params[:project_id])
-      else
+      if(params[:id]) then
         @project = Project.find(params[:id])
+      else
+        @project = Project.first
       end
     end
   end

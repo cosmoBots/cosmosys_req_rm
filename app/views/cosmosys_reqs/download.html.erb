@@ -1,7 +1,7 @@
 <h2>CosmosysReqsController#download</h2>
 
 THIS WILL OVERWRITE THE DOWNLOAD FILE AT REPO.
-<%= form_tag({:controller => 'cosmosys_reqs', :action => 'download', :project_id => @project}, :class => "tabular", :multipart => true) do %>
+<%= form_tag({:controller => 'cosmosys_reqs', :action => 'download'}, :class => "tabular", :multipart => true) do %>
 
 <%= submit_tag l(:button_download) %>
 

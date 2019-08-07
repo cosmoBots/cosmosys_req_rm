@@ -17,7 +17,7 @@ Redmine::Plugin.register :cosmosys_req do
   permission :upload_cosmosys, :cosmosys_reqs => :index
   permission :validate_cosmosys, :cosmosys_reqs => :index
 
-  menu :project_menu, :cosmosys_reqs, { :controller => 'cosmosys_reqs', :action => 'project_menu' }, :caption => 'cosmoSys-Req', :after => :activity, :param => :project_id
+  menu :project_menu, :cosmosys_reqs, {:controller => 'cosmosys_reqs', :action => 'project_menu' }, :caption => 'cosmoSys-Req', :after => :activity, :param => :id
 
   settings :default => {
     'repo_local_path' => "/home/cosmobots/repos/req_%project_id%",

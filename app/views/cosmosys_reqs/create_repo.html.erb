@@ -2,7 +2,7 @@
 
 
 <p>THIS WILL CREATE A REQUIREMENTS REPO.  YOU SHOULD ONLY CALL IT ONCE!!!</p>
-<%= form_tag({:controller => 'cosmosys_reqs', :action => 'create_repo', :project_id => @project.identifier}, :class => "tabular", :multipart => true) do %>
+<%= form_tag({:controller => 'cosmosys_reqs', :action => 'create_repo'}, :class => "tabular", :multipart => true) do %>
 
 <%= submit_tag l(:button_create) %>
 
