@@ -30,7 +30,7 @@ for p in projects:
 my_project = redmine.project.get(pr_id_str)
 print ("Obtenemos proyecto: ",my_project.identifier," | ",my_project.name)    
 
-# Vamos a recorrer la hoja de cálculo con los datos de carga especificada en la variable const_file_name del fichero configfile_req.py.  Listaremos los datos cargados.
+# Vamos a recorrer la hoja de calculo con los datos de carga especificada en la variable const_file_name del fichero configfile_req.py.  Listaremos los datos cargados.
 
 # In[ ]:
 
@@ -55,8 +55,8 @@ for v in my_project.versions:
 
 for t in data:
     print("********************"+t)
-    #primero filtramos la pestaña Intro
-    if (t!='Intro'):
+    #primero filtramos la pestaña Intro y la Template
+    if (t!='Intro') and (t!='Template'):
         if (t=='Dict'):
             # Cargamos las versiones
             # TODO
@@ -74,10 +74,10 @@ for t in data:
                         if not(findVersionSuccess):
                             if (v.name == thisversion):
                                 findVersionSuccess = True
-                                print("la versión ",thisversion," ya existe")
+                                print("la version ",thisversion," ya existe")
                     
                     if not findVersionSuccess:
-                        print("la versión ",thisversion," no existe")
+                        print("la version ",thisversion," no existe")
                         version = redmine.version.create(
                             project_id = my_project.identifier,
                             name = thisversion,
@@ -87,7 +87,7 @@ for t in data:
                         )
                         my_project_versions += [version]
                         thisVersionId = version.id
-                        print("he creado la versión con nombre ",version.name)
+                        print("he creado la version con nombre ",version.name)
 
         else:
             # Obtenemos el contenido de esa pestaña
@@ -95,14 +95,14 @@ for t in data:
             # Como identificador del documento y "subject", tomamos el nombre de la pestaña
             docidstr = t
             print("DocID: "+docidstr)
-            # Obtenemos la información de la fila donde están los datos adicionales del documento de requisito
+            # Obtenemos la informacion de la fila donde estan los datos adicionales del documento de requisito
             d = dataimport[req_upload_doc_row]
             # Como nombre del documento y "description", tomamos la columna de docname
             docname = d[req_upload_doc_name_column]
             print("DocName: ",docname)
-            # Como prefijo de los códigos generados por el documento, tomamos la columna de prefijo
+            # Como prefijo de los codigos generados por el documento, tomamos la columna de prefijo
             prefixstr = d[req_upload_doc_prefix_column]
-            # Usando el identificador del documento, determinamos si éste ya existe o hay que crearlo
+            # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
             doclist = redmine.issue.filter(project_id=pr_id_str, subject=docidstr, tracker_id=req_doc_tracker_id)
             if(len(doclist)==0):
                 # no existe el requisito asociado a la pestaña, lo creo
@@ -117,7 +117,7 @@ for t in data:
                                                              ]
                                               )
             else:
-                # existe el requisito, así que lo actualizo
+                # existe el requisito, asi que lo actualizo
                 print ("actualizando documento", doclist[0].id)
                 redmine.issue.update(resource_id=doclist[0].id,
                                      description = docname,
@@ -136,7 +136,7 @@ for t in data:
 for t in data:
     print("********************"+t)
     # No vamos a tratar la pestaña "Intro"
-    if (t!='Intro') and (t!='Dict'):
+    if (t!='Intro') and (t!='Dict') and (t!='Template'):
         # importamos los datos 
         dataimport = data[t]
         # Buscamos el documento que representa a la pestaña
@@ -168,7 +168,7 @@ for t in data:
 
 for t in data:
     print("********************"+t)
-    if (t!='Intro') and (t!='Dict'):
+    if (t!='Intro') and (t!='Dict') and (t!='Template'):
         dataimport = data[t]
         reqdoclist = redmine.issue.filter(project_id=pr_id_str, status_id='*',subject=t)
         print(t, "len list: ",len(reqdoclist))
@@ -177,7 +177,7 @@ for t in data:
             print("reqDocId:", reqDoc.id)
             reqDocPrefix = reqDoc.custom_fields.get(req_prefix_cf_id).value
             print("reqDocPrefix:",reqDocPrefix)
-            # Obtendremos en un bucle todos los requisitos, saltándonos las 2 líneas iniciales
+            # Obtendremos en un bucle todos los requisitos, saltandonos las 2 lineas iniciales
             current_row = 0
             for r in dataimport:
                 if current_row < req_upload_first_row:
@@ -188,7 +188,7 @@ for t in data:
                     if len(title_str) <= 0:
                         print("Saltamos una fila que no tiene suficientes celdas")
                     else:
-                        # Estamos procesando las líneas de requisitos
+                        # Estamos procesando las lineas de requisitos
                         rqidstr = r[req_upload_id_column]
                         print("rqid: "+rqidstr)
                         related_str = r[req_upload_related_column]
@@ -221,7 +221,7 @@ for t in data:
                             if not(findVersionSuccess):
                                 print("--->",v.name,":",rqtarget)
                                 if (v.name == rqtarget):
-                                    print("LO ENCONTRÉ!!")
+                                    print("LO ENCONTRE!!")
                                     findVersionSuccess = True
                                     thisVersionId = v.id
                                 else:
@@ -254,7 +254,7 @@ for t in data:
 
 
                         else:
-                            # existe el requisito, así que lo actualizo
+                            # existe el requisito, asi que lo actualizo
                             print ("actualizando requisito", reqlist[0].id)
                             redmine.issue.update(resource_id=reqlist[0].id,
                                                  description = descr,
@@ -279,14 +279,14 @@ for t in data:
 
 for t in data:
     print("********************"+t)
-    if (t!='Intro') and (t!='Dict'):
+    if (t!='Intro') and (t!='Dict') and (t!='Template'):
         dataimport = data[t]
         reqdoclist = redmine.issue.filter(project_id=pr_id_str, status_id='*',subject=t, tracker_id=req_doc_tracker_id)
         print(t, "len list: ",len(reqdoclist))
         if(len(reqdoclist)>0):
             reqDoc = reqdoclist[0]
             print("reqDocId:", reqDoc.id)
-            # Obtendremos en un bucle todos los requisitos, saltándonos las 2 líneas iniciales
+            # Obtendremos en un bucle todos los requisitos, saltandonos las 2 lineas iniciales
             current_row = 0
             for r in dataimport:
                 if current_row < req_upload_first_row:
@@ -297,7 +297,7 @@ for t in data:
                         #print("Saltamos una fila que no tiene suficientes celdas")
                         aux = 1
                     else:
-                        # Estamos procesando las líneas de requisitos
+                        # Estamos procesando las lineas de requisitos
                         rqidstr = r[req_upload_id_column]
                         print("rqid: "+rqidstr)
                         related_str = r[req_upload_related_column]
@@ -322,7 +322,7 @@ for t in data:
                                     print("ERROR: No encontramos el requisito padre!!!")
 
                             else:
-                                # El requisito no tiene padre, así que su padre será el documento
+                                # El requisito no tiene padre, asi que su padre sera el documento
                                 redmine.issue.update(resource_id=current_req.id, parent_issue_id = reqDoc.id)                                    
                                 
                             # Exploramos ahora las relaciones de dependencia
@@ -331,12 +331,12 @@ for t in data:
                             # Como voy a tratar las que tienen el requisito como destino, las filtro
                             my_filtered_req_relations = list(filter(lambda x: x.issue_to_id == current_req.id, my_req_relations))
                             # Al cargar requisitos puede ser que haya antiguas relaciones que ya no existan.  Al finalizar la carga
-                            # deberemos eliminar los remanentes, así que meteremos la lista de relaciones en una lista de remanentes
+                            # deberemos eliminar los remanentes, asi que meteremos la lista de relaciones en una lista de remanentes
                             residual_relations = [] + my_filtered_req_relations
                             print("residual_relations BEFORE",residual_relations)
                             if (len(related_str)>0):
                                 if (related_str[0]!='-'):
-                                    # Ahora saco todos los ID de los requisitos del otro lado (en el lado origen de la relación)
+                                    # Ahora saco todos los ID de los requisitos del otro lado (en el lado origen de la relacion)
                                     related_req = related_str.split()
                                     # Y voy a recorrer uno a uno
                                     for rreq in related_req:
@@ -345,14 +345,14 @@ for t in data:
                                         blocking_reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rreq, tracker_id=req_rq_tracker_id)
                                         if (len(blocking_reqlist)>0):
                                             blocking_req = blocking_reqlist[0]
-                                            # Veo si ya existe algún tipo de relación con él
+                                            # Veo si ya existe algun tipo de relacion con el
                                             preexistent_relations = list(filter(lambda x: x.issue_id == blocking_req.id, my_filtered_req_relations))
                                             print(preexistent_relations)
                                             if (len(preexistent_relations)>0):
-                                                print("Ya existe la relación ",preexistent_relations[0])
+                                                print("Ya existe la relacion ",preexistent_relations[0])
                                                 residual_relations.remove(preexistent_relations[0])
                                             else:
-                                                print("Creo una nueva relación")
+                                                print("Creo una nueva relacion")
                                                 relation = redmine.issue_relation.create(
                                                     issue_id=blocking_req.id,
                                                     issue_to_id=current_req.id,
@@ -363,7 +363,7 @@ for t in data:
                             print("residual_relations AFTER",residual_relations)
                             print(residual_relations)
                             for r in residual_relations:
-                                print("Destruyo la relación", r)
+                                print("Destruyo la relacion", r)
                                 redmine.issue_relation.delete(r.id)
                                 
 print("Acabamos")

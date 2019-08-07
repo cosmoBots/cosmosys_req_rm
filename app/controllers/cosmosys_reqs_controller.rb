@@ -57,7 +57,7 @@ class CosmosysReqsController < ApplicationController
                   repo.is_default = true
                   repo.project = @project
                   repo.url = redminerepodir
-                  repo.identifier = "req"
+                  repo.identifier = "rq"
                   repo.extra_info =  {"extra_report_last_commit"=>"1"}
                   repo.save
                 end
@@ -254,7 +254,7 @@ class CosmosysReqsController < ApplicationController
         res = @project.issues.where(:parent => nil).limit(1)
         thisnodeid = res.first.id
       end
-      comando = "python3 plugins/cosmosys_req/assets/pythons/ReqTree.py #{thisnodeid}"
+      comando = "python3 plugins/cosmosys_req/assets/pythons/RqTree.py #{thisnodeid}"
       print(comando)
       require 'open3'
       require 'json'

@@ -295,7 +295,7 @@ for my_issue in my_project_issues:
 # In[ ]:
 
 
-del doc.sheets['Template']
+# del doc.sheets['Template']
 
 
 # In[ ]:
