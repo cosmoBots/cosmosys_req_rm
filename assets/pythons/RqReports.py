@@ -259,7 +259,7 @@ from Naked.toolshed.shell import execute_js
 
 # js_command = 'node ' + file_path + " " + arguments
 
-success = execute_js('./plugins/cosmosys/assets/pythons/lib/launch_carbone.js',reporting_path)
+success = execute_js('./plugins/cosmosys_req/assets/pythons/lib/launch_carbone.js',reporting_path)
 print(success)
 
 if success:
@@ -304,7 +304,7 @@ for i in my_project_docs:
         treedata.append(tree_node)
 
 
-#with open('./plugins/cosmosys/assets/pythons/reqtree/src/reqtreedata.json', 'w') as outfile:  
+#with open('./plugins/cosmosys_req/assets/pythons/reqtree/src/reqtreedata.json', 'w') as outfile:  
 #    json.dump(treedata, outfile)
 
 
