@@ -110,7 +110,7 @@ class CosmosysReqsController < ApplicationController
           else
             uploadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_uploadfile_path']
             if (File.exists?(uploadfilepath)) then
-              comando = "python plugins/cosmosys_req/assets/pythons/RqUpload.py #{params[:project_id]} #{uploadfilepath}"
+              comando = "python3 plugins/cosmosys_req/assets/pythons/RqUpload.py #{params[:project_id]} #{uploadfilepath}"
               output = `#{comando}`
               p output
             else
@@ -157,7 +157,7 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "python plugins/cosmosys_req/assets/pythons/RqReports.py #{params[:project_id]} #{reportingpath} #{imgpath}"
+                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{params[:project_id]} #{reportingpath} #{imgpath}"
                 output = `#{comando}`
                 p output
                 git_commit_repo(@project,"[reqbot] reports generated")
@@ -209,7 +209,7 @@ class CosmosysReqsController < ApplicationController
             @output += "Error: the relative path to the downnload file is not set\n"
           else
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
-            comando = "python plugins/cosmosys_req/assets/pythons/RqDownload.py #{params[:project_id]} #{downloadfilepath}"
+            comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{params[:project_id]} #{downloadfilepath}"
             output = `#{comando}`
             p output
             git_commit_repo(@project,"[reqbot] downloadfile generated")
