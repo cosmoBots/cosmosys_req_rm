@@ -1,9 +1,8 @@
 # This section configures the connection between the CosmoSys_Req tools and the Redmine instance which implements the requirements database
 # TODO: move this information to the requirement project folder
-req_server_url = 'http://localhost:5555'                        # The Redmine U$
-req_key_txt = 'd32df1cc535477adb95998fb4633bc50e8e664e3'	# The API key of the user (or bot) in which name the actions are undertaken.
-req_project_id_str = 'rqtest3'					# The ID of the Redmine project where the requirements are stored.
-
+req_server_url = 'http://localhost:5555'			# The Redmine URL
+req_key_txt = '9a821e67caf77557b2aa8e6dca416296cfecc013'	# The API key of the user (or bot) in which name the actions are undertaken.
+req_project_id_str = 'demo'					# The ID of the Redmine project where the requirements are stored.
 req_cf_base = 0
 req_rq_tracker_base = 3			# The numerical ID of the tracker used to model the requirements
 
@@ -12,6 +11,13 @@ import os
 cfg_homedir = os.getenv("HOME")
 if (cfg_homedir is None):
     cfg_homedir = os.getenv('HOMEDRIVE')+os.getenv("HOMEPATH")
+
+# This is the location of the repository directory
+cfg_repodir = None  #Redefine this
+cfg_repodir = "E:\txinto\cvs\gitlab\reqs\\"
+
+if cfg_repodir is None:
+	cfg_repodir = cfg_homedir + "/repos/"
 
 # Trackers section
 # TODO: Include this information in Redmine, so the system can retrieve it
@@ -39,8 +45,8 @@ req_diagrams_cf_id = req_cf_base + 10			# The numerical ID of the custom_field u
 reqprj_diagrams_cf_id = req_cf_base + 13		# The numerical ID of the custom_field used to store the diagrams graphviz description of the whole project
 
 # This section defines the connection between the CosmoSys_Req tools and the OpenDocument spreadsheet used for importing requirements
-req_upload_file_name = cfg_homedir + "/repos/"+req_project_id_str+"/uploading/RqUpload.ods"
-req_download_file_name = cfg_homedir + "/repos/"+req_project_id_str+"/downloading/RqDownload.ods"
+req_upload_file_name = cfg_repodir + req_project_id_str+"/uploading/RqUpload.ods"
+req_download_file_name = cfg_repodir + req_project_id_str+"/downloading/RqDownload.ods"
 req_upload_start_column = 0
 req_upload_end_column = 16
 req_upload_start_row = 0
@@ -99,10 +105,8 @@ req_status_maturity = {
 # TODO: Include this information in Redmine, so the system can retrieve it
 req_maturity_propagation = ['RqZombie','RqDraft','RqStable','RqApproved']
 
-# This is the location of the reporting directory
-reporting_dir = cfg_homedir + "/repos/"+req_project_id_str+"/reporting"
+reporting_dir = cfg_repodir + req_project_id_str + "/reporting"
 # This is the location of the images directory
-img_dir = reporting_dir+"/doc/img/"
+img_dir = reporting_dir + "/doc/img/"
 # This is the location of the doorstop requirements directory
-dstop_root_path = cfg_homedir + "/repos/"+req_project_id_str+"/doorstop"
-
+dstop_root_path = cfg_repodir + req_project_id_str + "/doorstop"
