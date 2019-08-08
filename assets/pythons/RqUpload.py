@@ -43,6 +43,11 @@ data = get_data(file_path, start_column=req_upload_start_column, column_limit=(r
                 start_row=req_upload_start_row, row_limit=(req_upload_end_row - req_upload_start_row+1))
 data
 
+# Vamos a recorrer los estados para hacernos un diccionario
+
+status_dict = {}
+for st in redmine.issue_status.all():
+    status_dict[st.name] = st.id
 
 # Recorreremos ahora las diferentes pestañas para sacar los documentos de requisitos que debemos crear
 
@@ -103,7 +108,7 @@ for t in data:
             # Como prefijo de los codigos generados por el documento, tomamos la columna de prefijo
             prefixstr = d[req_upload_doc_prefix_column]
             # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
-            doclist = redmine.issue.filter(project_id=pr_id_str, subject=docidstr, tracker_id=req_doc_tracker_id)
+            doclist = redmine.issue.filter(project_id=pr_id_str, subject=docidstr, tracker_id=req_doc_tracker_id, status_id='*')
             if(len(doclist)==0):
                 # no existe el requisito asociado a la pestaña, lo creo
                 print ("Creando documento ",docidstr)
@@ -140,7 +145,7 @@ for t in data:
         # importamos los datos 
         dataimport = data[t]
         # Buscamos el documento que representa a la pestaña
-        doclist = redmine.issue.filter(project_id=pr_id_str, subject=t, tracker_id=req_doc_tracker_id)
+        doclist = redmine.issue.filter(project_id=pr_id_str, subject=t, tracker_id=req_doc_tracker_id, status_id='*')
         if(len(doclist)>0):
             # Existe el documento asociado a la pestaña, puedo tratarlo
             thisdoc = doclist[0]
@@ -150,7 +155,7 @@ for t in data:
             print("parent str: " + parentdocstr)
             if (len(parentdocstr)>0):
                 # Se ha especificado un documento padre
-                parentdoclist = redmine.issue.filter(project_id=pr_id_str,subject=parentdocstr, tracker_id=req_doc_tracker_id)
+                parentdoclist = redmine.issue.filter(project_id=pr_id_str,subject=parentdocstr, tracker_id=req_doc_tracker_id, status_id='*')
                 if len(parentdoclist)>0:
                     # Existe el documento padre, puedo tratarlo
                     parentdoc = parentdoclist[0]
@@ -213,6 +218,8 @@ for t in data:
                         #print("rqchapter: ",rqchapter)
                         rqtarget = r[req_upload_target_column]
                         #print("rqtarget: ",rqtarget)
+                        rqstatus = status_dict[r[req_upload_status_column]]
+                        print("rqstatus: ",rqstatus)						
                         findVersionSuccess = False
                         thisVersionId = None
                         print("num versiones: ",len(my_project_versions))
@@ -232,7 +239,7 @@ for t in data:
 
                         print("thisVersionId: ",thisVersionId)
                         # A partir del nombre del requisito, miramos si el requisito ya existe
-                        reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rqidstr, tracker_id=req_rq_tracker_id)
+                        reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rqidstr, tracker_id=req_rq_tracker_id, status_id='*')
                         if(len(reqlist)==0):
                             # no existe el requisito, lo creo
                             print ("creando requisito")
@@ -240,6 +247,7 @@ for t in data:
                                                            tracker_id = req_rq_tracker_id,
                                                            subject = rqidstr,
                                                            description = descr,
+                                                           status_id = rqstatus,														   
                                                            fixed_version_id = thisVersionId,
                                                            custom_fields=[{'id': req_title_cf_id,'value': title_str},
                                                                           {'id': req_sources_cf_id,'value': reqsource},
@@ -258,6 +266,7 @@ for t in data:
                             print ("actualizando requisito", reqlist[0].id)
                             redmine.issue.update(resource_id=reqlist[0].id,
                                                  description = descr,
+                                                 status_id = rqstatus,												 
                                                  fixed_version_id = thisVersionId,
                                                  custom_fields=[{'id': req_title_cf_id,'value': title_str},
                                                                 {'id': req_sources_cf_id,'value': reqsource},
@@ -305,13 +314,13 @@ for t in data:
                         parent_str = r[req_upload_parent_column]
                         print("parent_str: ",parent_str)
                         # Accedo al objeto requisito
-                        reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rqidstr, tracker_id=req_rq_tracker_id)
+                        reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rqidstr, tracker_id=req_rq_tracker_id, status_id='*')
                         if(len(reqlist)>0):
                             # El requisito existe, lo tomo como requisito actual
                             current_req = reqlist[0];
                             if (len(parent_str)>0):
                                 # Buscamos el requisito padre para enlazarlo
-                                parentlist = redmine.issue.filter(project_id=pr_id_str,subject=parent_str)
+                                parentlist = redmine.issue.filter(project_id=pr_id_str,subject=parent_str, status_id='*')
                                 if len(parentlist)>0:
                                     # Existe el documento padre, puedo tratarlo
                                     parentreq = parentlist[0]
@@ -342,7 +351,7 @@ for t in data:
                                     for rreq in related_req:
                                         print("related to: ",rreq)
                                         # Busco ese requisito
-                                        blocking_reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rreq, tracker_id=req_rq_tracker_id)
+                                        blocking_reqlist = redmine.issue.filter(project_id=pr_id_str,subject=rreq, tracker_id=req_rq_tracker_id, status_id='*')
                                         if (len(blocking_reqlist)>0):
                                             blocking_req = blocking_reqlist[0]
                                             # Veo si ya existe algun tipo de relacion con el

@@ -41,9 +41,9 @@ my_project = redmine.project.get(pr_id_str)
 print ("Obtenemos proyecto: ",my_project.identifier," | ",my_project.name)    
 
 # get_ipython().run_line_magic('run', './RqConnectNList.ipynb')
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id)
+tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id, status_id='*')
 my_project_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id)
+tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
 my_doc_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
 
 # Ahora recorremos el proyecto y sacamos los diagramas completos de jerarquía y dependencias, y guardamos los ficheros de esos diagramas en la carpeta doc.
@@ -196,7 +196,7 @@ data = {}
 data['docs'] = []
 data['issues'] = []
 
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id)
+tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
 my_project_docs = sorted(tmp, key=lambda k: k.subject)
 
 for my_doc in my_project_docs:
@@ -286,7 +286,7 @@ def create_tree(current_issue):
              'expanded': True,
              'children': [],
             }
-    chlist = redmine.issue.filter(project_id=pr_id_str, parent_id=current_issue.id)
+    chlist = redmine.issue.filter(project_id=pr_id_str, parent_id=current_issue.id, status_id='*')
     childrenitems = sorted(chlist, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
     for c in childrenitems:
         child_issue = redmine.issue.get(c.id)

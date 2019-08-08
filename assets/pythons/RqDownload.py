@@ -31,9 +31,9 @@ my_project = redmine.project.get(pr_id_str)
 print ("Obtenemos proyecto: ",my_project.identifier," | ",my_project.name)    
 
 
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id)
+tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id, status_id='*')
 my_project_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id)
+tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
 my_doc_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
 
 # Conectaremos con nuestra instancia de PYOO

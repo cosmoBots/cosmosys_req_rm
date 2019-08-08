@@ -23,7 +23,7 @@ def create_tree(current_issue,current_project):
              'issue_edit_url': issue_url+"/edit",
              'children': []
             }
-    chlist = redmine.issue.filter(parent_id=current_issue.id)
+    chlist = redmine.issue.filter(parent_id=current_issue.id, status_id='*')
     childrenitems = sorted(chlist, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
     #print("children ",childrenitems)
     for c in childrenitems:
