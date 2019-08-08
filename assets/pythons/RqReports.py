@@ -62,53 +62,52 @@ diagrams_pattern = cfdiag.default_value
 
 path_root = img_path + "/" + my_project.identifier+"_"
 
-for doc in my_doc_issues:
-    prj_graph_parent = Digraph(name=path_root+"h", format='svg', graph_attr={'ratio':'compress','size':'9,5,30', 'margin':'0'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
-    prj_graph = Digraph(name="clusterH", graph_attr={'labeljust':'l','labelloc':'t','label':'Hierarchy','margin':'5'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
-    prj_graphb_parent = Digraph(name=path_root+"d", format='svg', graph_attr={'ratio':'compress','size':'9.5,30', 'margin':'0'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
-    prj_graphb = Digraph(name="clusterD", graph_attr={'labeljust':'l','labelloc':'t','label':'Dependences','margin':'5'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
-    for i in my_project_issues:
-        title_str = i.custom_fields.get(req_title_cf_id).value
-        #print("title: ",title_str)
-        nodelabel = "{"+i.subject+"|"+title_str+"}"
-        prj_graph.node(str(i.id),nodelabel,URL=req_server_url+'/issues/'+str(i.id),tooltip=i.description)
-        print(i.id,": ",i.subject)
-        for child in i.children:
-            prj_graph.edge(str(i.id),str(child.id))
+prj_graph_parent = Digraph(name=path_root+"h", format='svg', graph_attr={'ratio':'compress','size':'9,5,30', 'margin':'0'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
+prj_graph = Digraph(name="clusterH", graph_attr={'labeljust':'l','labelloc':'t','label':'Hierarchy','margin':'5'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
+prj_graphb_parent = Digraph(name=path_root+"d", format='svg', graph_attr={'ratio':'compress','size':'9.5,30', 'margin':'0'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
+prj_graphb = Digraph(name="clusterD", graph_attr={'labeljust':'l','labelloc':'t','label':'Dependences','margin':'5'}, engine='dot', node_attr={'shape':'record', 'style':'filled','URL':req_server_url})
+for i in my_doc_issues + my_project_issues:
+	title_str = i.custom_fields.get(req_title_cf_id).value
+	#print("title: ",title_str)
+	nodelabel = "{"+i.subject+"|"+title_str+"}"
+	prj_graph.node(str(i.id),nodelabel,URL=req_server_url+'/issues/'+str(i.id),tooltip=i.description)
+	print(i.id,": ",i.subject)
+	for child in i.children:
+		prj_graph.edge(str(i.id),str(child.id))
 
-        my_issue_relations = redmine.issue_relation.filter(issue_id=i.id)
-        #print(len(my_issue_relations))
-        my_filtered_issue_relations = list(filter(lambda x: x.issue_to_id != i.id, my_issue_relations))
-        #print(len(my_filtered_issue_relations))
-        if (len(my_issue_relations)>0):
-            nodelabel = "{"+i.subject+"|"+title_str+"}"
-            prj_graphb.node(str(i.id),nodelabel,URL=req_server_url+'/issues/'+str(i.id),tooltip=i.description)
-            for r in my_filtered_issue_relations:
-                related_element = redmine.issue.get(r.issue_to_id)
-                print("related_element: ",related_element," : ",related_element.tracker)
-                if (related_element.tracker.id == req_rq_tracker_id):
-                    #print("\t"+r.relation_type+"\t"+str(r.issue_id)+"\t"+str(r.issue_to_id))
-                    prj_graphb.edge(str(i.id),str(r.issue_to_id),color="blue")
+	my_issue_relations = redmine.issue_relation.filter(issue_id=i.id)
+	#print(len(my_issue_relations))
+	my_filtered_issue_relations = list(filter(lambda x: x.issue_to_id != i.id, my_issue_relations))
+	#print(len(my_filtered_issue_relations))
+	if (len(my_issue_relations)>0):
+		nodelabel = "{"+i.subject+"|"+title_str+"}"
+		prj_graphb.node(str(i.id),nodelabel,URL=req_server_url+'/issues/'+str(i.id),tooltip=i.description)
+		for r in my_filtered_issue_relations:
+			related_element = redmine.issue.get(r.issue_to_id)
+			print("related_element: ",related_element," : ",related_element.tracker)
+			if (related_element.tracker.id == req_rq_tracker_id):
+				#print("\t"+r.relation_type+"\t"+str(r.issue_id)+"\t"+str(r.issue_to_id))
+				prj_graphb.edge(str(i.id),str(r.issue_to_id),color="blue")
 
     
-    prj_graph_parent.subgraph(prj_graph)
-    prj_graph_parent.render()
-    prj_graphb_parent.subgraph(prj_graphb)
-    prj_graphb_parent.render()
-    
-    print("project hierarchy diagram file: ",path_root+"h.gv.svg")
-    print("project dependence diagram file: ",path_root+"d.gv.svg")
-    
-    diagrams_h_str = diagrams_str_prefix + str(prj_graph_parent) + diagrams_str_suffix
-    diagrams_d_str = diagrams_str_prefix + str(prj_graphb_parent) + diagrams_str_suffix
-    
-    diagrams_str = diagrams_pattern.replace('$$h',diagrams_h_str)
-    diagrams_str = diagrams_str.replace('$$d',diagrams_d_str)    
-    redmine.project.update(resource_id=my_project.id,
-                     custom_fields=[{'id': reqprj_diagrams_cf_id,'value': diagrams_str}]
-                     )    
-    
-    print("Acabamos")
+prj_graph_parent.subgraph(prj_graph)
+prj_graph_parent.render()
+prj_graphb_parent.subgraph(prj_graphb)
+prj_graphb_parent.render()
+
+print("project hierarchy diagram file: ",path_root+"h.gv.svg")
+print("project dependence diagram file: ",path_root+"d.gv.svg")
+
+diagrams_h_str = diagrams_str_prefix + str(prj_graph_parent) + diagrams_str_suffix
+diagrams_d_str = diagrams_str_prefix + str(prj_graphb_parent) + diagrams_str_suffix
+
+diagrams_str = diagrams_pattern.replace('$$h',diagrams_h_str)
+diagrams_str = diagrams_str.replace('$$d',diagrams_d_str)    
+redmine.project.update(resource_id=my_project.id,
+				 custom_fields=[{'id': reqprj_diagrams_cf_id,'value': diagrams_str}]
+				 )    
+
+print("Acabamos")
 
 
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
