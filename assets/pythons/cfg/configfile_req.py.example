@@ -3,12 +3,15 @@
 req_server_url = 'http://localhost:5555'                        # The Redmine U$
 req_key_txt = 'd32df1cc535477adb95998fb4633bc50e8e664e3'	# The API key of the user (or bot) in which name the actions are undertaken.
 req_project_id_str = 'rqtest3'					# The ID of the Redmine project where the requirements are stored.
+
 req_cf_base = 0
 req_rq_tracker_base = 3			# The numerical ID of the tracker used to model the requirements
 
 import os
 
 cfg_homedir = os.getenv("HOME")
+if (cfg_homedir is None):
+    cfg_homedir = os.getenv('HOMEDRIVE')+os.getenv("HOMEPATH")
 
 # Trackers section
 # TODO: Include this information in Redmine, so the system can retrieve it
