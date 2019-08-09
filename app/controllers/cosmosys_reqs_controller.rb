@@ -1,12 +1,12 @@
 class CosmosysReqsController < ApplicationController
-  before_action :find_project#, :authorize, :only => [:index,:execute]
+  before_action :find_project#, :authorize, :except => [:tree]
 
   def index
     @cosmosys_reqs = CosmosysReq.all
-  end
+  end 
 
   def create_repo
-    print("\n\n\n\n\n\n")
+    print("\n\n\n\n\n\n") 
     if request.get? then
       print("GET!!!!!")
     else
@@ -146,7 +146,7 @@ class CosmosysReqsController < ApplicationController
       else
         # The setting exists, so we can create the origin and destination paths
         repodir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
-        repodir["%project_id%"]= @project.identifier
+        repodir["%project_id%"] = @project.identifier
         # Now we have to know if the destination directory already exists
         if (File.directory?(repodir)) then
           if (Setting.plugin_cosmosys_req['relative_reporting_path'].blank?) then
@@ -158,10 +158,10 @@ class CosmosysReqsController < ApplicationController
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
                 comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
-                output = `#{comando}`
-                p output
+                @output = `#{comando}`
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
+                @output += "Ok: reports generated and diagrams updated.\n"
               else
                 @output += "Error: the img path is not found\n"
                 print(imgpath)
@@ -177,9 +177,9 @@ class CosmosysReqsController < ApplicationController
         end
       end
       if @output.size <= 255 then 
-          flash[:notice] = @output.to_s
+        flash[:notice] = @output.to_s
       else
-          flash[:notice] = "Message too long\n"
+        flash[:notice] = "Message too long\n"
       end
       print(@output)
     end
@@ -422,6 +422,7 @@ class CosmosysReqsController < ApplicationController
         @project = Project.first
       end
     end
+    print("Project: "+@project.to_s+"\n")
   end
 
 end

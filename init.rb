@@ -9,15 +9,17 @@ Redmine::Plugin.register :cosmosys_req do
 
   permission :view_cosmosys, :cosmosys_reqs => :project_menu
   permission :tree_cosmosys, :cosmosys_reqs => :tree
-  permission :download_cosmosys, :cosmosys_reqs => :index
-  permission :dstopexport_cosmosys, :cosmosys_reqs => :index
-  permission :dstopimport_cosmosys, :cosmosys_reqs => :index
-  permission :propagate_cosmosys, :cosmosys_reqs => :index
-  permission :report_cosmosys, :cosmosys_reqs => :index
-  permission :upload_cosmosys, :cosmosys_reqs => :index
-  permission :validate_cosmosys, :cosmosys_reqs => :index
+  permission :download_cosmosys, :cosmosys_reqs => :download
+  permission :dstopexport_cosmosys, :cosmosys_reqs => :dstopexport
+  permission :dstopimport_cosmosys, :cosmosys_reqs => :dstopimport
+  permission :propagate_cosmosys, :cosmosys_reqs => :propagate
+  permission :report_cosmosys, :cosmosys_reqs => :report
+  permission :upload_cosmosys, :cosmosys_reqs => :upload
+  permission :validate_cosmosys, :cosmosys_reqs => :validate
+  permission :create_repo, :cosmosys_reqs => :create_repo
 
   menu :project_menu, :cosmosys_reqs, {:controller => 'cosmosys_reqs', :action => 'project_menu' }, :caption => 'cosmoSys-Req', :after => :activity, :param => :id
+  menu :project_menu, :cosmosys_req_tree, {:controller => 'cosmosys_reqs', :action => 'tree' }, :caption => 'ReqTree', :after => :issues, :param => :id
 
   settings :default => {
     'repo_local_path' => "/home/cosmobots/repos/req_%project_id%",
