@@ -158,6 +158,8 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
+                comando = "rm #{imgpath}/*"
+                `#{comando}`
                 comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
                 #@output = `#{comando}`
                 require 'open3'
