@@ -158,18 +158,8 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "rm #{imgpath}/*"
-                `#{comando}`
                 comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
-                #@output = `#{comando}`
-                require 'open3'
-                stdin, stdout, stderr, wait_thr = Open3.popen3("#{comando}")
-                stdin.close
-                stdout.each do |ele|
-                  print ("ELE"+ele+"\n")
-                  @output = ele
-                  @jsonoutput = JSON.parse(ele)
-                end
+                @output = `#{comando}`
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
                 @output += "Ok: reports generated and diagrams updated.\n"
@@ -269,12 +259,14 @@ class CosmosysReqsController < ApplicationController
       print(comando)
       require 'open3'
       require 'json'
-      stdin, stdout, stderr, wait_thr = Open3.popen3("#{comando}")
+
+      stdin, stdout, stderr = Open3.popen3("#{comando}")
       stdout.each do |ele|
         print ("ELE"+ele+"\n")
         @output = ele
         @jsonoutput = JSON.parse(ele)
       end
+
       respond_to do |format|
         format.html {
           if @output then 
