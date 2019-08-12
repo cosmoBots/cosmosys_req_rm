@@ -161,19 +161,12 @@ class CosmosysReqsController < ApplicationController
                 comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
                 #@output = `#{comando}`
                 require 'open3'
-                stdin, stdout, stderr, wait_thr = Open3.popen3("#{comando}")
-                pid = wait_thr[:pid]  # pid of the started process
-                stdin.close  # stdin, stdout and stderr should be closed explicitly in this form.
-                stdout.close
-                stderr.close
-=begin
-                stdout.each do |ele|
-                    print ("ELE"+ele+"\n")
-                    @output = ele
-                    #jsonoutput = JSON.parse(ele)
-                end
-=end
-                exit_status = wait_thr.value  # Process::Status object returned.
+                Open3.popen3("#{comando}") {|stdin, stdout, stderr, wait_thr|
+                  pid = wait_thr.pid # pid of the started process.
+                  stdin.close
+                  p stdout
+                  exit_status = wait_thr.value # Process::Status object returned.
+                }
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
                 @output += "Ok: reports generated and diagrams updated.\n"
