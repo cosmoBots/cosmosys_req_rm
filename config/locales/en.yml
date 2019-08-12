@@ -830,8 +830,8 @@ en:
   label_relates_to: Related to
   label_duplicates: Is duplicate of
   label_duplicated_by: Has duplicate
-  label_blocks: Blocks
-  label_blocked_by: Blocked by
+  label_blocks: Imposes on
+  label_blocked_by: Depends on
   label_precedes: Precedes
   label_follows: Follows
   label_copied_to: Copied to

@@ -124,6 +124,7 @@ class CosmosysReqsController < ApplicationController
         end
       end
       if @output.size <= 255 then 
+          @output += "Ok: Requirements uploaded.\n"
           flash[:notice] = @output.to_s
       else
           flash[:notice] = "Message too long\n"

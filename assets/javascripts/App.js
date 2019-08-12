@@ -1,5 +1,6 @@
 import React from 'react';
 import SortableTree, { toggleExpandedForAll } from 'react-sortable-tree';
+import FileExplorerTheme from 'react-sortable-tree-theme-minimal';
 
 import treeData from './treeData';
 
@@ -112,7 +113,8 @@ export default class App extends React.Component {
                 'path:',
                 path
               )
-            }
+            theme={FileExplorerTheme}
+             }
             maxDepth={maxDepth}
             searchQuery={searchString}
             searchFocusOffset={searchFocusIndex}
