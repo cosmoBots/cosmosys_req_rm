@@ -1,6 +1,8 @@
 class CosmosysReqsController < ApplicationController
   before_action :find_project#, :authorize, :except => [:tree]
 
+  self.mutex = Mutex.new
+
   def index
     @cosmosys_reqs = CosmosysReq.all
   end 
@@ -158,17 +160,16 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
+                FileUtils.rm_rf(Dir[imgpath+'/*'])
                 comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
                 print(comando)
                 require 'open3'
-                require 'json'
-
-                stdin, stdout, stderr = Open3.popen3("#{comando}")
-                stdin.close
-                stdout.each do |ele|
-                  print ("->"+ele+"\n")
-                  @output = ele
-                  @jsonoutput = JSON.parse(ele)
+                mutex.synchronize do
+                            stdin, stdout, stderr = Open3.popen3("#{comando}")
+                            stdin.close
+                            stdout.each do |ele|
+                              print ("-> "+ele+"\n")
+                            end
                 end
 
                 git_commit_repo(@project,"[reqbot] reports generated")
@@ -270,12 +271,13 @@ class CosmosysReqsController < ApplicationController
       print(comando)
       require 'open3'
       require 'json'
-
-      stdin, stdout, stderr = Open3.popen3("#{comando}")
-      stdout.each do |ele|
-        print ("ELE"+ele+"\n")
-        @output = ele
-        @jsonoutput = JSON.parse(ele)
+      mutex.synchronize do
+          stdin, stdout, stderr = Open3.popen3("#{comando}")
+          stdout.each do |ele|
+            print ("ELE"+ele+"\n")
+            @output = ele
+            @jsonoutput = JSON.parse(ele)
+          end
       end
 
       respond_to do |format|
