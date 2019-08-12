@@ -194,16 +194,16 @@ en:
   error_scm_annotate: "The entry does not exist or cannot be annotated."
   error_scm_annotate_big_text_file: "The entry cannot be annotated, as it exceeds the maximum text file size."
   error_issue_not_found_in_project: 'The requirement was not found or does not belong to this project'
-  error_no_tracker_in_project: 'No tracker is associated to this project. Please check the Project settings.'
+  error_no_tracker_in_project: 'No class is associated to this project. Please check the Project settings.'
   error_no_default_issue_status: 'No default requirement status is defined. Please check your configuration (Go to "Administration -> Requirement statuses").'
   error_can_not_delete_custom_field: Unable to delete custom field
-  error_can_not_delete_tracker: "This tracker contains requirements and cannot be deleted."
+  error_can_not_delete_tracker: "This class contains requirements and cannot be deleted."
   error_can_not_remove_role: "This role is in use and cannot be deleted."
   error_can_not_reopen_issue_on_closed_version: 'An requirement assigned to a closed version cannot be reopened'
   error_can_not_archive_project: This project cannot be archived
   error_issue_done_ratios_not_updated: "Requirement done ratios not updated."
-  error_workflow_copy_source: 'Please select a source tracker or role'
-  error_workflow_copy_target: 'Please select target tracker(s) and role(s)'
+  error_workflow_copy_source: 'Please select a source class or role'
+  error_workflow_copy_target: 'Please select target class(s) and role(s)'
   error_unable_delete_issue_status: 'Unable to delete requirement status'
   error_unable_to_connect: "Unable to connect (%{value})"
   error_attachment_too_big: "This file cannot be uploaded because it exceeds the maximum allowed file size (%{max_size})"
@@ -216,8 +216,8 @@ en:
   error_can_not_read_import_file: "An error occurred while reading the file to import"
   error_attachment_extension_not_allowed: "Attachment extension %{extension} is not allowed"
   error_ldap_bind_credentials: "Invalid LDAP Account/Password"
-  error_no_tracker_allowed_for_new_issue_in_project: "The project doesn't have any trackers for which you can create an requirement"
-  error_no_projects_with_tracker_allowed_for_new_issue: "There are no projects with trackers for which you can create an requirement"
+  error_no_tracker_allowed_for_new_issue_in_project: "The project doesn't have any classes for which you can create an requirement"
+  error_no_projects_with_tracker_allowed_for_new_issue: "There are no projects with classes for which you can create an requirement"
   error_move_of_child_not_possible: "Subreq %{child} could not be moved to the new project: %{errors}"
   error_cannot_reassign_time_entries_to_an_issue_about_to_be_deleted: "Spent time cannot be reassigned to an requirement that is about to be deleted"
   warning_fields_cleared_on_bulk_edit: "Changes will result in the automatic deletion of values from one or more fields on the selected objects"
@@ -279,7 +279,7 @@ en:
   field_notes: Notes
   field_is_closed: Requirement closed
   field_is_default: Default value
-  field_tracker: Tracker
+  field_tracker: Class
   field_subject: RqID
   field_due_date: Due date
   field_assigned_to: Assignee
@@ -453,7 +453,7 @@ en:
   setting_thumbnails_size: Thumbnails size (in pixels)
   setting_non_working_week_days: Non-working days
   setting_jsonp_enabled: Enable JSONP support
-  setting_default_projects_tracker_ids: Default trackers for new projects
+  setting_default_projects_tracker_ids: Default classes for new projects
   setting_mail_handler_excluded_filenames: Exclude attachments by name
   setting_force_default_language_for_anonymous: Force default language for anonymous users
   setting_force_default_language_for_loggedin: Force default language for logged-in users
@@ -584,10 +584,10 @@ en:
   label_member: Member
   label_member_new: New member
   label_member_plural: Members
-  label_tracker: Tracker
-  label_tracker_plural: Trackers
-  label_tracker_all: All trackers
-  label_tracker_new: New tracker
+  label_tracker: Class
+  label_tracker_plural: Classes
+  label_tracker_all: All classes
+  label_tracker_new: New class
   label_workflow: Workflow
   label_issue_status: Requirement status
   label_issue_status_plural: Requirement statuses
@@ -930,7 +930,7 @@ en:
   label_copy_source: Source
   label_copy_target: Target
   label_copy_same_as_target: Same as target
-  label_display_used_statuses_only: Only display statuses that are used by this tracker
+  label_display_used_statuses_only: Only display statuses that are used by this class
   label_api_access_key: API access key
   label_missing_api_access_key: Missing an API access key
   label_api_access_key_created_on: "API access key created %{value} ago"
@@ -1108,7 +1108,7 @@ en:
   text_min_max_length_info: 0 means no restriction
   text_project_destroy_confirmation: Are you sure you want to delete this project and related data?
   text_subprojects_destroy_warning: "Its subproject(s): %{value} will be also deleted."
-  text_workflow_edit: Select a role and a tracker to edit the workflow
+  text_workflow_edit: Select a role and a class to edit the workflow
   text_are_you_sure: Are you sure?
   text_journal_changed: "%{label} changed from %{old} to %{new}"
   text_journal_changed_no_detail: "%{label} updated"
@@ -1122,7 +1122,7 @@ en:
   text_caracters_maximum: "%{count} characters maximum."
   text_caracters_minimum: "Must be at least %{count} characters long."
   text_length_between: "Length between %{min} and %{max} characters."
-  text_tracker_no_workflow: No workflow defined for this tracker
+  text_tracker_no_workflow: No workflow defined for this class
   text_unallowed_characters: Unallowed characters
   text_comma_separated: Multiple values allowed (comma separated).
   text_line_separated: Multiple values allowed (one line for each value).
@@ -1134,7 +1134,7 @@ en:
   text_issue_category_destroy_assignments: Remove category assignments
   text_issue_category_reassign_to: Reassign requirements to this category
   text_user_mail_option: "For unselected projects, you will only receive notifications about things you watch or you're involved in (eg. requirements you're the author or assignee)."
-  text_no_configuration_data: "Roles, trackers, requirement statuses and workflow have not been configured yet.\nIt is highly recommended to load the default configuration. You will be able to modify it once loaded."
+  text_no_configuration_data: "Roles, classes, requirement statuses and workflow have not been configured yet.\nIt is highly recommended to load the default configuration. You will be able to modify it once loaded."
   text_load_default_configuration: Load the default configuration
   text_status_changed_by_changeset: "Applied in changeset %{value}."
   text_time_logged_by_changeset: "Applied in changeset %{value}."
