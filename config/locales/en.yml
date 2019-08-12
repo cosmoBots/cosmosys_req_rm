@@ -128,10 +128,10 @@ en:
         greater_than_start_date: "must be greater than start date"
         not_same_project: "doesn't belong to the same project"
         circular_dependency: "This relation would create a circular dependency"
-        cant_link_an_issue_with_a_descendant: "An requirement cannot be linked to one of its subtasks"
+        cant_link_an_issue_with_a_descendant: "An requirement cannot be linked to one of its subreqs"
         earlier_than_minimum_start_date: "cannot be earlier than %{date} because of preceding requirements"
         not_a_regexp: "is not a valid regular expression"
-        open_issue_with_closed_parent: "An open requirement cannot be attached to a closed parent task"
+        open_issue_with_closed_parent: "An open requirement cannot be attached to a closed parent req"
 
   actionview_instancetag_blank_option: Please select
 
@@ -218,7 +218,7 @@ en:
   error_ldap_bind_credentials: "Invalid LDAP Account/Password"
   error_no_tracker_allowed_for_new_issue_in_project: "The project doesn't have any trackers for which you can create an requirement"
   error_no_projects_with_tracker_allowed_for_new_issue: "There are no projects with trackers for which you can create an requirement"
-  error_move_of_child_not_possible: "Subtask %{child} could not be moved to the new project: %{errors}"
+  error_move_of_child_not_possible: "Subreq %{child} could not be moved to the new project: %{errors}"
   error_cannot_reassign_time_entries_to_an_issue_about_to_be_deleted: "Spent time cannot be reassigned to an requirement that is about to be deleted"
   warning_fields_cleared_on_bulk_edit: "Changes will result in the automatic deletion of values from one or more fields on the selected objects"
   error_exceeds_maximum_hours_per_day: "Cannot log more than %{max_hours} hours on the same day (%{logged_hours} hours have already been logged)"
@@ -280,7 +280,7 @@ en:
   field_is_closed: Requirement closed
   field_is_default: Default value
   field_tracker: Tracker
-  field_subject: Subject
+  field_subject: RqID
   field_due_date: Due date
   field_assigned_to: Assignee
   field_priority: Priority
@@ -343,7 +343,7 @@ en:
   field_content: Content
   field_group_by: Group results by
   field_sharing: Sharing
-  field_parent_issue: Parent task
+  field_parent_issue: Parent req
   field_member_of_group: "Assignee's group"
   field_assigned_to_role: "Assignee's role"
   field_text: Text field
@@ -405,7 +405,7 @@ en:
   setting_time_format: Time format
   setting_timespan_format: Time span format
   setting_cross_project_issue_relations: Allow cross-project requirement relations
-  setting_cross_project_subtasks: Allow cross-project subtasks
+  setting_cross_project_subtasks: Allow cross-project subreqs
   setting_issue_list_default_columns: Isuses list defaults
   setting_repositories_encodings: Attachments and repositories encodings
   setting_emails_header: Email header
@@ -532,7 +532,7 @@ en:
   permission_delete_messages: Delete messages
   permission_delete_own_messages: Delete own messages
   permission_export_wiki_pages: Export wiki pages
-  permission_manage_subtasks: Manage subtasks
+  permission_manage_subtasks: Manage subreqs
   permission_manage_related_issues: Manage related requirements
   permission_import_issues: Import requirements
 
@@ -935,7 +935,7 @@ en:
   label_missing_api_access_key: Missing an API access key
   label_api_access_key_created_on: "API access key created %{value} ago"
   label_profile: Profile
-  label_subtask_plural: Subtasks
+  label_subtask_plural: Subreqs
   label_project_copy_notifications: Send email notifications during the project copy
   label_principal_search: "Search for user or group:"
   label_user_search: "Search for user:"
@@ -949,7 +949,7 @@ en:
   label_child_revision: Child
   label_export_options: "%{export_format} export options"
   label_copy_attachments: Copy attachments
-  label_copy_subtasks: Copy subtasks
+  label_copy_subtasks: Copy subreqs
   label_item_position: "%{position} of %{count}"
   label_completed_versions: Completed versions
   label_search_for_watchers: Search for watchers to add
@@ -1000,9 +1000,9 @@ en:
   label_enable_notifications: Enable notifications
   label_disable_notifications: Disable notifications
   label_blank_value: blank
-  label_parent_task_attributes: Parent tasks attributes
-  label_parent_task_attributes_derived: Calculated from subtasks
-  label_parent_task_attributes_independent: Independent of subtasks
+  label_parent_task_attributes: Parent reqs attributes
+  label_parent_task_attributes_derived: Calculated from subreqs
+  label_parent_task_attributes_independent: Independent of subreqs
   label_time_entries_visibility_all: All time entries
   label_time_entries_visibility_own: Time entries created by the user
   label_member_management: Member management
@@ -1139,7 +1139,7 @@ en:
   text_status_changed_by_changeset: "Applied in changeset %{value}."
   text_time_logged_by_changeset: "Applied in changeset %{value}."
   text_issues_destroy_confirmation: 'Are you sure you want to delete the selected requirement(s)?'
-  text_issues_destroy_descendants_confirmation: "This will also delete %{count} subtask(s)."
+  text_issues_destroy_descendants_confirmation: "This will also delete %{count} subreq(s)."
   text_time_entries_destroy_confirmation: 'Are you sure you want to delete the selected time entr(y/ies)?'
   text_select_project_modules: 'Select modules to enable for this project:'
   text_default_administrator_account_changed: Default administrator account changed
