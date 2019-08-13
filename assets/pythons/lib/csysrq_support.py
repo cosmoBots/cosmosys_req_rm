@@ -2,14 +2,16 @@ def draw_descendants(redmine,server_url,issue_id,graph,req_title_cf_id):
     my_issue = redmine.issue.get(issue_id)
     title_str = my_issue.custom_fields.get(req_title_cf_id).value
     nodelabel = "{"+my_issue.subject+"|"+title_str+"}"
-    graph.node(str(my_issue.id),nodelabel,URL=server_url+'/issues/'+str(my_issue.id),tooltip=my_issue.description)
+    descr = getattr(my_issue, 'description', my_issue.subject)
+    graph.node(str(my_issue.id),nodelabel,URL=server_url+'/issues/'+str(my_issue.id),tooltip=descr)
     #print(my_issue.id,": ",my_issue.subject)
     for child in my_issue.children:
         #print(child.id,": ",child.subject)
         my_child = redmine.issue.get(child.id)
         title_str = my_child.custom_fields.get(req_title_cf_id).value
         nodelabel = "{"+my_child.subject+"|"+title_str+"}"
-        graph.node(str(child.id),nodelabel,URL=server_url+'/issues/'+str(child.id),tooltip=my_issue.description)
+        childdescr = getattr(my_child, 'description', my_child.subject)
+        graph.node(str(child.id),nodelabel,URL=server_url+'/issues/'+str(child.id),tooltip=childdescr)
         graph.edge(str(my_issue.id),str(child.id))
         draw_descendants(redmine,server_url,child.id,graph,req_title_cf_id)
     
@@ -19,7 +21,8 @@ def draw_ancestors(redmine,server_url,issue_id,child_id,graph,req_title_cf_id):
     my_issue = redmine.issue.get(issue_id)
     title_str = my_issue.custom_fields.get(req_title_cf_id).value
     nodelabel = "{"+my_issue.subject+"|"+title_str+"}"
-    graph.node(str(my_issue.id),nodelabel,URL=server_url+'/issues/'+str(my_issue.id),tooltip=my_issue.description)
+    descr = getattr(my_issue, 'description', my_issue.subject)
+    graph.node(str(my_issue.id),nodelabel,URL=server_url+'/issues/'+str(my_issue.id),tooltip=descr)
     graph.edge(str(my_issue.id),str(child_id))
     # https://stackoverflow.com/questions/37543513/read-the-null-value-in-python-redmine-api
     # Short answer: Use getattr(id, 'assigned_to', None) instead of id.assigned_to.
@@ -38,7 +41,8 @@ def draw_postpropagation(redmine,server_url,issue_id,graph,tracker_id,req_title_
         print("* Node post",my_issue)
         title_str = my_issue.custom_fields.get(req_title_cf_id).value
         nodelabel = "{"+my_issue.subject+"|"+title_str+"}"
-        graph.node(str(my_issue.id),nodelabel,URL=server_url+'/issues/'+str(my_issue.id),tooltip=my_issue.description)
+        descr = getattr(my_issue, 'description', my_issue.subject)
+        graph.node(str(my_issue.id),nodelabel,URL=server_url+'/issues/'+str(my_issue.id),tooltip=descr)
         #print(my_issue.id,": ",my_issue.subject)
 
         my_issue_relations = redmine.issue_relation.filter(issue_id=my_issue.id)

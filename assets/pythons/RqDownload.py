@@ -218,7 +218,8 @@ for my_issue in my_project_issues:
 
     thistab[currrow,req_upload_id_column].value = my_issue.subject
     thistab[currrow,req_upload_title_column].value = my_issue.custom_fields.get(req_title_cf_id).value
-    thistab[currrow,req_upload_descr_column].value = my_issue.description
+    descr = getattr(my_issue, 'description', "")
+    thistab[currrow,req_upload_descr_column].value = descr
     thistab[currrow,req_upload_source_column].value = my_issue.custom_fields.get(req_sources_cf_id).value
     thistab[currrow,req_upload_type_column].value = my_issue.custom_fields.get(req_type_cf_id).value
     thistab[currrow,req_upload_level_column].value = my_issue.custom_fields.get(req_level_cf_id).value

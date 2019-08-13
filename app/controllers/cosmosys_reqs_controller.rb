@@ -620,11 +620,11 @@ class CosmosysReqsController < ApplicationController
                 require 'json'
 
                 stdin, stdout, stderr = Open3.popen3("#{comando}")
-                stdin.close
+                #stdin.close
                 stdout.each do |ele|
                   print ("->"+ele+"\n")
                   @output = ele
-                  @jsonoutput = JSON.parse(ele)
+                  #@jsonoutput = JSON.parse(ele)
                 end
 
                 git_commit_repo(@project,"[reqbot] reports generated")
@@ -734,7 +734,7 @@ class CosmosysReqsController < ApplicationController
 
       treedata << tree_node
 
-      print treedata
+      #print treedata
 
 
       respond_to do |format|
@@ -899,6 +899,22 @@ class CosmosysReqsController < ApplicationController
 def create_tree(current_issue,reqtracker,reqdoctracker)
     output = ""
     root_url = request.base_url
+    print("base_url:",request.base_url)
+    print("url:",request.url)
+    print("original:",request.original_url)
+    print("host:",request.host)
+    print("host wp:",request.host_with_port)
+    print("filtered_path:",request.filtered_path)
+    print("fullpath:",request.fullpath)
+    print("path_translated:",request.path_translated)
+    print("original_fullpath",request.original_fullpath)
+    print("server_name",request.server_name)
+    print("original_fullpath",request.original_fullpath)
+    print("path",request.path)
+    print("server_addr",request.server_addr)
+    print("host",request.host)
+    print("remote_host",request.remote_host)
+
     output += ("\nissue: " + current_issue.subject)
     issue_url = root_url + '/issues/' + current_issue.id.to_s
     output += ("\nissue_url: " + issue_url.to_s)

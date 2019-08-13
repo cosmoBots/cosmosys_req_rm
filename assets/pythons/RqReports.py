@@ -46,6 +46,10 @@ my_project_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf
 tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
 my_doc_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
 
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("Uno")
 # Ahora recorremos el proyecto y sacamos los diagramas completos de jerarquía y dependencias, y guardamos los ficheros de esos diagramas en la carpeta doc.
 
 # In[ ]:
@@ -74,11 +78,23 @@ prj_graphb_parent = Digraph(name=path_root + "d", format='svg',
 prj_graphb = Digraph(name="clusterD",
                      graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                      engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
+
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("Dos")
+
+
 for i in my_doc_issues + my_project_issues:
     title_str = i.custom_fields.get(req_title_cf_id).value
-    # print("title: ",title_str)
+    print("title: ",title_str)
     nodelabel = "{" + i.subject + "|" + title_str + "}"
-    prj_graph.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=i.description)
+    print(nodelabel)
+    print(str(i.id))
+    print(req_server_url)
+    descr = getattr(i, 'description', i.subject)
+    print(descr)
+    prj_graph.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=descr)
     print(i.id, ": ", i.subject)
     for child in i.children:
         prj_graph.edge(str(i.id), str(child.id))
@@ -86,10 +102,11 @@ for i in my_doc_issues + my_project_issues:
     my_issue_relations = redmine.issue_relation.filter(issue_id=i.id)
     # print(len(my_issue_relations))
     my_filtered_issue_relations = list(filter(lambda x: x.issue_to_id != i.id, my_issue_relations))
-    # print(len(my_filtered_issue_relations))
+    print("relations: ",len(my_filtered_issue_relations))
+    print(my_filtered_issue_relations)
     if (len(my_issue_relations) > 0):
         nodelabel = "{" + i.subject + "|" + title_str + "}"
-        prj_graphb.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=i.description)
+        prj_graphb.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=descr)
         for r in my_filtered_issue_relations:
             related_element = redmine.issue.get(r.issue_to_id)
             print("related_element: ", related_element, " : ", related_element.tracker)
@@ -97,10 +114,27 @@ for i in my_doc_issues + my_project_issues:
                 # print("\t"+r.relation_type+"\t"+str(r.issue_id)+"\t"+str(r.issue_to_id))
                 prj_graphb.edge(str(i.id), str(r.issue_to_id), color="blue")
 
+
+    print("\n\n\n\n\n")
+    print("\n\n\n\n\n")
+    print("\n\n\n\n\n")
+    print("Tres")
+
+
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("Tres bis")
+
 prj_graph_parent.subgraph(prj_graph)
 prj_graph_parent.render()
 prj_graphb_parent.subgraph(prj_graphb)
 prj_graphb_parent.render()
+
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("Cuatro")
 
 print("project hierarchy diagram file: ", path_root + "h.gv.svg")
 print("project dependence diagram file: ", path_root + "d.gv.svg")
@@ -113,8 +147,10 @@ diagrams_str = diagrams_str.replace('$$d', diagrams_d_str)
 redmine.project.update(resource_id=my_project.id,
                        custom_fields=[{'id': reqprj_diagrams_cf_id, 'value': diagrams_str}]
                        )
-
-print("Acabamos")
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("\n\n\n\n\n")
+print("Acabamos graficos totales")
 
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
 
@@ -148,8 +184,9 @@ for my_issue in my_doc_issues + my_project_issues:
 
     title_str = target_issue.custom_fields.get(req_title_cf_id).value
     nodelabel = "{" + target_issue.subject + "|" + title_str + "}"
+    descr = getattr(target_issue, 'description', target_issue.subject)
     prj_graphc.node(str(target_issue.id), nodelabel, URL=req_server_url + '/issues/' + str(target_issue.id),
-                    color='green', tooltip=target_issue.description)
+                    color='green', tooltip=descr)
     prj_graphc_parent.subgraph(prj_graphc)
     prj_graphc_parent.render()
     symlink_path = img_path + "/" + my_issue.subject + "_" + "h.gv.svg"
@@ -175,8 +212,9 @@ for my_issue in my_doc_issues + my_project_issues:
         draw_prepropagation(redmine, req_server_url, target_issue_id, prj_graphd, req_rq_tracker_id, req_title_cf_id)
         title_str = my_issue.custom_fields.get(req_title_cf_id).value
         nodelabel = "{" + my_issue.subject + "|" + title_str + "}"
+        descr = getattr(my_issue, 'description', my_issue.subject)
         prj_graphd.node(str(my_issue.id), nodelabel, URL=req_server_url + '/issues/' + str(my_issue.id), color='green',
-                        tooltip=my_issue.description)
+                        tooltip=descr)
         prj_graphd_parent.subgraph(prj_graphd)
         prj_graphd_parent.render()
         symlink_path = img_path + "/" + my_issue.subject + "_" + "d.gv.svg"
@@ -235,17 +273,22 @@ for i in my_project_issues:
     else:
         target_name = None
 
+    descr = getattr(my_issue, 'description', my_issue.subject)
+    print("thisissue:",i)
+    srcs = getattr(my_issue.custom_fields.get(req_sources_cf_id),'value',"")
+    val = getattr(my_issue.custom_fields.get(req_value_cf_id),'value',"")
+    var = getattr(my_issue.custom_fields.get(req_var_cf_id),'value',"")
     json_issue = {
         'id': my_issue.id,
         'subject': my_issue.subject,
-        'description': my_issue.description,
+        'description': descr,
         'title': my_issue.custom_fields.get(req_title_cf_id).value,
         'type': my_issue.custom_fields.get(req_type_cf_id).value,
         'level': my_issue.custom_fields.get(req_level_cf_id).value,
-        'sources': my_issue.custom_fields.get(req_sources_cf_id).value,
+        'sources': srcs,
         'rationale': my_issue.custom_fields.get(req_rationale_cf_id).value,
-        'rq_value': my_issue.custom_fields.get(req_value_cf_id).value,
-        'rq_var': my_issue.custom_fields.get(req_var_cf_id).value,
+        'rq_value': val,
+        'rq_var': var,
         'chapter': my_issue.custom_fields.get(req_chapter_cf_id).value,
         'target': target_name,
         'state': status_name,
@@ -291,10 +334,11 @@ import json
 
 def create_tree(current_issue):
     print("issue: " + current_issue.subject)
+    descr = getattr(current_issue, 'description', current_issue.subject)
     tree_node = {'title': current_issue.custom_fields.get(
         req_chapter_cf_id).value + ": " + current_issue.subject + ": " + current_issue.custom_fields.get(
         req_title_cf_id).value,
-                 'subtitle': current_issue.description,
+                 'subtitle': descr,
                  'expanded': True,
                  'children': [],
                  }
