@@ -87,11 +87,67 @@ class CosmosysReqsController < ApplicationController
   end
 
   def upload
+
+    # This section defines the connection between the CosmoSys_Req tools and the OpenDocument spreadsheet used for importing requirements
+    req_upload_start_column = 0
+    req_upload_end_column = 16
+    req_upload_start_row = 0
+    req_upload_end_row = 199
+
+    #This section defines the document information cell indexes to retrieve information for the documents from the upload file
+    req_upload_doc_row = 0
+    req_upload_doc_name_column = 1
+    req_upload_doc_prefix_column = 10 # 5
+    req_upload_doc_parent_column = 8 # 3
+
+    #This section defines the requirements information cell indexes to retrieve information for the requirements from the upload file
+    req_upload_first_row = 2
+    req_upload_column_number = req_upload_end_column + 1
+    req_upload_id_column = 4
+    req_upload_related_column = 10
+    req_upload_title_column = 5
+    req_upload_descr_column = 6
+    req_upload_source_column = 11
+    req_upload_type_column = 9
+    req_upload_level_column = 8
+    req_upload_rationale_column = 15
+    req_upload_var_column = 13
+    req_upload_value_column = 14
+    req_upload_chapter_column = 0
+    req_upload_target_column = 12
+    req_upload_parent_column = 7
+    req_upload_status_column = 16
+
+    req_upload_version_column = 5
+    req_upload_version_startrow = 1
+    req_upload_version_endrow = 25
+
+
     print("\n\n\n\n\n\n")
+
+    my_project_versions = []
+    @project.versions.each { |v| 
+      my_project_versions << v
+    }
+    print my_project_versions
+
     if request.get? then
       print("GET!!!!!")
     else
       print("POST!!!!!")
+
+      reqdoctracker = Tracker.find_by_name('ReqDoc')
+      reqtracker = Tracker.find_by_name('Req')
+      cftitle = IssueCustomField.find_by_name('RqTitle')
+      cfchapter = IssueCustomField.find_by_name('RqChapter')
+      cfprefix = IssueCustomField.find_by_name('RqPrefix')
+      cfsource = IssueCustomField.find_by_name('RqSources')
+      cftype = IssueCustomField.find_by_name('RqType')
+      cflevel = IssueCustomField.find_by_name('RqLevel')
+      cfrationale = IssueCustomField.find_by_name('RqRationale')
+      cfvar = IssueCustomField.find_by_name('RqVar')
+      cfvalue = IssueCustomField.find_by_name('RqValue')
+
       git_pull_repo(@project)
       @output = ""
       # First we check if the setting for the local repo is set
@@ -110,9 +166,407 @@ class CosmosysReqsController < ApplicationController
           else
             uploadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_uploadfile_path']
             if (File.exists?(uploadfilepath)) then
-              comando = "python3 plugins/cosmosys_req/assets/pythons/RqUpload.py #{@project.id} #{uploadfilepath}"
-              output = `#{comando}`
-              p output
+
+              # Process Dict
+              book = Rspreadsheet.open(uploadfilepath)
+              dictsheet = book.worksheets('Dict')
+              introsheet = book.worksheets('Intro')
+              templatesheet = book.worksheets('Template')
+
+              # Import versions
+              rowindex = req_upload_version_startrow+1
+              while (rowindex <= req_upload_version_endrow+1) do
+                d = dictsheet.row(rowindex)
+                rowindex += 1
+                thisversion = d[req_upload_version_column+1]
+                if (thisversion!=nil) then
+                  print(rowindex.to_s + ": " + thisversion)
+                  findVersionSuccess = false
+                  thisVersionId = nil
+                  my_project_versions.each { |v|  
+                      if not(findVersionSuccess) then
+                          if (v.name == thisversion) then
+                              findVersionSuccess = true
+                              print("la version ",thisversion," ya existe")
+                          end
+                      end
+                  }
+                  if not findVersionSuccess then
+                      print("la version " + thisversion + " no existe")
+                      nv = @project.versions.new
+                      nv.name = thisversion
+                      nv.status = 'open'
+                      nv.sharing = 'hierarchy'
+                      nv.description = thisversion
+                      nv.save
+                      my_project_versions << nv
+                      print("\nhe creado la version " + nv.name + "con id " + nv.id)
+                  end
+                end
+              end
+
+              sheetindex = 1
+              thissheet = book.worksheets(sheetindex)
+              while (thissheet != nil) do
+                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                    # Tratamos la hoja en concreto
+                    docidstr = thissheet.name
+                    print("DocID: "+docidstr)
+                    # Obtenemos la informacion de la fila donde estan los datos adicionales del documento de requisito
+                    d = thissheet.row(req_upload_doc_row+1)
+                    # Como nombre del documento y "description", tomamos la columna de docname
+                    docname = d[req_upload_doc_name_column+1]
+                    print("DocName: ",docname)
+                    # Como prefijo de los codigos generados por el documento, tomamos la columna de prefijo
+                    prefixstr = d[req_upload_doc_prefix_column+1]
+                    print("\nprefijo: "+ prefixstr)
+                    print("\ndatos:",d)
+                    # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
+                    thisdoc = @project.issues.find_by_subject(docidstr)
+                    if (thisdoc == nil) then
+                      # no existe el reqdoc asociado a la pestaña, lo creo
+                      print ("Creando documento " + docidstr)
+                      thisdoc = @project.issues.new
+                      thisdoc.author = User.current
+                      thisdoc.tracker = reqdoctracker
+                      thisdoc.subject = docidstr
+                      thisdoc.description = docname
+                      thisdoc.save
+                    else                      
+                      print("si existe el documento")
+                      thisdoc.description = docname
+                    end
+                      cft = thisdoc.custom_values.find_by_custom_field_id(cftitle.id)
+                      cft.value = docname
+                      cft.save                      
+                      cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
+                      cfp.value = prefixstr
+                      cfp.save
+                      cfc = thisdoc.custom_values.find_by_custom_field_id(cfchapter.id)
+                      cfc.value = prefixstr
+                      cfc.save
+                      thisdoc.save
+                      print("He actualizado o creado el documento con id "+thisdoc.id.to_s)
+                end
+                sheetindex += 1
+                thissheet = book.worksheets(sheetindex)
+              end
+
+              # Vamos a buscar los documentos padre de los documentos ya existentes
+              sheetindex = 1
+              thissheet = book.worksheets(sheetindex)
+              while (thissheet != nil) do
+                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                    # Tratamos la hoja en concreto
+                    docidstr = thissheet.name
+                    print("DocID: "+docidstr)
+                    # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
+                    thisdoc = @project.issues.find_by_subject(docidstr)
+                    print("rqid: "+thisdoc.subject)
+                    d = thissheet.row(req_upload_doc_row+1)
+                    parentdocstr = d[req_upload_doc_parent_column+1]
+                    if (parentdocstr != nil) then
+                      print("parent str: " + parentdocstr)
+                      parentdoc = @project.issues.find_by_subject(parentdocstr)
+                      print("parent: ",parentdoc)
+                      print("parent id:",parentdoc.id)
+                      thisdoc.parent = parentdoc
+                      thisdoc.save
+                    else
+                      print("error, no encontramos el padre")
+                    end
+                end
+                sheetindex += 1
+                thissheet = book.worksheets(sheetindex)
+              end
+
+
+# Ya tenemos los documentos de requisitos (pestañas) cargados como requisitos padres.  Ahora puedo recorrer los requisitos de cada una de las pestañas y crear los requisitos que falten.
+
+# In[ ]:
+
+              status_dict = {}
+              IssueStatus.all.each{|st|
+                  status_dict[st.name] = st.id
+              }
+              sheetindex = 1
+              thissheet = book.worksheets(sheetindex)
+              while (thissheet != nil) do
+                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                  # Tratamos la hoja en concreto
+                  docidstr = thissheet.name
+                  print("DocID: "+docidstr)
+                  # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
+                  thisdoc = @project.issues.find_by_subject(docidstr)
+                  if (thisdoc != nil) then
+                    cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
+                    reqDocPrefix = cfp.value
+                    print("reqDocPrefix:",reqDocPrefix)
+                    current_row = req_upload_first_row+1
+                    while (current_row <= req_upload_end_row) do
+                      r = thissheet.row(current_row)
+                      print("\nTrato la fila "+ current_row.to_s)
+                      title_str = r[req_upload_title_column+1]
+                      if (title_str != nil) then
+                        print("title: ",title_str)
+                        # Estamos procesando las lineas de requisitos
+                        rqidstr = r[req_upload_id_column+1]
+                        print("rqid: "+rqidstr)
+                        descr = r[req_upload_descr_column+1]
+                        reqsource = r[req_upload_source_column+1]
+                        reqtype = r[req_upload_type_column+1]
+                        reqlevel = r[req_upload_level_column+1]
+                        reqrationale = r[req_upload_rationale_column+1]
+                        reqvar = r[req_upload_var_column+1]
+                        reqvalue = r[req_upload_value_column+1]
+                        rqchapterstr = r[req_upload_chapter_column+1].to_s
+                        rqchapterarray = rqchapterstr.split('.')
+                        rqchapterstring = ""
+                        rqchapterarray.each { |e|
+                          rqchapterstring += e.rjust(4, "0")+"."
+                        }
+                        rqchapter = reqDocPrefix + rqchapterstring
+                        rqstatus = status_dict[r[req_upload_status_column+1]]
+                        rqtarget = r[req_upload_target_column+1]
+
+                        # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
+                        thisreq = @project.issues.find_by_subject(rqidstr)
+                        if (thisreq == nil) then
+                          # no existe el req asociado a la fila, lo creo
+                          print ("Creando requisito " + rqidstr)
+                          thisreq = @project.issues.new
+                          thisreq.author = User.current
+                          thisreq.tracker = reqtracker
+                          thisreq.subject = rqidstr
+                          if (descr != nil) then
+                            print("description: ",descr)
+                            thisreq.description = descr
+                          end
+                          thisreq.save
+                        else                      
+                          print("si existe el requisito")
+                          thisreq.tracker = reqtracker
+                          if (descr != nil) then
+                            print("description: ",descr)
+                            thisreq.description = descr
+                          end
+                        end
+                        if (rqstatus != nil) then
+                          print("rqstatus: ",rqstatus)
+                          thisreq.status = IssueStatus.find(rqstatus)
+                        end
+                        if (rqtarget != nil) then
+                          print("rqtarget: ",rqtarget)
+                          findVersionSuccess = false
+                          thisVersion = nil
+                          print("num versiones: ",@project.versions.size)
+                          @project.versions.each { |v|  
+                            if not(findVersionSuccess) then
+                              if (v.name == rqtarget) then
+                                print("LO ENCONTRE!!")
+                                findVersionSuccess = true
+                                thisVersion = v
+                              else
+                                print("NO.....")
+                              end                                
+                            end
+                          }
+                          if (findVersionSuccess) then
+                            print("this version succes????:",findVersionSuccess)
+                            print("thisVersionId: ",thisVersion.id)
+                            thisreq.fixed_version = thisVersion
+                          end
+                        end                        
+                        if (title_str != nil) then
+                          cft = thisreq.custom_values.find_by_custom_field_id(cftitle.id)
+                          cft.value = title_str
+                          cft.save
+                        end
+                        if (rqchapter != nil) then
+                          print("rqchapter: ",rqchapter)
+                          cfc = thisreq.custom_values.find_by_custom_field_id(cfchapter.id)
+                          cfc.value = rqchapter
+                          cfc.save
+                        end
+                        if (reqsource != nil) then
+                          print("reqsource: ",reqsource)
+                          cfs = thisreq.custom_values.find_by_custom_field_id(cfsource.id)
+                          cfs.value = reqsource
+                          cfs.save
+                        end
+                        if (reqtype != nil) then
+                          print("reqtype: ",reqtype)
+                          cfty = thisreq.custom_values.find_by_custom_field_id(cftype.id)
+                          cfty.value = reqtype
+                          cfty.save
+                        end
+                        if (reqlevel != nil) then
+                          print("reqlevel: ",reqlevel)
+                          cfl = thisreq.custom_values.find_by_custom_field_id(cflevel.id)
+                          cfl.value = reqlevel
+                          cfl.save
+                        end
+                        if (reqrationale != nil) then
+                          print("reqrationale: ",reqrationale)
+                          cfr = thisreq.custom_values.find_by_custom_field_id(cfrationale.id)
+                          cfr.value = reqrationale
+                          cfr.save
+                        end
+                        if (reqvar != nil) then
+                          print("reqvar: ",reqvar)
+                          cfv = thisreq.custom_values.find_by_custom_field_id(cfvar.id)
+                          cfv.value = reqvar
+                          cfv.save
+                        end
+                        if (reqvalue != nil) then
+                          print("reqvalue: ",reqvalue)
+                          cfvl = thisreq.custom_values.find_by_custom_field_id(cfvalue.id)
+                          cfvl.value = reqvalue
+                          cfvl.save
+                        end
+
+                        thisreq.save
+                        print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
+
+
+                      end
+                      current_row += 1
+                    end        
+                  else
+                    print("Error, no existe el documento!!!")
+                    thisdoc.description = docname
+                  end
+                end
+                sheetindex += 1
+                thissheet = book.worksheets(sheetindex)
+              end
+
+
+
+
+# Ahora buscamos las relaciones entre requisitos padres e hijos, y de dependencia.
+              sheetindex = 1
+              thissheet = book.worksheets(sheetindex)
+              while (thissheet != nil) do
+                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                  # Tratamos la hoja en concreto
+                  docidstr = thissheet.name
+                  print("DocID: "+docidstr)
+                  # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
+                  thisdoc = @project.issues.find_by_subject(docidstr)
+                  if (thisdoc != nil) then
+                    cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
+                    reqDocPrefix = cfp.value
+                    print("reqDocPrefix:",reqDocPrefix)
+                    current_row = req_upload_first_row+1
+                    while (current_row <= req_upload_end_row) do
+                      r = thissheet.row(current_row)
+                      print("\nTrato la fila "+ current_row.to_s)
+                      title_str = r[req_upload_title_column+1]
+                      if (title_str != nil) then
+                        print("title: ",title_str)
+                        # Estamos procesando las lineas de requisitos
+                        rqidstr = r[req_upload_id_column+1]
+                        print("rqid: "+rqidstr)
+                        thisreq = @project.issues.find_by_subject(rqidstr)
+                        if (thisreq != nil) then
+
+                          parent_str = r[req_upload_parent_column+1]
+                          related_str = r[req_upload_related_column+1]
+
+
+                          if (parent_str != nil) then
+                            print("parent_str: ",parent_str)
+                            parentissue = @project.issues.find_by_subject(parent_str)
+                            if (parentissue != nil) then 
+                              print("parent: ",parentissue)
+                              print("parent id:",parentissue.id)
+                              thisreq.parent = parentissue
+                            else
+                              print("ERROR: No encontramos el requisito padre!!!")
+                            end
+                          else
+                            # El requisito no tiene padre, asi que su padre sera el documento
+                            thisreq.parent = thisdoc
+                          end
+
+                          # Exploramos ahora las relaciones de dependencia
+                          # Busco las relaciones existences con este requisito
+                          # Como voy a tratar las que tienen el requisito como destino, las filtro
+                          my_filtered_req_relations = thisreq.relations_to
+                          # Al cargar requisitos puede ser que haya antiguas relaciones que ya no existan.  Al finalizar la carga
+                          # deberemos eliminar los remanentes, asi que meteremos la lista de relaciones en una lista de remanentes
+                          residual_relations = [] 
+                          my_filtered_req_relations.each { |e|
+                            if (e.relation_type == 'blocks') then
+                              residual_relations << e
+                            end
+                          }
+                          print("residual_relations BEFORE",residual_relations)
+
+                          if (related_str != nil) then
+                            print("related: "+related_str)
+                            if (related_str[0]!='-') then
+                              # Ahora saco todos los ID de los requisitos del otro lado (en el lado origen de la relacion)
+                              related_req = related_str.split()
+                              related_req.each { |rreq|
+                                print("related to: ",rreq)
+                                # Busco ese requisito
+                                blocking_req = @project.issues.find_by_subject(rreq)
+                                if (blocking_req != nil) then
+                                  # Veo si ya existe algun tipo de relacion con el
+                                  preexistent_relations = thisreq.relations_to.where(issue_from: blocking_req)
+                                  print(preexistent_relations)
+                                  already_exists = false
+                                  if (preexistent_relations.size>0) then
+                                    preexistent_relations.each { |rel|
+                                      if (rel.relation_type == 'blocks') then
+                                        print("Ya existe la relacion ",rel)
+                                        residual_relations.delete(rel)
+                                        already_exists = true
+                                      end
+                                    }
+                                  end
+                                  if not(already_exists) then
+                                    print("Creo una nueva relacion")
+                                    relation = blocking_req.relations_from.new
+                                    relation.issue_to=thisreq
+                                    relation.relation_type='blocks'
+                                    relation.save
+                                  end
+
+                                else
+                                  print("Error, no existe el requisito bloqueante")
+                                end
+                              }
+                            end
+                          end
+
+                          # Hay que eliminar todas las relaciones preexistentes que no hayan sido "reescritas"
+                          print("residual_relations AFTER",residual_relations)
+                          residual_relations.each { |r|  
+                              print("Destruyo la relacion", r)
+                              r.issue_from.relations_from.delete(r)
+                              r.destroy
+                          }
+                          thisreq.save
+                          print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
+                        else
+                          print("Error, el requisito no pudo ser encontrado")
+                        end
+
+                      end
+                      current_row += 1
+                    end        
+                  else
+                    print("Error, no existe el documento!!!")
+                    thisdoc.description = docname
+                  end
+                end
+                sheetindex += 1
+                thissheet = book.worksheets(sheetindex)
+              end
+              print("Acabamos")    
             else
               @output += "Error: the upload file is not found\n"
               print(uploadfilepath)
@@ -255,6 +709,10 @@ class CosmosysReqsController < ApplicationController
 
   def tree
     require 'json'
+    reqdoctracker = Tracker.find_by_name('ReqDoc')
+    reqtracker = Tracker.find_by_name('Req')
+    cfchapter = IssueCustomField.find_by_name('RqChapter')
+    cfprefix = IssueCustomField.find_by_name('RqPrefix')
 
     if request.get? then
       print("GET!!!!!")
@@ -266,22 +724,21 @@ class CosmosysReqsController < ApplicationController
         res = @project.issues.where(:parent => nil).limit(1)
         thisnodeid = res.first.id
       end
-      comando = "python3 plugins/cosmosys_req/assets/pythons/RqTree.py #{thisnodeid}"
-      print(comando)
-      require 'open3'
-      require 'json'
+      thisnode=Issue.find(thisnodeid)
 
-      stdin, stdout, stderr = Open3.popen3("#{comando}")
-      stdout.each do |ele|
-        print ("ELE"+ele+"\n")
-        @output = ele
-        @jsonoutput = JSON.parse(ele)
-      end
+      treedata = []
+
+      tree_node = create_tree(thisnode,reqtracker,reqdoctracker)
+
+      treedata << tree_node
+
+      #print treedata
+
 
       respond_to do |format|
         format.html {
           if @output then 
-            if @output.size <= 255 then
+            if @output.size <= 500 then
               flash[:notice] = "Reqtree:\n" + @output.to_s
             else
               flash[:notice] = "Reqtree too long response\n"
@@ -291,41 +748,57 @@ class CosmosysReqsController < ApplicationController
         format.json { 
           require 'json'
           ActiveSupport.escape_html_entities_in_json = false
-          render json: @jsonoutput
+          render json: treedata
           ActiveSupport.escape_html_entities_in_json = true        
         }
       end
     else
+
       print("POST!!!!!")
-      structure_vector = params[:structure].to_s
-      st = structure_vector
-      #structure_vector.each { |st|
-        print("\n\n")
-        print(st)
-        structure = JSON.parse(st) 
-        structure_node(structure,nil)
-      #}
-      
+      structure = params[:structure]
+      json_params_wrapper = JSON.parse(request.body.read())
+      structure = json_params_wrapper['structure']
+      #print ("structure: \n\n")
+      #print structure
+      rootnode = structure[0]
+      structure.each { |n|
+        update_node(n,nil,"",1,cfchapter, cfprefix, reqtracker,reqdoctracker)
+      }
+      redirect_to :action => 'tree', :method => :get, :id => rootnode['id'] 
     end
 
   end
 
 
-
   # -------------------------- Filters and actions --------------------
-
-  def structure_node(node_vector, parent_node)
-      node_vector.each{|node|
-        print(node.to_s+"\n")
-        my_issue = Issue.find(node['id'].to_i)
-        if (parent_node != nil) then
-          my_issue.parent_issue = parent_node
-        end
-        node['children'].each{|c|
-          structure_node(c,my_issue)
+  def update_node(n,p,prefix,ord,cfchapter,cfprefix,reqtracker,reqdoctracker)
+    # n is node, p is parent
+    node = Issue.find(n['id'])
+    if (node != nil) then
+      if (node.tracker == reqdoctracker) then
+        nodechapter = node.custom_values.find_by_custom_field_id(cfprefix.id).value
+      else
+        nodechapter = prefix+ord.to_s.rjust(4, "0")+"."
+      end
+      cfc = node.custom_values.find_by_custom_field_id(cfchapter.id)
+      cfc.value = nodechapter
+      cfc.save      
+      if (p != nil) then
+        parent = Issue.find(p)
+        node.parent = parent
+        node.save
+      end
+      ch = n['children']
+      chord = 1
+      if (ch != nil) then
+         ch.each { |c| 
+          update_node(c,node.id,nodechapter,chord,cfchapter,cfprefix,reqtracker,reqdoctracker)
+          chord += 1
         }
-      } 
+      end
+    end
   end
+
 
   def git_commit_repo(pr,a_message)
     @output = ""
@@ -418,6 +891,58 @@ class CosmosysReqsController < ApplicationController
         @output += "Info: remote sync not enabled\n"
       end
     end
+  end
+
+
+def create_tree(current_issue,reqtracker,reqdoctracker)
+    output = ""
+    root_url = request.base_url
+    output += ("\nissue: " + current_issue.subject)
+    issue_url = root_url + '/issues/' + current_issue.id.to_s
+    output += ("\nissue_url: " + issue_url.to_s)
+    issue_new_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + reqtracker.id.to_s
+    output += ("\nissue_new_url: " + issue_new_url.to_s)
+    if (current_issue.tracker == reqdoctracker) then
+      issue_new_doc_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + reqdoctracker.id.to_s
+    else
+      issue_new_doc_url = nil
+    end
+    output += ("\nissue_new_url: " + issue_new_doc_url.to_s)
+
+    cftitle = IssueCustomField.find_by_name('RqTitle')
+    cfchapter = IssueCustomField.find_by_name('RqChapter')
+    cftitlevalue = current_issue.custom_values.find_by_custom_field_id(cftitle).value
+    cfchaptervalue = current_issue.custom_values.find_by_custom_field_id(cfchapter).value
+    cfchapterarraywrapper = cfchaptervalue.split('-')
+    cfchapterstring = cfchapterarraywrapper[0] + '-'
+    if (cfchapterarraywrapper[1] != nil) then 
+      cfchapterarray = cfchapterarraywrapper[1].split('.')
+      cfchapterarray.each { |e|
+        cfchapterstring += e.to_i.to_s + "."
+      }
+    end
+    tree_node = {'title':  cfchapterstring + " " + current_issue.subject + ": " + cftitlevalue,
+             'subtitle': current_issue.description,
+             'expanded': true,
+             'id': current_issue.id.to_s,
+             'return_url': root_url+'/cosmosys_reqs/'+current_issue.id.to_s+'/tree.json',
+             'issue_show_url': issue_url,
+             'issue_new_url': issue_new_url,
+             'issue_new_doc_url': issue_new_doc_url,
+             'issue_edit_url': issue_url+"/edit",
+             'children': []
+            }
+
+    #print tree_node
+    #print "children: " + tree_node[:children].to_s + "++++\n"
+
+    childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(cfchapter).value}
+    childrenitems.each{|c|
+        child_node = create_tree(c,reqtracker,reqdoctracker)
+        tree_node[:children] << child_node
+    }
+
+    return tree_node
   end
 
 
