@@ -5,30 +5,30 @@ from cfg.configfile_req import *
 from redminelib import Redmine
 
 import sys
-print ("This is the name of the script: ", sys.argv[0])
-print ("Number of arguments: ", len(sys.argv))
-print ("The arguments are: " , str(sys.argv))
+#print("This is the name of the script: ", sys.argv[0])
+#print("Number of arguments: ", len(sys.argv))
+#print("The arguments are: " , str(sys.argv))
 
-print(req_server_url)
-print(req_key_txt)
+#print(req_server_url)
+#print(req_key_txt)
 
 #pr_id_str = req_project_id_str
 pr_id_str = sys.argv[1]
-print(pr_id_str)
+#print(pr_id_str)
 
 #download_filepath = req_download_file_name
 download_filepath = sys.argv[2]
-print(download_filepath)
+#print(download_filepath)
 
 redmine = Redmine(req_server_url,key=req_key_txt)
 projects = redmine.project.all()
 
-print("Proyectos:")
-for p in projects:
-    print ("\t",p.identifier," \t| ",p.name)
+#print("Proyectos:")
+#for p in projects:
+#    print("\t",p.identifier," \t| ",p.name)
 
 my_project = redmine.project.get(pr_id_str)
-print ("Obtenemos proyecto: ",my_project.identifier," | ",my_project.name)    
+print("Obtenemos proyecto: ",my_project.identifier," | ",my_project.name)    
 
 
 tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id, status_id='*')
@@ -72,10 +72,10 @@ rq_target_row = 8
 # In[ ]:
 
 
-print(dir(doc))
-print(len(doc.sheets))
+#print(dir(doc))
+#print(len(doc.sheets))
 doc_dict = doc.sheets['Dict']
-print(doc_dict)
+#print(doc_dict)
 #print(doc_dict[rq_target_row,rq_target_column].address)
 #doc_dict[rq_target_row,rq_target_column].value = 5
 
@@ -83,7 +83,7 @@ print(doc_dict)
 # In[ ]:
 
 
-doc_dict[req_download_url_row,req_download_url_column].value = req_server_url
+doc_dict[req_download_url_row,req_download_url_column].value = req_server_url+'/'
 rowindex = req_upload_version_startrow
 for v in my_project.versions:
     doc_dict[rowindex,req_upload_version_column].value = v.name
@@ -106,7 +106,7 @@ for my_issue in my_doc_issues:
     current_parent = getattr(my_issue, 'parent', None)
     if current_parent is not None:
         parent_issue = redmine.issue.get(current_parent.id)
-        print("parent: ",parent_issue.subject)
+        #print("parent: ",parent_issue.subject)
         # Rellenamos la celda del padre
         mysheet[req_download_doc_row,req_download_doc_parent_column].value = parent_issue.subject
         
@@ -172,27 +172,27 @@ for my_issue in my_doc_issues:
 
 
 def find_doc(this_issue):
-    print("find_doc: ",this_issue)
+    #print("find_doc: ",this_issue)
     if this_issue.tracker.id == req_doc_tracker_id:
-        print("retorno this", this_issue.subject)
+        #print("retorno this", this_issue.subject)
         return this_issue.subject,this_issue.custom_fields.get(req_prefix_cf_id).value 
 
     # not do found yet
     current_parent = getattr(this_issue, 'parent', None)
     if current_parent is None:
-        print("retorno none")
+        #print("retorno none")
         return "",""
     
     else:
         parent_issue = redmine.issue.get(current_parent.id)
-        print("Llamo al padre")
+        #print("Llamo al padre")
         return find_doc(parent_issue)
     
 current_row = {}
 for my_issue in my_doc_issues:
     current_row[my_issue.subject] = req_upload_first_row
     
-print(current_row)
+#print(current_row)
 
 
 for my_issue in my_project_issues:
@@ -200,7 +200,7 @@ for my_issue in my_project_issues:
     print("reqname: ",reqname)
     current_parent = getattr(my_issue, 'parent', None)
     if current_parent is not None:
-        print("current_parent 1: ",current_parent)
+        #print("current_parent 1: ",current_parent)
         parent_issue = redmine.issue.get(current_parent.id)
         if parent_issue.tracker.id != req_rq_tracker_id:
             current_parent = None
@@ -208,11 +208,11 @@ for my_issue in my_project_issues:
             print("parent: ",parent_issue.subject)
     
     thisdoc,thisprefix = find_doc(parent_issue)
-    print("thisdoc:",thisdoc)
-    print("thisprefix:",thisprefix)
+    #print("thisdoc:",thisdoc)
+    #print("thisprefix:",thisprefix)
     thistab = doc.sheets[thisdoc]
     currrow = current_row[thisdoc]
-    print("add the req to the row ",currrow," of the tab ",thistab)
+    #print("add the req to the row ",currrow," of the tab ",thistab)
     current_version = getattr(my_issue, 'fixed_version', None)
     idstr = my_issue.subject.replace(thisprefix,'')
 
@@ -250,7 +250,7 @@ for my_issue in my_project_issues:
         # que significa que es destinatario de la relación de doorstop, ya que es el elemento que está
         # condicionando al actual (el actual depende de él)
         relissue = redmine.issue.get(rel.issue_id)
-        print("Relacionado: ",rel," de ",relissue.subject," a ",my_issue.subject)
+        #print("Relacionado: ",rel," de ",relissue.subject," a ",my_issue.subject)
         if firstrel:
             firstrel = False
         else:
