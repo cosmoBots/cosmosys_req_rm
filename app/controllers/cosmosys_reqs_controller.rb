@@ -1,6 +1,8 @@
 class CosmosysReqsController < ApplicationController
   before_action :find_project#, :authorize, :except => [:tree]
 
+  @@chapterdigits = 3
+
   def index
     @cosmosys_reqs = CosmosysReq.all
   end 
@@ -180,19 +182,19 @@ class CosmosysReqsController < ApplicationController
                 rowindex += 1
                 thisversion = d[req_upload_version_column+1]
                 if (thisversion!=nil) then
-                  print(rowindex.to_s + ": " + thisversion)
+                  #print(rowindex.to_s + ": " + thisversion)
                   findVersionSuccess = false
                   thisVersionId = nil
                   my_project_versions.each { |v|  
                       if not(findVersionSuccess) then
                           if (v.name == thisversion) then
                               findVersionSuccess = true
-                              print("la version ",thisversion," ya existe")
+                              #print("la version ",thisversion," ya existe")
                           end
                       end
                   }
                   if not findVersionSuccess then
-                      print("la version " + thisversion + " no existe")
+                      #print("la version " + thisversion + " no existe")
                       nv = @project.versions.new
                       nv.name = thisversion
                       nv.status = 'open'
@@ -200,7 +202,7 @@ class CosmosysReqsController < ApplicationController
                       nv.description = thisversion
                       nv.save
                       my_project_versions << nv
-                      print("\nhe creado la version " + nv.name + "con id " + nv.id)
+                      #print("\nhe creado la version " + nv.name + "con id " + nv.id.to_s)
                   end
                 end
               end
@@ -211,21 +213,21 @@ class CosmosysReqsController < ApplicationController
                 if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                     # Tratamos la hoja en concreto
                     docidstr = thissheet.name
-                    print("DocID: "+docidstr)
+                    #print("DocID: "+docidstr)
                     # Obtenemos la informacion de la fila donde estan los datos adicionales del documento de requisito
                     d = thissheet.row(req_upload_doc_row+1)
                     # Como nombre del documento y "description", tomamos la columna de docname
                     docname = d[req_upload_doc_name_column+1]
-                    print("DocName: ",docname)
+                    #print("DocName: ",docname)
                     # Como prefijo de los codigos generados por el documento, tomamos la columna de prefijo
                     prefixstr = d[req_upload_doc_prefix_column+1]
-                    print("\nprefijo: "+ prefixstr)
-                    print("\ndatos:",d)
+                    #print("\nprefijo: "+ prefixstr)
+                    #print("\ndatos:",d)
                     # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                     thisdoc = @project.issues.find_by_subject(docidstr)
                     if (thisdoc == nil) then
                       # no existe el reqdoc asociado a la pestaña, lo creo
-                      print ("Creando documento " + docidstr)
+                      #print("Creando documento " + docidstr)
                       thisdoc = @project.issues.new
                       thisdoc.author = User.current
                       thisdoc.tracker = reqdoctracker
@@ -233,7 +235,7 @@ class CosmosysReqsController < ApplicationController
                       thisdoc.description = docname
                       thisdoc.save
                     else                      
-                      print("si existe el documento")
+                      #print("si existe el documento")
                       thisdoc.description = docname
                     end
                       cft = thisdoc.custom_values.find_by_custom_field_id(cftitle.id)
@@ -246,7 +248,7 @@ class CosmosysReqsController < ApplicationController
                       cfc.value = prefixstr
                       cfc.save
                       thisdoc.save
-                      print("He actualizado o creado el documento con id "+thisdoc.id.to_s)
+                      #print("He actualizado o creado el documento con id "+thisdoc.id.to_s)
                 end
                 sheetindex += 1
                 thissheet = book.worksheets(sheetindex)
@@ -259,17 +261,17 @@ class CosmosysReqsController < ApplicationController
                 if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                     # Tratamos la hoja en concreto
                     docidstr = thissheet.name
-                    print("DocID: "+docidstr)
+                    #print("DocID: "+docidstr)
                     # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                     thisdoc = @project.issues.find_by_subject(docidstr)
-                    print("rqid: "+thisdoc.subject)
+                    #print("rqid: "+thisdoc.subject)
                     d = thissheet.row(req_upload_doc_row+1)
                     parentdocstr = d[req_upload_doc_parent_column+1]
                     if (parentdocstr != nil) then
-                      print("parent str: " + parentdocstr)
+                      #print("parent str: " + parentdocstr)
                       parentdoc = @project.issues.find_by_subject(parentdocstr)
-                      print("parent: ",parentdoc)
-                      print("parent id:",parentdoc.id)
+                      #print("parent: ",parentdoc)
+                      #print("parent id:",parentdoc.id)
                       thisdoc.parent = parentdoc
                       thisdoc.save
                     else
@@ -295,23 +297,23 @@ class CosmosysReqsController < ApplicationController
                 if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                   # Tratamos la hoja en concreto
                   docidstr = thissheet.name
-                  print("DocID: "+docidstr)
+                  #print("DocID: "+docidstr)
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
                   if (thisdoc != nil) then
                     cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
                     reqDocPrefix = cfp.value
-                    print("reqDocPrefix:",reqDocPrefix)
+                    #print("reqDocPrefix:",reqDocPrefix)
                     current_row = req_upload_first_row+1
                     while (current_row <= req_upload_end_row) do
                       r = thissheet.row(current_row)
-                      print("\nTrato la fila "+ current_row.to_s)
+                      #print("\nTrato la fila "+ current_row.to_s)
                       title_str = r[req_upload_title_column+1]
                       if (title_str != nil) then
-                        print("title: ",title_str)
+                        #print("title: ",title_str)
                         # Estamos procesando las lineas de requisitos
                         rqidstr = r[req_upload_id_column+1]
-                        print("rqid: "+rqidstr)
+                        #print("rqid: "+rqidstr)
                         descr = r[req_upload_descr_column+1]
                         reqsource = r[req_upload_source_column+1]
                         reqtype = r[req_upload_type_column+1]
@@ -321,11 +323,13 @@ class CosmosysReqsController < ApplicationController
                         reqvalue = r[req_upload_value_column+1]
                         rqchapterstr = r[req_upload_chapter_column+1].to_s
                         rqchapterarray = rqchapterstr.split('.')
+                        #print(rqchapterarray)
                         rqchapterstring = ""
                         rqchapterarray.each { |e|
-                          rqchapterstring += e.rjust(4, "0")+"."
+                          rqchapterstring += e.to_i.to_s.rjust(@@chapterdigits, "0")+"."
                         }
                         rqchapter = reqDocPrefix + rqchapterstring
+                        #print(rqchapter)
                         rqstatus = status_dict[r[req_upload_status_column+1]]
                         rqtarget = r[req_upload_target_column+1]
 
@@ -339,41 +343,41 @@ class CosmosysReqsController < ApplicationController
                           thisreq.tracker = reqtracker
                           thisreq.subject = rqidstr
                           if (descr != nil) then
-                            print("description: ",descr)
+                            #print("description: ",descr)
                             thisreq.description = descr
                           end
                           thisreq.save
                         else                      
-                          print("si existe el requisito")
+                          #print("si existe el requisito")
                           thisreq.tracker = reqtracker
                           if (descr != nil) then
-                            print("description: ",descr)
+                            #print("description: ",descr)
                             thisreq.description = descr
                           end
                         end
                         if (rqstatus != nil) then
-                          print("rqstatus: ",rqstatus)
+                          #print("rqstatus: ",rqstatus)
                           thisreq.status = IssueStatus.find(rqstatus)
                         end
                         if (rqtarget != nil) then
-                          print("rqtarget: ",rqtarget)
+                          #print("rqtarget: ",rqtarget)
                           findVersionSuccess = false
                           thisVersion = nil
-                          print("num versiones: ",@project.versions.size)
+                          #print("num versiones: ",@project.versions.size)
                           @project.versions.each { |v|  
                             if not(findVersionSuccess) then
                               if (v.name == rqtarget) then
-                                print("LO ENCONTRE!!")
+                                #print("LO ENCONTRE!!")
                                 findVersionSuccess = true
                                 thisVersion = v
                               else
-                                print("NO.....")
+                                #print("NO.....")
                               end                                
                             end
                           }
                           if (findVersionSuccess) then
-                            print("this version succes????:",findVersionSuccess)
-                            print("thisVersionId: ",thisVersion.id)
+                            #print("this version succes????:",findVersionSuccess)
+                            #print("thisVersionId: ",thisVersion.id)
                             thisreq.fixed_version = thisVersion
                           end
                         end                        
@@ -383,50 +387,50 @@ class CosmosysReqsController < ApplicationController
                           cft.save
                         end
                         if (rqchapter != nil) then
-                          print("rqchapter: ",rqchapter)
+                          #print("rqchapter: ",rqchapter)
                           cfc = thisreq.custom_values.find_by_custom_field_id(cfchapter.id)
                           cfc.value = rqchapter
                           cfc.save
                         end
                         if (reqsource != nil) then
-                          print("reqsource: ",reqsource)
+                          #print("reqsource: ",reqsource)
                           cfs = thisreq.custom_values.find_by_custom_field_id(cfsource.id)
                           cfs.value = reqsource
                           cfs.save
                         end
                         if (reqtype != nil) then
-                          print("reqtype: ",reqtype)
+                          #print("reqtype: ",reqtype)
                           cfty = thisreq.custom_values.find_by_custom_field_id(cftype.id)
                           cfty.value = reqtype
                           cfty.save
                         end
                         if (reqlevel != nil) then
-                          print("reqlevel: ",reqlevel)
+                          #print("reqlevel: ",reqlevel)
                           cfl = thisreq.custom_values.find_by_custom_field_id(cflevel.id)
                           cfl.value = reqlevel
                           cfl.save
                         end
                         if (reqrationale != nil) then
-                          print("reqrationale: ",reqrationale)
+                          #print("reqrationale: ",reqrationale)
                           cfr = thisreq.custom_values.find_by_custom_field_id(cfrationale.id)
                           cfr.value = reqrationale
                           cfr.save
                         end
                         if (reqvar != nil) then
-                          print("reqvar: ",reqvar)
+                          #print("reqvar: ",reqvar)
                           cfv = thisreq.custom_values.find_by_custom_field_id(cfvar.id)
                           cfv.value = reqvar
                           cfv.save
                         end
                         if (reqvalue != nil) then
-                          print("reqvalue: ",reqvalue)
+                          #print("reqvalue: ",reqvalue)
                           cfvl = thisreq.custom_values.find_by_custom_field_id(cfvalue.id)
                           cfvl.value = reqvalue
                           cfvl.save
                         end
 
                         thisreq.save
-                        print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
+                        #print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
 
 
                       end
@@ -434,7 +438,6 @@ class CosmosysReqsController < ApplicationController
                     end        
                   else
                     print("Error, no existe el documento!!!")
-                    thisdoc.description = docname
                   end
                 end
                 sheetindex += 1
@@ -457,17 +460,17 @@ class CosmosysReqsController < ApplicationController
                   if (thisdoc != nil) then
                     cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
                     reqDocPrefix = cfp.value
-                    print("reqDocPrefix:",reqDocPrefix)
+                    #print("reqDocPrefix:",reqDocPrefix)
                     current_row = req_upload_first_row+1
                     while (current_row <= req_upload_end_row) do
                       r = thissheet.row(current_row)
-                      print("\nTrato la fila "+ current_row.to_s)
+                      #print("\nTrato la fila "+ current_row.to_s)
                       title_str = r[req_upload_title_column+1]
                       if (title_str != nil) then
-                        print("title: ",title_str)
+                        #print("title: ",title_str)
                         # Estamos procesando las lineas de requisitos
                         rqidstr = r[req_upload_id_column+1]
-                        print("rqid: "+rqidstr)
+                        #print("rqid: "+rqidstr)
                         thisreq = @project.issues.find_by_subject(rqidstr)
                         if (thisreq != nil) then
 
@@ -476,11 +479,11 @@ class CosmosysReqsController < ApplicationController
 
 
                           if (parent_str != nil) then
-                            print("parent_str: ",parent_str)
+                            #print("parent_str: ",parent_str)
                             parentissue = @project.issues.find_by_subject(parent_str)
                             if (parentissue != nil) then 
-                              print("parent: ",parentissue)
-                              print("parent id:",parentissue.id)
+                              #print("parent: ",parentissue)
+                              #print("parent id:",parentissue.id)
                               thisreq.parent = parentissue
                             else
                               print("ERROR: No encontramos el requisito padre!!!")
@@ -502,33 +505,33 @@ class CosmosysReqsController < ApplicationController
                               residual_relations << e
                             end
                           }
-                          print("residual_relations BEFORE",residual_relations)
+                          #print("residual_relations BEFORE",residual_relations)
 
                           if (related_str != nil) then
-                            print("related: "+related_str)
+                            #print("related: "+related_str)
                             if (related_str[0]!='-') then
                               # Ahora saco todos los ID de los requisitos del otro lado (en el lado origen de la relacion)
                               related_req = related_str.split()
                               related_req.each { |rreq|
-                                print("related to: ",rreq)
+                                #print("related to: ",rreq)
                                 # Busco ese requisito
                                 blocking_req = @project.issues.find_by_subject(rreq)
                                 if (blocking_req != nil) then
                                   # Veo si ya existe algun tipo de relacion con el
                                   preexistent_relations = thisreq.relations_to.where(issue_from: blocking_req)
-                                  print(preexistent_relations)
+                                  #print(preexistent_relations)
                                   already_exists = false
                                   if (preexistent_relations.size>0) then
                                     preexistent_relations.each { |rel|
                                       if (rel.relation_type == 'blocks') then
-                                        print("Ya existe la relacion ",rel)
+                                        #print("Ya existe la relacion ",rel)
                                         residual_relations.delete(rel)
                                         already_exists = true
                                       end
                                     }
                                   end
                                   if not(already_exists) then
-                                    print("Creo una nueva relacion")
+                                    #print("Creo una nueva relacion")
                                     relation = blocking_req.relations_from.new
                                     relation.issue_to=thisreq
                                     relation.relation_type='blocks'
@@ -543,14 +546,14 @@ class CosmosysReqsController < ApplicationController
                           end
 
                           # Hay que eliminar todas las relaciones preexistentes que no hayan sido "reescritas"
-                          print("residual_relations AFTER",residual_relations)
+                          #print("residual_relations AFTER",residual_relations)
                           residual_relations.each { |r|  
-                              print("Destruyo la relacion", r)
+                              #print("Destruyo la relacion", r)
                               r.issue_from.relations_from.delete(r)
                               r.destroy
                           }
                           thisreq.save
-                          print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
+                          #print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
                         else
                           print("Error, el requisito no pudo ser encontrado")
                         end
@@ -560,13 +563,12 @@ class CosmosysReqsController < ApplicationController
                     end        
                   else
                     print("Error, no existe el documento!!!")
-                    thisdoc.description = docname
                   end
                 end
                 sheetindex += 1
                 thissheet = book.worksheets(sheetindex)
               end
-              print("Acabamos")    
+              @output += "UPLOAD successful\n"   
             else
               @output += "Error: the upload file is not found\n"
               print(uploadfilepath)
@@ -732,7 +734,7 @@ class CosmosysReqsController < ApplicationController
 
       treedata << tree_node
 
-      #print treedata
+      print treedata
 
 
       respond_to do |format|
@@ -764,7 +766,7 @@ class CosmosysReqsController < ApplicationController
       structure.each { |n|
         update_node(n,nil,"",1,cfchapter, cfprefix, reqtracker,reqdoctracker)
       }
-      redirect_to :action => 'tree', :method => :get, :id => rootnode['id'] 
+      redirect_to :action => 'tree', :method => :get, :id => @project.id 
     end
 
   end
@@ -778,7 +780,7 @@ class CosmosysReqsController < ApplicationController
       if (node.tracker == reqdoctracker) then
         nodechapter = node.custom_values.find_by_custom_field_id(cfprefix.id).value
       else
-        nodechapter = prefix+ord.to_s.rjust(4, "0")+"."
+        nodechapter = prefix+ord.to_s.rjust(@@chapterdigits, "0")+"."
       end
       cfc = node.custom_values.find_by_custom_field_id(cfchapter.id)
       cfc.value = nodechapter
@@ -913,8 +915,10 @@ def create_tree(current_issue,reqtracker,reqdoctracker)
     cfchapter = IssueCustomField.find_by_name('RqChapter')
     cftitlevalue = current_issue.custom_values.find_by_custom_field_id(cftitle).value
     cfchaptervalue = current_issue.custom_values.find_by_custom_field_id(cfchapter).value
-    cfchapterarraywrapper = cfchaptervalue.split('-')
-    cfchapterstring = cfchapterarraywrapper[0] + '-'
+    separator_idx = cfchaptervalue.rindex('-')
+    cfchapterarraywrapper = [cfchaptervalue.slice(0..separator_idx), cfchaptervalue.slice((separator_idx+1)..-1)]
+    #print(cfchapterarraywrapper)
+    cfchapterstring = cfchapterarraywrapper[0]
     if (cfchapterarraywrapper[1] != nil) then 
       cfchapterarray = cfchapterarraywrapper[1].split('.')
       cfchapterarray.each { |e|
@@ -925,7 +929,7 @@ def create_tree(current_issue,reqtracker,reqdoctracker)
              'subtitle': current_issue.description,
              'expanded': true,
              'id': current_issue.id.to_s,
-             'return_url': root_url+'/cosmosys_reqs/'+current_issue.id.to_s+'/tree.json',
+             'return_url': root_url+'/cosmosys_reqs/'+current_issue.project.id.to_s+'/tree.json',
              'issue_show_url': issue_url,
              'issue_new_url': issue_new_url,
              'issue_new_doc_url': issue_new_doc_url,
@@ -959,7 +963,7 @@ def create_tree(current_issue,reqtracker,reqdoctracker)
         @project = Project.first
       end
     end
-    print("Project: "+@project.to_s+"\n")
+    #print("Project: "+@project.to_s+"\n")
   end
 
 end
