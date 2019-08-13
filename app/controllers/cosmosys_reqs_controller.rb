@@ -728,9 +728,29 @@ class CosmosysReqsController < ApplicationController
       end
       thisnode=Issue.find(thisnodeid)
 
+      splitted_url = request.fullpath.split('/cosmosys_reqs')
+      print("\nsplitted_url: ",splitted_url)
+      root_url = splitted_url[0]
+      print("\nroot_url: ",root_url)
+      print("\nbase_url: ",request.base_url)
+      print("\nurl: ",request.url)
+      print("\noriginal: ",request.original_url)
+      print("\nhost: ",request.host)
+      print("\nhost wp: ",request.host_with_port)
+      print("\nfiltered_path: ",request.filtered_path)
+      print("\nfullpath: ",request.fullpath)
+      print("\npath_translated: ",request.path_translated)
+      print("\noriginal_fullpath ",request.original_fullpath)
+      print("\nserver_name ",request.server_name)
+      print("\noriginal_fullpath ",request.original_fullpath)
+      print("\npath ",request.path)
+      print("\nserver_addr ",request.server_addr)
+      print("\nhost ",request.host)
+      print("\nremote_host ",request.remote_host)
+
       treedata = []
 
-      tree_node = create_tree(thisnode,reqtracker,reqdoctracker)
+      tree_node = create_tree(thisnode,reqtracker,reqdoctracker,root_url)
 
       treedata << tree_node
 
@@ -896,25 +916,8 @@ class CosmosysReqsController < ApplicationController
   end
 
 
-def create_tree(current_issue,reqtracker,reqdoctracker)
+def create_tree(current_issue,reqtracker,reqdoctracker, root_url)
     output = ""
-    root_url = request.base_url
-    print("base_url:",request.base_url)
-    print("url:",request.url)
-    print("original:",request.original_url)
-    print("host:",request.host)
-    print("host wp:",request.host_with_port)
-    print("filtered_path:",request.filtered_path)
-    print("fullpath:",request.fullpath)
-    print("path_translated:",request.path_translated)
-    print("original_fullpath",request.original_fullpath)
-    print("server_name",request.server_name)
-    print("original_fullpath",request.original_fullpath)
-    print("path",request.path)
-    print("server_addr",request.server_addr)
-    print("host",request.host)
-    print("remote_host",request.remote_host)
-
     output += ("\nissue: " + current_issue.subject)
     issue_url = root_url + '/issues/' + current_issue.id.to_s
     output += ("\nissue_url: " + issue_url.to_s)
@@ -958,7 +961,7 @@ def create_tree(current_issue,reqtracker,reqdoctracker)
 
     childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(cfchapter).value}
     childrenitems.each{|c|
-        child_node = create_tree(c,reqtracker,reqdoctracker)
+        child_node = create_tree(c,reqtracker,reqdoctracker,root_url)
         tree_node[:children] << child_node
     }
 
