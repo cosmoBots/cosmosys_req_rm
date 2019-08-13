@@ -87,29 +87,29 @@ print("Dos")
 
 for i in my_doc_issues + my_project_issues:
     title_str = i.custom_fields.get(req_title_cf_id).value
-    print("title: ",title_str)
+    #print("title: ",title_str)
     nodelabel = "{" + i.subject + "|" + title_str + "}"
-    print(nodelabel)
-    print(str(i.id))
-    print(req_server_url)
+    #print(nodelabel)
+    #print(str(i.id))
+    #print(req_server_url)
     descr = getattr(i, 'description', i.subject)
-    print(descr)
+    #print(descr)
     prj_graph.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=descr)
-    print(i.id, ": ", i.subject)
+    #print(i.id, ": ", i.subject)
     for child in i.children:
         prj_graph.edge(str(i.id), str(child.id))
 
     my_issue_relations = redmine.issue_relation.filter(issue_id=i.id)
     # print(len(my_issue_relations))
     my_filtered_issue_relations = list(filter(lambda x: x.issue_to_id != i.id, my_issue_relations))
-    print("relations: ",len(my_filtered_issue_relations))
-    print(my_filtered_issue_relations)
+    #print("relations: ",len(my_filtered_issue_relations))
+    #print(my_filtered_issue_relations)
     if (len(my_issue_relations) > 0):
         nodelabel = "{" + i.subject + "|" + title_str + "}"
         prj_graphb.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=descr)
         for r in my_filtered_issue_relations:
             related_element = redmine.issue.get(r.issue_to_id)
-            print("related_element: ", related_element, " : ", related_element.tracker)
+            #print("related_element: ", related_element, " : ", related_element.tracker)
             if (related_element.tracker.id == req_rq_tracker_id):
                 # print("\t"+r.relation_type+"\t"+str(r.issue_id)+"\t"+str(r.issue_to_id))
                 prj_graphb.edge(str(i.id), str(r.issue_to_id), color="blue")
@@ -274,7 +274,7 @@ for i in my_project_issues:
         target_name = None
 
     descr = getattr(my_issue, 'description', my_issue.subject)
-    print("thisissue:",i)
+    #print("thisissue:",i)
     srcs = getattr(my_issue.custom_fields.get(req_sources_cf_id),'value',"")
     val = getattr(my_issue.custom_fields.get(req_value_cf_id),'value',"")
     var = getattr(my_issue.custom_fields.get(req_var_cf_id),'value',"")
@@ -333,7 +333,7 @@ import json
 # Preparamos el fichero JSON que usaremos para el árbol
 
 def create_tree(current_issue):
-    print("issue: " + current_issue.subject)
+    #print("issue: " + current_issue.subject)
     descr = getattr(current_issue, 'description', current_issue.subject)
     tree_node = {'title': current_issue.custom_fields.get(
         req_chapter_cf_id).value + ": " + current_issue.subject + ": " + current_issue.custom_fields.get(
