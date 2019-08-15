@@ -1068,9 +1068,9 @@ def create_json(current_issue, root_url, include_doc_children,currentdoc)
     tree_node[:level] = current_issue.custom_values.find_by_custom_field_id(@@cflevel.id).value
     tree_node[:type] = current_issue.custom_values.find_by_custom_field_id(@@cftype.id).value
     tree_node[:sources] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
-    tree_node[:var] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
-    tree_node[:value] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
-    tree_node[:rationale] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
+    tree_node[:var] = current_issue.custom_values.find_by_custom_field_id(@@cfvar.id).value
+    tree_node[:value] = current_issue.custom_values.find_by_custom_field_id(@@cfvalue.id).value
+    tree_node[:rationale] = current_issue.custom_values.find_by_custom_field_id(@@cfrationale.id).value
     end
     if (current_issue.tracker == @@reqdoctracker) then
       currentdoc = current_issue
