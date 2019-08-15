@@ -754,7 +754,7 @@ def show_as_table
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReportsFromJSON.py #{@project.id} #{reportingpath} #{imgpath}"
+                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
                 print(comando)
 		            #`#{comando}`
                 require 'open3'
