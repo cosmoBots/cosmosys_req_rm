@@ -12,6 +12,10 @@ def tree_to_list(tree):
     result = []
     for node in tree:
         print(node['subject'])
+        node['status'] = data['statuses'][str(node['status_id'])]
+        node['target'] = data['targets'][str(node['fixed_version_id'])]
+        node['tracker'] = data['statuses'][str(node['fixed_version_id'])]
+        node['doc'] = data['reqdocs'][str(node['doc_id'])]['subject']
         purgednode = node.copy()
         purgednode['children'] = []
         #print(purgednode)
@@ -184,7 +188,7 @@ print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
 
 reqdocs = data['reqdocs']
 reqs = data['reqs']
-versions = data['versions']
+targets = data['targets']
 statuses = data['statuses']
 
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
@@ -192,6 +196,14 @@ print("len(reqs)",len(reqs))
 # Debemos preparar un diagrama para cada nodo
 reqlist = tree_to_list(reqs)
 data['reqlist'] = reqlist
+
+data['reqclean'] = []
+
+for r in reqlist:
+    if 'type' in r.keys():
+        if r['type'] != 'Info':
+            data['reqclean'].append(r)
+
 
 print("len(reqlist)",len(reqlist))
 

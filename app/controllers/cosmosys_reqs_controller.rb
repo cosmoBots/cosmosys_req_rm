@@ -118,9 +118,9 @@ class CosmosysReqsController < ApplicationController
 
       treedata[:project] = @project.attributes.slice("id","name","identifier")
       treedata[:project][:url] = root_url
-      treedata[:versions] = {}
+      treedata[:targets] = {}
       treedata[:statuses] = {}
-      treedata[:reqdocs] = []
+      treedata[:reqdocs] = {}
       treedata[:reqs] = []
 
       reqdocs = @project.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
@@ -130,7 +130,7 @@ class CosmosysReqsController < ApplicationController
       }
 
       @project.versions.each { |v| 
-        treedata[:versions][v.id.to_s] = v.name
+        treedata[:targets][v.id.to_s] = v.name
       }
 
       reqdocs.each { |r|
@@ -138,7 +138,7 @@ class CosmosysReqsController < ApplicationController
         tree_node[:chapter] = r.custom_values.find_by_custom_field_id(@@cfchapter.id).value
         tree_node[:title] = r.custom_values.find_by_custom_field_id(@@cftitle.id).value
         tree_node[:prefix] = r.custom_values.find_by_custom_field_id(@@cfprefix.id).value
-        treedata[:reqdocs] << tree_node
+        treedata[:reqdocs][r.id.to_s] = tree_node
       }
 
 
@@ -190,22 +190,22 @@ def show_as_table
 
       treedata[:project] = @project.attributes.slice("id","name","identifier")
       treedata[:project][:url] = root_url
-      treedata[:versions] = {}
+      treedata[:targets] = {}
       treedata[:statuses] = {}
-      treedata[:reqdocs] = []
+      treedata[:reqdocs] = {}
 
       IssueStatus.all.each { |st| 
         treedata[:statuses][st.id.to_s] = st.name
       }
 
       @project.versions.each { |v| 
-        treedata[:versions][v.id.to_s] = v.name
+        treedata[:targets][v.id.to_s] = v.name
       }
 
       reqdocs.each { |r|
         thisnode=r
         tree_node = create_json(thisnode,root_url,false,nil)
-        treedata[:reqdocs] << tree_node
+        treedata[:reqdocs][r.id.to_s] = tree_node
       }
 
       respond_to do |format|
