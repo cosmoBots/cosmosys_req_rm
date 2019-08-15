@@ -366,9 +366,11 @@ print("Acabamos")
 from Naked.toolshed.shell import execute_js
 
 # js_command = 'node ' + file_path + " " + arguments
-
-success = execute_js('./plugins/cosmosys_req/assets/pythons/lib/launch_carbone.js', reporting_path)
-print(success)
+print(reqdocs.keys())
+for doc in reqdocs.keys():
+    print(reqdocs[doc])
+    success = execute_js('./plugins/cosmosys_req/assets/pythons/lib/launch_carbone.js', reporting_path+" "+str(reqdocs[doc]['id'])+" "+reqdocs[doc]['subject'])
+    print(success)
 
 if success:
     # handle success of the JavaScript
