@@ -2,6 +2,18 @@ class CosmosysReqsController < ApplicationController
   before_action :find_project#, :authorize, :except => [:tree]
 
   @@chapterdigits = 3
+  @@reqdoctracker = Tracker.find_by_name('ReqDoc')
+  @@reqtracker = Tracker.find_by_name('Req')
+  @@cfchapter = IssueCustomField.find_by_name('RqChapter')
+  @@cfprefix = IssueCustomField.find_by_name('RqPrefix')
+  @@cftitle = IssueCustomField.find_by_name('RqTitle')
+  @@cfsources = IssueCustomField.find_by_name('RqSources')
+  @@cftype = IssueCustomField.find_by_name('RqType')
+  @@cflevel = IssueCustomField.find_by_name('RqLevel')
+  @@cfrationale = IssueCustomField.find_by_name('RqRationale')
+  @@cfvar = IssueCustomField.find_by_name('RqVar')
+  @@cfvalue = IssueCustomField.find_by_name('RqValue')
+
 
   def index
     @cosmosys_reqs = CosmosysReq.all
@@ -85,7 +97,146 @@ class CosmosysReqsController < ApplicationController
   def project_menu
   end
 
+  def show_as_tree
+    require 'json'
+
+    splitted_url = request.fullpath.split('/cosmosys_reqs')
+    root_url = request.base_url+splitted_url[0]
+
+    if request.get? then
+      print("GET!!!!!")
+      if (params[:node_id]) then
+        print("NODO!!!\n")
+        thisnode = @project.issues.find(params[:node_id])
+        roots = [thisnode]
+      else
+        print("PROYECTO!!!\n")     
+        roots = @project.issues.where(:parent => nil)
+      end
+
+      treedata = {}
+
+      treedata[:project] = @project.attributes.slice("id","name","identifier")
+      treedata[:project][:url] = root_url
+      treedata[:versions] = {}
+      treedata[:statuses] = {}
+      treedata[:reqdocs] = []
+      treedata[:reqs] = []
+
+      reqdocs = @project.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
+
+      IssueStatus.all.each { |st| 
+        treedata[:statuses][st.id.to_s] = st.name
+      }
+
+      @project.versions.each { |v| 
+        treedata[:versions][v.id.to_s] = v.name
+      }
+
+      reqdocs.each { |r|
+        tree_node = r.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
+        tree_node[:chapter] = r.custom_values.find_by_custom_field_id(@@cfchapter.id).value
+        tree_node[:title] = r.custom_values.find_by_custom_field_id(@@cftitle.id).value
+        tree_node[:prefix] = r.custom_values.find_by_custom_field_id(@@cfprefix.id).value
+        treedata[:reqdocs] << tree_node
+      }
+
+
+      roots.each { |r|
+        thisnode=r
+        tree_node = create_json(thisnode,root_url,true,nil)
+        treedata[:reqs] << tree_node
+      }
+
+
+      respond_to do |format|
+        format.html {
+          @to_json = treedata.to_json
+        }
+        format.json { 
+          require 'json'
+          ActiveSupport.escape_html_entities_in_json = false
+          render json: treedata
+          ActiveSupport.escape_html_entities_in_json = true        
+        }
+      end
+    else
+
+      print("POST!!!!!")
+      structure = params[:structure]
+      json_params_wrapper = JSON.parse(request.body.read())
+      structure = json_params_wrapper['structure']
+      #print ("structure: \n\n")
+      #print structure
+      rootnode = structure[0]
+      structure.each { |n|
+        update_node(n,nil,"",1)
+      }
+      redirect_to :action => 'tree', :method => :get, :id => @project.id 
+    end
+  end
+
+def show_as_table
+    require 'json'
+
+    splitted_url = request.fullpath.split('/cosmosys_reqs')
+    root_url = request.base_url+splitted_url[0]
+
+    if request.get? then
+      print("GET!!!!!")
+      reqdocs = @project.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
+
+      treedata = {}
+
+      treedata[:project] = @project.attributes.slice("id","name","identifier")
+      treedata[:project][:url] = root_url
+      treedata[:versions] = {}
+      treedata[:statuses] = {}
+      treedata[:reqdocs] = []
+
+      IssueStatus.all.each { |st| 
+        treedata[:statuses][st.id.to_s] = st.name
+      }
+
+      @project.versions.each { |v| 
+        treedata[:versions][v.id.to_s] = v.name
+      }
+
+      reqdocs.each { |r|
+        thisnode=r
+        tree_node = create_json(thisnode,root_url,false,nil)
+        treedata[:reqdocs] << tree_node
+      }
+
+      respond_to do |format|
+        format.html {
+          @to_json = treedata.to_json
+        }
+        format.json { 
+          require 'json'
+          ActiveSupport.escape_html_entities_in_json = false
+          render json: treedata
+          ActiveSupport.escape_html_entities_in_json = true        
+        }
+      end
+    else
+
+      print("POST!!!!!")
+      structure = params[:structure]
+      json_params_wrapper = JSON.parse(request.body.read())
+      structure = json_params_wrapper['structure']
+      #print ("structure: \n\n")
+      #print structure
+      rootnode = structure[0]
+      structure.each { |n|
+        update_node(n,nil,"",1)
+      }
+      redirect_to :action => 'tree', :method => :get, :id => @project.id 
+    end
+  end
+
   def show
+    show_as_tree
   end
 
   def upload
@@ -138,17 +289,6 @@ class CosmosysReqsController < ApplicationController
     else
       print("POST!!!!!")
 
-      reqdoctracker = Tracker.find_by_name('ReqDoc')
-      reqtracker = Tracker.find_by_name('Req')
-      cftitle = IssueCustomField.find_by_name('RqTitle')
-      cfchapter = IssueCustomField.find_by_name('RqChapter')
-      cfprefix = IssueCustomField.find_by_name('RqPrefix')
-      cfsource = IssueCustomField.find_by_name('RqSources')
-      cftype = IssueCustomField.find_by_name('RqType')
-      cflevel = IssueCustomField.find_by_name('RqLevel')
-      cfrationale = IssueCustomField.find_by_name('RqRationale')
-      cfvar = IssueCustomField.find_by_name('RqVar')
-      cfvalue = IssueCustomField.find_by_name('RqValue')
 
       git_pull_repo(@project)
       @output = ""
@@ -230,7 +370,7 @@ class CosmosysReqsController < ApplicationController
                       #print("Creando documento " + docidstr)
                       thisdoc = @project.issues.new
                       thisdoc.author = User.current
-                      thisdoc.tracker = reqdoctracker
+                      thisdoc.tracker = @@reqdoctracker
                       thisdoc.subject = docidstr
                       thisdoc.description = docname
                       thisdoc.save
@@ -238,13 +378,13 @@ class CosmosysReqsController < ApplicationController
                       #print("si existe el documento")
                       thisdoc.description = docname
                     end
-                      cft = thisdoc.custom_values.find_by_custom_field_id(cftitle.id)
+                      cft = thisdoc.custom_values.find_by_custom_field_id(@@cftitle.id)
                       cft.value = docname
                       cft.save                      
-                      cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
+                      cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
                       cfp.value = prefixstr
                       cfp.save
-                      cfc = thisdoc.custom_values.find_by_custom_field_id(cfchapter.id)
+                      cfc = thisdoc.custom_values.find_by_custom_field_id(@@cfchapter.id)
                       cfc.value = prefixstr
                       cfc.save
                       thisdoc.save
@@ -301,7 +441,7 @@ class CosmosysReqsController < ApplicationController
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
                   if (thisdoc != nil) then
-                    cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
+                    cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
                     reqDocPrefix = cfp.value
                     #print("reqDocPrefix:",reqDocPrefix)
                     current_row = req_upload_first_row+1
@@ -340,7 +480,7 @@ class CosmosysReqsController < ApplicationController
                           print ("Creando requisito " + rqidstr)
                           thisreq = @project.issues.new
                           thisreq.author = User.current
-                          thisreq.tracker = reqtracker
+                          thisreq.tracker = @@reqtracker
                           thisreq.subject = rqidstr
                           if (descr != nil) then
                             #print("description: ",descr)
@@ -349,7 +489,7 @@ class CosmosysReqsController < ApplicationController
                           thisreq.save
                         else                      
                           #print("si existe el requisito")
-                          thisreq.tracker = reqtracker
+                          thisreq.tracker = @@reqtracker
                           if (descr != nil) then
                             #print("description: ",descr)
                             thisreq.description = descr
@@ -382,49 +522,49 @@ class CosmosysReqsController < ApplicationController
                           end
                         end                        
                         if (title_str != nil) then
-                          cft = thisreq.custom_values.find_by_custom_field_id(cftitle.id)
+                          cft = thisreq.custom_values.find_by_custom_field_id(@@cftitle.id)
                           cft.value = title_str
                           cft.save
                         end
                         if (rqchapter != nil) then
                           #print("rqchapter: ",rqchapter)
-                          cfc = thisreq.custom_values.find_by_custom_field_id(cfchapter.id)
+                          cfc = thisreq.custom_values.find_by_custom_field_id(@@cfchapter.id)
                           cfc.value = rqchapter
                           cfc.save
                         end
                         if (reqsource != nil) then
                           #print("reqsource: ",reqsource)
-                          cfs = thisreq.custom_values.find_by_custom_field_id(cfsource.id)
+                          cfs = thisreq.custom_values.find_by_custom_field_id(@@cfsources.id)
                           cfs.value = reqsource
                           cfs.save
                         end
                         if (reqtype != nil) then
                           #print("reqtype: ",reqtype)
-                          cfty = thisreq.custom_values.find_by_custom_field_id(cftype.id)
+                          cfty = thisreq.custom_values.find_by_custom_field_id(@@cftype.id)
                           cfty.value = reqtype
                           cfty.save
                         end
                         if (reqlevel != nil) then
                           #print("reqlevel: ",reqlevel)
-                          cfl = thisreq.custom_values.find_by_custom_field_id(cflevel.id)
+                          cfl = thisreq.custom_values.find_by_custom_field_id(@@cflevel.id)
                           cfl.value = reqlevel
                           cfl.save
                         end
                         if (reqrationale != nil) then
                           #print("reqrationale: ",reqrationale)
-                          cfr = thisreq.custom_values.find_by_custom_field_id(cfrationale.id)
+                          cfr = thisreq.custom_values.find_by_custom_field_id(@@cfrationale.id)
                           cfr.value = reqrationale
                           cfr.save
                         end
                         if (reqvar != nil) then
                           #print("reqvar: ",reqvar)
-                          cfv = thisreq.custom_values.find_by_custom_field_id(cfvar.id)
+                          cfv = thisreq.custom_values.find_by_custom_field_id(@@cfvar.id)
                           cfv.value = reqvar
                           cfv.save
                         end
                         if (reqvalue != nil) then
                           #print("reqvalue: ",reqvalue)
-                          cfvl = thisreq.custom_values.find_by_custom_field_id(cfvalue.id)
+                          cfvl = thisreq.custom_values.find_by_custom_field_id(@@cfvalue.id)
                           cfvl.value = reqvalue
                           cfvl.save
                         end
@@ -458,7 +598,7 @@ class CosmosysReqsController < ApplicationController
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
                   if (thisdoc != nil) then
-                    cfp = thisdoc.custom_values.find_by_custom_field_id(cfprefix.id)
+                    cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
                     reqDocPrefix = cfp.value
                     #print("reqDocPrefix:",reqDocPrefix)
                     current_row = req_upload_first_row+1
@@ -614,19 +754,17 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
+                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReportsFromJSON.py #{@project.id} #{reportingpath} #{imgpath}"
                 print(comando)
-		`#{comando}`
-                #require 'open3'
-                #require 'json'
+		            #`#{comando}`
+                require 'open3'
 
-                #stdin, stdout, stderr = Open3.popen3("#{comando}")
-                #stdin.close
-                #stdout.each do |ele|
-                  # #print ("->"+ele+"\n")
-                  #@output = ele
-                  # #@jsonoutput = JSON.parse(ele)
-                #end
+                stdin, stdout, stderr = Open3.popen3("#{comando}")
+                stdin.close
+                stdout.each do |ele|
+                  print ("->"+ele+"\n")
+                  @output += ele
+                end
 
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
@@ -654,7 +792,6 @@ class CosmosysReqsController < ApplicationController
     end
   end
 
-
   def download
     print("\n\n\n\n\n\n")
     if request.get? then
@@ -678,9 +815,17 @@ class CosmosysReqsController < ApplicationController
             @output += "Error: the relative path to the downnload file is not set\n"
           else
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
+
+
+
+
             comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath}"
             output = `#{comando}`
             p output
+
+
+
+
             git_commit_repo(@project,"[reqbot] downloadfile generated")
             git_pull_rm_repo(@project)
           end
@@ -712,10 +857,6 @@ class CosmosysReqsController < ApplicationController
 
   def tree
     require 'json'
-    reqdoctracker = Tracker.find_by_name('ReqDoc')
-    reqtracker = Tracker.find_by_name('Req')
-    cfchapter = IssueCustomField.find_by_name('RqChapter')
-    cfprefix = IssueCustomField.find_by_name('RqPrefix')
 
     if request.get? then
       print("GET!!!!!")
@@ -751,7 +892,7 @@ class CosmosysReqsController < ApplicationController
 
       treedata = []
 
-      tree_node = create_tree(thisnode,reqtracker,reqdoctracker,root_url)
+      tree_node = create_tree(thisnode,root_url)
 
       treedata << tree_node
 
@@ -785,7 +926,7 @@ class CosmosysReqsController < ApplicationController
       #print structure
       rootnode = structure[0]
       structure.each { |n|
-        update_node(n,nil,"",1,cfchapter, cfprefix, reqtracker,reqdoctracker)
+        update_node(n,nil,"",1)
       }
       redirect_to :action => 'tree', :method => :get, :id => @project.id 
     end
@@ -794,16 +935,16 @@ class CosmosysReqsController < ApplicationController
 
 
   # -------------------------- Filters and actions --------------------
-  def update_node(n,p,prefix,ord,cfchapter,cfprefix,reqtracker,reqdoctracker)
+  def update_node(n,p,prefix,ord)
     # n is node, p is parent
     node = Issue.find(n['id'])
     if (node != nil) then
-      if (node.tracker == reqdoctracker) then
-        nodechapter = node.custom_values.find_by_custom_field_id(cfprefix.id).value
+      if (node.tracker == @@reqdoctracker) then
+        nodechapter = node.custom_values.find_by_custom_field_id(@@cfchapter.id).value
       else
         nodechapter = prefix+ord.to_s.rjust(@@chapterdigits, "0")+"."
       end
-      cfc = node.custom_values.find_by_custom_field_id(cfchapter.id)
+      cfc = node.custom_values.find_by_custom_field_id(@@cfchapter.id)
       cfc.value = nodechapter
       cfc.save      
       if (p != nil) then
@@ -815,7 +956,7 @@ class CosmosysReqsController < ApplicationController
       chord = 1
       if (ch != nil) then
          ch.each { |c| 
-          update_node(c,node.id,nodechapter,chord,cfchapter,cfprefix,reqtracker,reqdoctracker)
+          update_node(c,node.id,nodechapter,chord)
           chord += 1
         }
       end
@@ -916,25 +1057,58 @@ class CosmosysReqsController < ApplicationController
     end
   end
 
+def create_json(current_issue, root_url, include_doc_children,currentdoc)
+    tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
 
-def create_tree(current_issue,reqtracker,reqdoctracker, root_url)
+    tree_node[:chapter] = current_issue.custom_values.find_by_custom_field_id(@@cfchapter.id).value
+    tree_node[:title] = current_issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
+    if (current_issue.tracker == @@reqdoctracker) then
+    tree_node[:prefix] = current_issue.custom_values.find_by_custom_field_id(@@cfprefix.id).value
+    else
+    tree_node[:level] = current_issue.custom_values.find_by_custom_field_id(@@cflevel.id).value
+    tree_node[:type] = current_issue.custom_values.find_by_custom_field_id(@@cftype.id).value
+    tree_node[:sources] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
+    tree_node[:var] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
+    tree_node[:value] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
+    tree_node[:rationale] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
+    end
+    if (current_issue.tracker == @@reqdoctracker) then
+      currentdoc = current_issue
+    end
+    tree_node[:doc_id] = currentdoc.id
+    tree_node[:children] = []
+
+    childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
+    childrenitems.each{|c|
+      if (c.tracker != @@reqdoctracker or include_doc_children) then
+        child_node = create_json(c,root_url,include_doc_children,currentdoc)
+        tree_node[:children] << child_node
+      end
+    }
+    tree_node[:relations] = []
+    current_issue.relations_from.where(:relation_type => 'blocks').each{|rl|
+      tree_node[:relations] << rl.attributes.slice("issue_to_id")
+    }
+
+    return tree_node
+end
+
+def create_tree(current_issue, root_url)
     output = ""
     output += ("\nissue: " + current_issue.subject)
     issue_url = root_url + '/issues/' + current_issue.id.to_s
     output += ("\nissue_url: " + issue_url.to_s)
-    issue_new_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + reqtracker.id.to_s
+    issue_new_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + @@reqtracker.id.to_s
     output += ("\nissue_new_url: " + issue_new_url.to_s)
-    if (current_issue.tracker == reqdoctracker) then
-      issue_new_doc_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + reqdoctracker.id.to_s
+    if (current_issue.tracker == @@reqdoctracker) then
+      issue_new_doc_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + @@reqdoctracker.id.to_s
     else
       issue_new_doc_url = nil
     end
     output += ("\nissue_new_url: " + issue_new_doc_url.to_s)
 
-    cftitle = IssueCustomField.find_by_name('RqTitle')
-    cfchapter = IssueCustomField.find_by_name('RqChapter')
-    cftitlevalue = current_issue.custom_values.find_by_custom_field_id(cftitle).value
-    cfchaptervalue = current_issue.custom_values.find_by_custom_field_id(cfchapter).value
+    cftitlevalue = current_issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
+    cfchaptervalue = current_issue.custom_values.find_by_custom_field_id(@@cfchapter.id).value
     separator_idx = cfchaptervalue.rindex('-')
     cfchapterarraywrapper = [cfchaptervalue.slice(0..separator_idx), cfchaptervalue.slice((separator_idx+1)..-1)]
     #print(cfchapterarraywrapper)
@@ -960,9 +1134,9 @@ def create_tree(current_issue,reqtracker,reqdoctracker, root_url)
     #print tree_node
     #print "children: " + tree_node[:children].to_s + "++++\n"
 
-    childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(cfchapter).value}
+    childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
     childrenitems.each{|c|
-        child_node = create_tree(c,reqtracker,reqdoctracker,root_url)
+        child_node = create_tree(c,root_url)
         tree_node[:children] << child_node
     }
 
