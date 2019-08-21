@@ -120,6 +120,7 @@ class CosmosysReqsController < ApplicationController
       treedata[:project][:url] = root_url
       treedata[:targets] = {}
       treedata[:statuses] = {}
+      treedata[:trackers] = {}
       treedata[:reqdocs] = {}
       treedata[:reqs] = []
 
@@ -127,6 +128,10 @@ class CosmosysReqsController < ApplicationController
 
       IssueStatus.all.each { |st| 
         treedata[:statuses][st.id.to_s] = st.name
+      }
+
+      Tracker.all.each { |tr| 
+        treedata[:trackers][tr.id.to_s] = tr.name
       }
 
       @project.versions.each { |v| 

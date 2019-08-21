@@ -11,10 +11,30 @@ import json
 def tree_to_list(tree):
     result = []
     for node in tree:
+        if (node['id']) == (node['doc_id']):
+            # Nos encontramos en un documento, vamos a "enriquecer" el nodo de reqdocs 
+            # con la información de "children" para que el generador de informes pueda 
+            # partir de los documentos en forma de árbol
+            data['reqdocs'][str(node['doc_id'])]['children'] = node['children']
+
+        if 'type' in node.keys():
+            if (node['type'] == "Info"):
+                # Nos encontramos en un nodo del tipo informacion, para el que no vamos a 
+                # querer, posiblemente, generar tablas de atributos.  Para que Carbone
+                # pueda filtrar facilmente este tipo de datos, le anyadiremos la propiedad
+                # infoType = 1.
+                node['infoType'] = 1
+            else:
+                node['infoType'] = 0
+
+        else:
+            node['infoType'] = 0
+
+
         print(node['subject'])
         node['status'] = data['statuses'][str(node['status_id'])]
         node['target'] = data['targets'][str(node['fixed_version_id'])]
-        node['tracker'] = data['statuses'][str(node['fixed_version_id'])]
+        node['tracker'] = data['trackers'][str(node['tracker_id'])]
         node['doc'] = data['reqdocs'][str(node['doc_id'])]['subject']
         purgednode = node.copy()
         purgednode['children'] = []
@@ -349,12 +369,14 @@ print("Acabamos")
 # In[ ]:
 
 
+datadoc = data
+
 import json
 
 # Preparamos el fichero JSON que usaremos de puente para generar la documentación
 
 with open(reporting_path + '/doc/reqs.json', 'w') as outfile:
-    json.dump(data, outfile)
+    json.dump(datadoc, outfile)
 
 print("Acabamos")
 
