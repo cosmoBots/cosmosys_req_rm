@@ -8,14 +8,21 @@ from cfg.configfile_req import req_key_txt
 import sys
 import json
 
-def tree_to_list(tree):
+def tree_to_list(tree,parentNode):
     result = []
+    print("\n\n\n******ARBOL******* len= ",len(tree))
     for node in tree:
+        node['chapters'] = []
+        node['reqs'] = []
+        print("\n\n\n******NODO*******",node['id'])
         if (node['id']) == (node['doc_id']):
+            print("\n\n\n******DOCUMENTO*******",node['id'])
             # Nos encontramos en un documento, vamos a "enriquecer" el nodo de reqdocs 
             # con la información de "children" para que el generador de informes pueda 
             # partir de los documentos en forma de árbol
             data['reqdocs'][str(node['doc_id'])]['children'] = node['children']
+            data['reqdocs'][str(node['doc_id'])]['chapters'] = []
+            data['reqdocs'][str(node['doc_id'])]['reqs'] = []
 
         if 'type' in node.keys():
             if (node['type'] == "Info"):
@@ -24,11 +31,23 @@ def tree_to_list(tree):
                 # pueda filtrar facilmente este tipo de datos, le anyadiremos la propiedad
                 # infoType = 1.
                 node['infoType'] = 1
+                if (parentNode != None):
+                    parentNode['chapters'].append(node)
+                    if (parentNode['id'] == parentNode['doc_id']):
+                        data['reqdocs'][str(node['doc_id'])]['chapters'].append(node)
             else:
                 node['infoType'] = 0
+                if (parentNode != None):
+                    parentNode['reqs'].append(node)
+                    if (parentNode['id'] == parentNode['doc_id']):
+                        data['reqdocs'][str(node['doc_id'])]['reqs'].append(node)
 
         else:
             node['infoType'] = 0
+            if (parentNode != None):
+                parentNode['reqs'].append(node)
+                if (parentNode['id'] == parentNode['doc_id']):
+                    data['reqdocs'][str(node['doc_id'])]['reqs'].append(node)
 
 
         print(node['subject'])
@@ -40,7 +59,7 @@ def tree_to_list(tree):
         purgednode['children'] = []
         #print(purgednode)
         result.append(purgednode)
-        result += tree_to_list(node['children'])
+        result += tree_to_list(node['children'],node)
 
     return result
 
@@ -210,11 +229,11 @@ reqdocs = data['reqdocs']
 reqs = data['reqs']
 targets = data['targets']
 statuses = data['statuses']
-
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
 print("len(reqs)",len(reqs))
 # Debemos preparar un diagrama para cada nodo
-reqlist = tree_to_list(reqs)
+print("#####Vamos con los documentos!!!!")
+reqlist = tree_to_list(reqs,None)
 data['reqlist'] = reqlist
 
 data['reqclean'] = []
@@ -249,7 +268,7 @@ self_g_d = Digraph(name="clusterD",
                      graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                      engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
 
-url_base = "./img/" + my_project['identifier'] + "_"
+url_base = "http://localhost:5555/projects/demo/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + my_project['identifier'] + "_"
 url_sufix = ".gv.svg"
 url_h = url_base +"h"+url_sufix
 url_d = url_base +"h"+url_sufix
@@ -280,7 +299,7 @@ for my_issue in reqlist:
     self_d = Digraph(name="clusterD",
                          graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                          engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
-    url_base = "./img/" + str(my_issue['id']) + "_"
+    url_base = "http://localhost:5555/projects/demo/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + str(my_issue['id']) + "_"
     url_sufix = ".gv.svg"
     url_h = url_base +"h"+url_sufix
     url_d = url_base +"h"+url_sufix
