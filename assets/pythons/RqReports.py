@@ -3,235 +3,344 @@
 
 # In[ ]:
 
-from cfg.configfile_req import *
-from redminelib import Redmine
-
-print(req_server_url)
-print(req_key_txt)
+from cfg.configfile_req import req_key_txt
 
 import sys
+import json
+
+def tree_to_list(tree):
+    result = []
+    for node in tree:
+        print(node['subject'])
+        node['status'] = data['statuses'][str(node['status_id'])]
+        node['target'] = data['targets'][str(node['fixed_version_id'])]
+        node['tracker'] = data['statuses'][str(node['fixed_version_id'])]
+        node['doc'] = data['reqdocs'][str(node['doc_id'])]['subject']
+        purgednode = node.copy()
+        purgednode['children'] = []
+        #print(purgednode)
+        result.append(purgednode)
+        result += tree_to_list(node['children'])
+
+    return result
+
+def propagate_dependence_up(node,firstdependable,currentdependable,server_url,dependents):
+    nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+    diagrams[str(currentdependable)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+    print(node['id']," <- ",firstdependable," <- ... <- ",currentdependable)
+    if currentdependable != firstdependable:
+        # Tebenos que añadirnos al diagraa del precursor
+        diagrams[str(currentdependable)]['self_d'].edge(str(firstdependable), str(node['id']),color="blue")
+
+    print(dependents)
+    if str(currentdependable) in dependents.keys():
+        print("entro")
+        for dep in dependents[str(currentdependable)]:
+            propagate_dependence_up(node,firstdependable,dep,server_url,dependents)
+
+
+def propagate_dependence_down(node,firstdependent,currentdependent,server_url,reqlist):
+    # Buscanos el nodo actual
+    print("***************",currentdependent,"*****************")
+    print("***************",firstdependent,"*****************")
+    for n in reqlist:
+        if n['id'] == currentdependent:
+            break
+
+    print(n)
+
+    if (firstdependent != currentdependent):
+        print("***************","entro!","*****************")
+        nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+        diagrams[str(currentdependent)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+        print(node['id']," -> ",firstdependent," ->...-> ",currentdependent)
+        # Tebenos que añadirnos al diagraa del precursor
+        diagrams[str(currentdependent)]['self_d'].edge(str(node['id']),str(firstdependent),color="blue")
+        print("entro")
+    
+    for dep in n['relations']:
+        propagate_dependence_down(node,firstdependent,dep['issue_to_id'],server_url,reqlist)
+
+
+def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
+
+    # Añadimos las URLs de los graficos del nodo al propio nodo
+    node['url_h'] = diagrams[str(node['id'])]['url_h']
+    node['url_d'] = diagrams[str(node['id'])]['url_d']
+    # Get current graph
+    print(str(node['id']),node['subject'])
+    # Dibujamos el nodo actual en los grafos generales
+    nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+    diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+    # Si tiene padre, pintaremos el vertice entre el padre y él
+    if (len(ancestors)>0):
+        parentreq = ancestors[0]
+        diagrams['project']['self_h'].edge(str(parentreq['id']), str(node['id']))
+    else:
+        parentreq = None
+
+    # Si este grafo tiene relaciones o ha sido marcado como dependiente, lo añadimos en el grafo geneal
+    if str(node['id']) in dependents.keys():
+        dependables = dependents[str(node['id'])]
+        print(dependables)
+    else:
+        dependables = None
+
+    if (len(node['relations']) > 0) or (dependables is not None):
+        diagrams['project']['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+        # En caso de tratarse de un nodo dependiente, lo añadiremos a los diagramas de los nodos precursores
+        if (dependables is not None):
+            for pr in dependables:
+                print("propago ",node['id'],": ",node['subject'])
+                # Debemos también recorrer de manera arbórea todos aquellos nodos en la cadena de depndencia
+                propagate_dependence_up(node,pr,pr,server_url,dependents)
+
+    # Para cada relación
+    for r in node['relations']:
+        # añadiremos un eje en el grafo general
+        diagrams['project']['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
+        # En el grafo del dependiente añadiremos el nodo como precursor
+        diagrams[str(r['issue_to_id'])]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+        diagrams[str(r['issue_to_id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
+        # En nuestro propio grafo añadiremos una arista hacia el nodo dependiente
+        diagrams[str(node['id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
+        # marcaremos la relación como dependiente
+        if str(r['issue_to_id']) not in dependents.keys():
+            dependents[str(r['issue_to_id'])] = []
+
+        dependents[str(r['issue_to_id'])].append(node['id'])
+        # Ahora propagaremos el cambio hacia abajo para que en los diagramas de los dependientes
+        # a más de un nivel aparezca el nodo actual y la dependencia con la relacion de primer 
+        # nivel
+        propagate_dependence_down(node,r['issue_to_id'],r['issue_to_id'],server_url,reqlist)
+
+
+            
+
+
+    # Ahora pintamos el camino de los ancestros en el grafo correspondiente al nodo actual
+    desc = node
+    graph = diagrams[str(node['id'])]['self_h']
+    for anc in ancestors:
+        # Dibujamos el nodo del ancestro y el link a sus descendiente en el grafo actual
+        nodelabel = "{"+anc['subject']+"|"+anc['title']+"}"
+        graph.node(str(anc['id']),nodelabel,URL=server_url+'/issues/'+str(anc['id']),tooltip=anc['description'])
+        graph.edge(str(anc['id']),str(desc['id']))
+        print("en el grafo de ",node['subject']," meto un ancestro",anc['subject']," como padre de ",desc['subject'])
+        # Dibujamos el nodo actual en el grafo del ancestro, con un vínculo a su padre
+        graphanc = diagrams[str(anc['id'])]['self_h']
+        graphanc.node(str(node['id']),nodelabel,URL=server_url+'/issues/'+str(node['id']),tooltip=node['description'])
+        if (parentreq is not None):
+            graphanc.edge(str(parentreq['id']),str(node['id']))
+            print("En el grafo de ",anc['subject']," meto un nodo descendiente ",node['subject'],"conectado con su padre ",parentreq['subject'])
+        
+        # El ancestro actual pasa a ser el descendiente del ancestro siguiente 
+        desc = anc
+
+    for child in node['children']:
+        #if ((parentreq is None) or (child['doc_id']!=parentreq['doc_id'])):
+            # Solo vamos a generar diagramas cuando bajemos desde el documento que los contiene,
+            # Esto lo detectamos cuando el doc al que pertenece el hijo es diferente al que pertenece el padre
+            generate_diagrams(child,diagrams,[node]+ancestors,server_url,dependents)
+
+
+'''
+    descr = getattr(my_issue, 'description', my_issue.subject)
+    # https://stackoverflow.com/questions/37543513/read-the-null-value-in-python-redmine-api
+    # Short answer: Use getattr(id, 'assigned_to', None) instead of id.assigned_to.
+    current_parent = getattr(my_issue, 'parent', None)
+    #print("my_issue: "+str(my_issue))
+    if current_parent is not None:
+        #print("parent: "+str(current_parent))
+        draw_ancestors(redmine,server_url,current_parent,issue_id,graph,req_title_cf_id)
+
+    return my_issue
+'''
+
 
 print ("This is the name of the script: ", sys.argv[0])
 print ("Number of arguments: ", len(sys.argv))
 print ("The arguments are: ", str(sys.argv))
 
-print(req_server_url)
-print(req_key_txt)
+#my_project['url'] = 'http://localhost:5555'           # The Redmine URL
+#req_key_txt = 'd32df1cc535477adb95998fb4633bc50e8e664e3'    # The API key of the user (or bot) in which name the actions are undertaken.
+
 
 # pr_id_str = req_project_id_str
 pr_id_str = sys.argv[1]
-print(pr_id_str)
+print("id: ",pr_id_str)
 
 # reporting_path = reporting_dir
 reporting_path = sys.argv[2]
-print(reporting_path)
+print("reporting_path: ",reporting_path)
 
 # img_path = img_dir
 img_path = sys.argv[3]
-print(img_path)
+print("img_path: ",img_path)
 
-redmine = Redmine(req_server_url, key=req_key_txt)
-projects = redmine.project.all()
+import json,urllib.request
+datafromurl = urllib.request.urlopen("http://localhost:5555/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt).read()
+data = json.loads(datafromurl)
 
-print("Proyectos:")
-for p in projects:
-    print ("\t", p.identifier, " \t| ", p.name)
+my_project = data['project']
 
-my_project = redmine.project.get(pr_id_str)
-print ("Obtenemos proyecto: ", my_project.identifier, " | ", my_project.name)
+print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
 
-# get_ipython().run_line_magic('run', './RqConnectNList.ipynb')
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id, status_id='*')
-my_project_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
-my_doc_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
+reqdocs = data['reqdocs']
+reqs = data['reqs']
+targets = data['targets']
+statuses = data['statuses']
 
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("Uno")
+# Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
+print("len(reqs)",len(reqs))
+# Debemos preparar un diagrama para cada nodo
+reqlist = tree_to_list(reqs)
+data['reqlist'] = reqlist
+
+data['reqclean'] = []
+
+for r in reqlist:
+    if 'type' in r.keys():
+        if r['type'] != 'Info':
+            data['reqclean'].append(r)
+
+
+print("len(reqlist)",len(reqlist))
+
 # Ahora recorremos el proyecto y sacamos los diagramas completos de jerarquía y dependencias, y guardamos los ficheros de esos diagramas en la carpeta doc.
 
 # In[ ]:
-
+diagrams = {}
 
 from graphviz import Digraph
 
-diagrams_str_prefix = "{{graphviz_link()\n"
-diagrams_str_suffix = "\n}} "
-diagrams_h_str = ""
-diagrams_d_str = ""
-cfdiag = redmine.custom_field.get(reqprj_diagrams_cf_id)
-diagrams_pattern = cfdiag.default_value
+path_root = img_path + "/" + my_project['identifier'] + "_"
 
-path_root = img_path + "/" + my_project.identifier + "_"
-
-prj_graph_parent = Digraph(name=path_root + "h", format='svg',
+parent_g_h = Digraph(name=path_root + "h", format='svg',
                            graph_attr={'ratio': 'compress', 'size': '9,5,30', 'margin': '0'}, engine='dot',
-                           node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-prj_graph = Digraph(name="clusterH",
+                           node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+self_g_h = Digraph(name="clusterH",
                     graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Hierarchy', 'margin': '5'}, engine='dot',
-                    node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-prj_graphb_parent = Digraph(name=path_root + "d", format='svg',
+                    node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+parent_g_d = Digraph(name=path_root + "d", format='svg',
                             graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
-                            node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-prj_graphb = Digraph(name="clusterD",
+                            node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+self_g_d = Digraph(name="clusterD",
                      graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
-                     engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
+                     engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
 
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("Dos")
-
-
-for i in my_doc_issues + my_project_issues:
-    title_str = i.custom_fields.get(req_title_cf_id).value
-    #print("title: ",title_str)
-    nodelabel = "{" + i.subject + "|" + title_str + "}"
-    #print(nodelabel)
-    #print(str(i.id))
-    #print(req_server_url)
-    descr = getattr(i, 'description', i.subject)
-    #print(descr)
-    prj_graph.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=descr)
-    #print(i.id, ": ", i.subject)
-    for child in i.children:
-        prj_graph.edge(str(i.id), str(child.id))
-
-    my_issue_relations = redmine.issue_relation.filter(issue_id=i.id)
-    # print(len(my_issue_relations))
-    my_filtered_issue_relations = list(filter(lambda x: x.issue_to_id != i.id, my_issue_relations))
-    #print("relations: ",len(my_filtered_issue_relations))
-    #print(my_filtered_issue_relations)
-    if (len(my_issue_relations) > 0):
-        nodelabel = "{" + i.subject + "|" + title_str + "}"
-        prj_graphb.node(str(i.id), nodelabel, URL=req_server_url + '/issues/' + str(i.id), tooltip=descr)
-        for r in my_filtered_issue_relations:
-            related_element = redmine.issue.get(r.issue_to_id)
-            #print("related_element: ", related_element, " : ", related_element.tracker)
-            if (related_element.tracker.id == req_rq_tracker_id):
-                # print("\t"+r.relation_type+"\t"+str(r.issue_id)+"\t"+str(r.issue_to_id))
-                prj_graphb.edge(str(i.id), str(r.issue_to_id), color="blue")
-
-
-    print("\n\n\n\n\n")
-    print("\n\n\n\n\n")
-    print("\n\n\n\n\n")
-    print("Tres")
-
-
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("Tres bis")
-
-prj_graph_parent.subgraph(prj_graph)
-prj_graph_parent.render()
-prj_graphb_parent.subgraph(prj_graphb)
-prj_graphb_parent.render()
-
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("Cuatro")
-
-print("project hierarchy diagram file: ", path_root + "h.gv.svg")
-print("project dependence diagram file: ", path_root + "d.gv.svg")
-
-diagrams_h_str = diagrams_str_prefix + str(prj_graph_parent) + diagrams_str_suffix
-diagrams_d_str = diagrams_str_prefix + str(prj_graphb_parent) + diagrams_str_suffix
-
-diagrams_str = diagrams_pattern.replace('$$h', diagrams_h_str)
-diagrams_str = diagrams_str.replace('$$d', diagrams_d_str)
-redmine.project.update(resource_id=my_project.id,
-                       custom_fields=[{'id': reqprj_diagrams_cf_id, 'value': diagrams_str}]
-                       )
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("\n\n\n\n\n")
-print("Acabamos graficos totales")
-
-# Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
-
-# In[ ]:
-
+url_base = "./img/" + my_project['identifier'] + "_"
+url_sufix = ".gv.svg"
+url_h = url_base +"h"+url_sufix
+url_d = url_base +"h"+url_sufix
+my_project['url_h'] = url_h
+my_project['url_d'] = url_d
+diagrams['project'] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_g_h, 'self_h': self_g_h, 'parent_d': parent_g_d, 'self_d': self_g_d, }
 
 from lib.csysrq_support import *
 import os
 
-diagrams_h_str = ""
-diagrams_d_str = ""
-
-cfdiag = redmine.custom_field.get(req_diagrams_cf_id)
-diagrams_pattern = cfdiag.default_value
-
+#print(reqlist)
 # Generamos los diagramas correspondientes a los requisitos del proyecto
-for my_issue in my_doc_issues + my_project_issues:
-    print("\n\n---------- Diagrama ----------", my_issue)
-    path_root = img_path + "/" + str(my_issue.id) + "_"
-    target_issue_id = my_issue.id
-    prj_graphc_parent = Digraph(name=path_root + "h", format='svg',
+for my_issue in reqlist:
+    print("\n\n---------- Diagrama ----------", my_issue['subject'])
+    path_root = img_path + "/" + str(my_issue['id']) + "_"
+
+    parent_h = Digraph(name=path_root + "h", format='svg',
                                 graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
-                                node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-    prj_graphc = Digraph(name="clusterH",
+                                node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+
+    self_h = Digraph(name="clusterH",
                          graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Hierarchy', 'margin': '5'},
-                         engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-    target_issue = draw_descendants(redmine, req_server_url, target_issue_id, prj_graphc, req_title_cf_id)
+                         engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+    
+    parent_d = Digraph(name=path_root + "d", format='svg',
+                                graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
+                                node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+    self_d = Digraph(name="clusterD",
+                         graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
+                         engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+    url_base = "./img/" + str(my_issue['id']) + "_"
+    url_sufix = ".gv.svg"
+    url_h = url_base +"h"+url_sufix
+    url_d = url_base +"h"+url_sufix
+    my_issue['url_h'] = url_h
+    my_issue['url_d'] = url_d
+
+    # Pinto cada nodo en su diagrama
+    print("Creo los diagrama con id ",my_issue['id'])
+    diagrams[str(my_issue['id'])] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_h, 'self_h': self_h, 'parent_d': parent_d, 'self_d': self_d, }
+
+    nodelabel = "{" + my_issue['subject'] + "|" + my_issue['title'] + "}"
+    self_h.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']),
+                    color='green', tooltip=my_issue['description'])
+    
+    '''
+    my_issue = draw_postpropagation(redmine, my_project['url'], my_issue['id'], prj_graphd, req_rq_tracker_id,
+                                    req_title_cf_id)
+
+    draw_prepropagation(redmine, my_project['url'], my_issue['id'], prj_graphd, req_rq_tracker_id, req_title_cf_id)
+    '''
+
+    title_str = my_issue['title']
+    nodelabel = "{" + my_issue['subject'] + "|" + title_str + "}"
+    self_d.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']), color='green',
+                    tooltip=my_issue['description'])
+
+# Ahora recorrere todo el arbol rellenando los nodos en cada diagrama
+
+#print(diagrams)
+
+for rq in reqs:
+    generate_diagrams(rq,diagrams,[],my_project['url'],{})
+    #-----------------------------
+
+    '''
+    target_issue = draw_descendants(redmine, my_project['url'], my_issue['id'], prj_graphc, req_title_cf_id)
     current_parent = getattr(target_issue, 'parent', None)
     if current_parent is not None:
-        draw_ancestors(redmine, req_server_url, target_issue.parent, target_issue_id, prj_graphc, req_title_cf_id)
+        draw_ancestors(redmine, my_project['url'], target_issue.parent, my_issue['id'], prj_graphc, req_title_cf_id)
 
-    title_str = target_issue.custom_fields.get(req_title_cf_id).value
-    nodelabel = "{" + target_issue.subject + "|" + title_str + "}"
-    descr = getattr(target_issue, 'description', target_issue.subject)
-    prj_graphc.node(str(target_issue.id), nodelabel, URL=req_server_url + '/issues/' + str(target_issue.id),
-                    color='green', tooltip=descr)
+    '''
+
+    #-----------------------------
+for my_issue in reqlist:
+    prj_graphc_parent = diagrams[str(my_issue['id'])]['parent_h']
+    prj_graphc = diagrams[str(my_issue['id'])]['self_h']
     prj_graphc_parent.subgraph(prj_graphc)
     prj_graphc_parent.render()
-    symlink_path = img_path + "/" + my_issue.subject + "_" + "h.gv.svg"
+    '''
+    symlink_path = img_path + "/" + my_issue['subject'] + "_" + "h.gv.svg"
     print("file: ", path_root + "h.gv.svg")
     print("symlink: ", symlink_path)
     if (os.path.islink(symlink_path)):
         os.remove(symlink_path)
 
     os.symlink(path_root + "h.gv.svg", symlink_path)
+    '''
 
-    diagrams_h_str = diagrams_str_prefix + str(prj_graphc_parent) + diagrams_str_suffix
+    prj_graphd_parent = diagrams[str(my_issue['id'])]['parent_d']
+    prj_graphd = diagrams[str(my_issue['id'])]['self_d']
+    prj_graphd_parent.subgraph(prj_graphd)
+    prj_graphd_parent.render()
 
-    prj_graphd_parent = Digraph(name=path_root + "d", format='svg',
-                                graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
-                                node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-    prj_graphd = Digraph(name="clusterD",
-                         graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
-                         engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': req_server_url})
-    my_issue = draw_postpropagation(redmine, req_server_url, target_issue_id, prj_graphd, req_rq_tracker_id,
-                                    req_title_cf_id)
-    # if (my_issue.tracker.id == req_rq_tracker_id):
-    if (True):
-        draw_prepropagation(redmine, req_server_url, target_issue_id, prj_graphd, req_rq_tracker_id, req_title_cf_id)
-        title_str = my_issue.custom_fields.get(req_title_cf_id).value
-        nodelabel = "{" + my_issue.subject + "|" + title_str + "}"
-        descr = getattr(my_issue, 'description', my_issue.subject)
-        prj_graphd.node(str(my_issue.id), nodelabel, URL=req_server_url + '/issues/' + str(my_issue.id), color='green',
-                        tooltip=descr)
-        prj_graphd_parent.subgraph(prj_graphd)
-        prj_graphd_parent.render()
-        symlink_path = img_path + "/" + my_issue.subject + "_" + "d.gv.svg"
-        print("file: ", path_root + "d.gv.svg")
-        print("symlink: ", symlink_path)
-        if (os.path.islink(symlink_path)):
-            os.remove(symlink_path)
+    '''
+    symlink_path = img_path + "/" + my_issue['subject'] + "_" + "d.gv.svg"
+    print("file: ", path_root + "d.gv.svg")
+    print("symlink: ", symlink_path)
+    if (os.path.islink(symlink_path)):
+        os.remove(symlink_path)
 
-        os.symlink(path_root + "d.gv.svg", symlink_path)
-        # diagrams_str += "\n\n## Dependence\n\n"+diagrams_str_prefix
-        diagrams_d_str = diagrams_str_prefix + str(prj_graphd_parent) + diagrams_str_suffix
+    os.symlink(path_root + "d.gv.svg", symlink_path)
+    '''
 
-    diagrams_str = diagrams_pattern.replace('$$h', diagrams_h_str)
-    diagrams_str = diagrams_str.replace('$$d', diagrams_d_str)
-    redmine.issue.update(resource_id=my_issue.id,
-                         custom_fields=[{'id': req_diagrams_cf_id, 'value': diagrams_str}]
-                         )
+parent_g_h.subgraph(self_g_h)
+parent_g_h.render()
+parent_g_d.subgraph(self_g_d)
+parent_g_d.render()
+
+print("project hierarchy diagram file: ", path_root + "h.gv.svg")
+print("project dependence diagram file: ", path_root + "d.gv.svg")
 
 print("Acabamos")
 
@@ -243,59 +352,6 @@ print("Acabamos")
 import json
 
 # Preparamos el fichero JSON que usaremos de puente para generar la documentación
-
-data = {}
-data['docs'] = []
-data['issues'] = []
-
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
-my_project_docs = sorted(tmp, key=lambda k: k.subject)
-
-for my_doc in my_project_docs:
-    json_issue = {
-        'id': my_doc.id,
-        'subject': my_doc.subject,
-        'description': my_doc.description,
-        'title': my_doc.custom_fields.get(req_title_cf_id).value,
-        'docprefix': my_doc.custom_fields.get(req_prefix_cf_id).value,
-        'chapter': my_doc.custom_fields.get(req_chapter_cf_id).value,
-    }
-    data['docs'].append(json_issue)
-
-for i in my_project_issues:
-    my_issue = redmine.issue.get(i.id)
-    s = getattr(my_issue, 'status', None)
-    if s is not None:
-        status_name = s.name
-    v = getattr(my_issue, 'fixed_version', None)
-    if v is not None:
-        target_name = v.name
-    else:
-        target_name = None
-
-    descr = getattr(my_issue, 'description', my_issue.subject)
-    #print("thisissue:",i)
-    srcs = getattr(my_issue.custom_fields.get(req_sources_cf_id),'value',"")
-    val = getattr(my_issue.custom_fields.get(req_value_cf_id),'value',"")
-    var = getattr(my_issue.custom_fields.get(req_var_cf_id),'value',"")
-    json_issue = {
-        'id': my_issue.id,
-        'subject': my_issue.subject,
-        'description': descr,
-        'title': my_issue.custom_fields.get(req_title_cf_id).value,
-        'type': my_issue.custom_fields.get(req_type_cf_id).value,
-        'level': my_issue.custom_fields.get(req_level_cf_id).value,
-        'sources': srcs,
-        'rationale': my_issue.custom_fields.get(req_rationale_cf_id).value,
-        'rq_value': val,
-        'rq_var': var,
-        'chapter': my_issue.custom_fields.get(req_chapter_cf_id).value,
-        'target': target_name,
-        'state': status_name,
-        'url_h': "./img/" + my_issue.subject + "_h.gv.svg",
-        'url_d': "./img/" + my_issue.subject + "_d.gv.svg"
-    }
-    data['issues'].append(json_issue)
 
 with open(reporting_path + '/doc/reqs.json', 'w') as outfile:
     json.dump(data, outfile)
@@ -310,9 +366,11 @@ print("Acabamos")
 from Naked.toolshed.shell import execute_js
 
 # js_command = 'node ' + file_path + " " + arguments
-
-success = execute_js('./plugins/cosmosys_req/assets/pythons/lib/launch_carbone.js', reporting_path)
-print(success)
+print(reqdocs.keys())
+for doc in reqdocs.keys():
+    print(reqdocs[doc])
+    success = execute_js('./plugins/cosmosys_req/assets/pythons/lib/launch_carbone.js', reporting_path+" "+str(reqdocs[doc]['id'])+" "+reqdocs[doc]['subject'])
+    print(success)
 
 if success:
     # handle success of the JavaScript
@@ -333,34 +391,23 @@ import json
 # Preparamos el fichero JSON que usaremos para el árbol
 
 def create_tree(current_issue):
-    #print("issue: " + current_issue.subject)
-    descr = getattr(current_issue, 'description', current_issue.subject)
+    #print("issue: " + current_issue['subject'])
+    descr = getattr(current_issue, 'description', current_issue['subject'])
     tree_node = {'title': current_issue.custom_fields.get(
-        req_chapter_cf_id).value + ": " + current_issue.subject + ": " + current_issue.custom_fields.get(
+        req_chapter_cf_id).value + ": " + current_issue['subject'] + ": " + current_issue.custom_fields.get(
         req_title_cf_id).value,
                  'subtitle': descr,
                  'expanded': True,
                  'children': [],
                  }
-    chlist = redmine.issue.filter(project_id=pr_id_str, parent_id=current_issue.id, status_id='*')
-    childrenitems = sorted(chlist, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
+    chlist = redmine.issue.filter(project_id=pr_id_str, parent_id=current_issue['id'], status_id='*')
+    childrenitems = sorted(chlist, key=lambda k: k['chapter'])
     for c in childrenitems:
-        child_issue = redmine.issue.get(c.id)
+        child_issue = redmine.issue.get(c['id'])
         child_node = create_tree(child_issue)
         tree_node['children'].append(child_node)
 
     return tree_node
-
-
-treedata = []
-for i in my_project_docs:
-    current_parent = getattr(i, 'parent', None)
-    if (current_parent == None):
-        tree_node = create_tree(i)
-        treedata.append(tree_node)
-
-# with open('./plugins/cosmosys_req/assets/pythons/reqtree/src/reqtreedata.json', 'w') as outfile:
-#    json.dump(treedata, outfile)
 
 
 print("Acabamos")

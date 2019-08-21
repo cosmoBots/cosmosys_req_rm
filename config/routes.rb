@@ -31,3 +31,5 @@ get 'cosmosys_reqs/:id/req_tree', :to => 'cosmosys_reqs#req_tree'
 post 'cosmosys_reqs/:id/req_validate', :to => 'cosmosys_reqs#req_validate'
 post 'cosmosys_reqs/:id/req_propagate', :to => 'cosmosys_reqs#req_propagate'
 post 'cosmosys_reqs/:id/req_tree', :to => 'cosmosys_reqs#req_tree'
+
+get 'cosmosys_reqs/:id', :to => 'cosmosys_reqs#show'

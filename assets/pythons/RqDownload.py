@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from cfg.configfile_req import *
-from redminelib import Redmine
+#from redminelib import Redmine
 
 import sys
 #print("This is the name of the script: ", sys.argv[0])
@@ -20,8 +20,12 @@ pr_id_str = sys.argv[1]
 download_filepath = sys.argv[2]
 #print(download_filepath)
 
-redmine = Redmine(req_server_url,key=req_key_txt)
-projects = redmine.project.all()
+#redmine = Redmine(req_server_url,key=req_key_txt)
+#projects = redmine.project.all()
+
+model_json = sys.argv[3]
+
+
 
 #print("Proyectos:")
 #for p in projects:
