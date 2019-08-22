@@ -225,7 +225,9 @@ root_url = sys.argv[4]
 print("root_url: ",root_url)
 
 import json,urllib.request
-datafromurl = urllib.request.urlopen(root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt).read()
+urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
+print("urlfordata: ",urlfordata)
+datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
 data = json.loads(datafromurl)
 
 my_project = data['project']
