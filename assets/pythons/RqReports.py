@@ -220,8 +220,12 @@ print("reporting_path: ",reporting_path)
 img_path = sys.argv[3]
 print("img_path: ",img_path)
 
+# root_url = req_server_url
+root_url = sys.argv[4]
+print("root_url: ",root_url)
+
 import json,urllib.request
-datafromurl = urllib.request.urlopen("http://localhost:5555/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt).read()
+datafromurl = urllib.request.urlopen(root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt).read()
 data = json.loads(datafromurl)
 
 my_project = data['project']
@@ -271,7 +275,7 @@ self_g_d = Digraph(name="clusterD",
                      graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                      engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
 
-url_base = "http://localhost:5555/projects/demo/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + my_project['identifier'] + "_"
+url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + my_project['identifier'] + "_"
 url_sufix = ".gv.svg"
 url_h = url_base +"h"+url_sufix
 url_d = url_base +"h"+url_sufix
@@ -302,7 +306,7 @@ for my_issue in reqlist:
     self_d = Digraph(name="clusterD",
                          graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                          engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
-    url_base = "http://localhost:5555/projects/demo/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + str(my_issue['id']) + "_"
+    url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + str(my_issue['id']) + "_"
     url_sufix = ".gv.svg"
     url_h = url_base +"h"+url_sufix
     url_d = url_base +"h"+url_sufix

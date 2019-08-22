@@ -740,6 +740,8 @@ def show_as_table
       print("GET!!!!!")
     else
       print("POST!!!!!")
+      splitted_url = request.fullpath.split('/cosmosys_reqs')
+      root_url = request.base_url+splitted_url[0]      
       @output = ""
       # First we check if the setting for the local repo is set
       if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
@@ -759,7 +761,7 @@ def show_as_table
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath}"
+                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath} #{root_url}"
                 print(comando)
 		            #`#{comando}`
                 require 'open3'
