@@ -821,18 +821,12 @@ def show_as_table
             # If it is not set, we can not continue
             @output += "Error: the relative path to the downnload file is not set\n"
           else
+            splitted_url = request.fullpath.split('/cosmosys_reqs')
+            root_url = request.base_url+splitted_url[0]            
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
-
-
-
-
-            comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath}"
+            comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath} #{root_url}"
             output = `#{comando}`
             p output
-
-
-
-
             git_commit_repo(@project,"[reqbot] downloadfile generated")
             git_pull_rm_repo(@project)
           end

@@ -12,33 +12,36 @@ import sys
 #print(req_server_url)
 #print(req_key_txt)
 
-#pr_id_str = req_project_id_str
+# pr_id_str = req_project_id_str
 pr_id_str = sys.argv[1]
-#print(pr_id_str)
+print("id: ",pr_id_str)
 
-#download_filepath = req_download_file_name
+# reporting_path = reporting_dir
 download_filepath = sys.argv[2]
-#print(download_filepath)
+print("download_filepath: ",download_filepath)
 
-#redmine = Redmine(req_server_url,key=req_key_txt)
-#projects = redmine.project.all()
+# root_url = req_server_url
+root_url = sys.argv[3]
+print("root_url: ",root_url)
 
-model_json = sys.argv[3]
+import json,urllib.request
+urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
+print("urlfordata: ",urlfordata)
+datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
+data = json.loads(datafromurl)
 
+my_project = data['project']
 
+print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
 
-#print("Proyectos:")
-#for p in projects:
-#    print("\t",p.identifier," \t| ",p.name)
+reqdocs = data['reqdocs']
+reqs = data['reqs']
+targets = data['targets']
+statuses = data['statuses']
+# Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
+print("len(reqs)",len(reqs))
 
-my_project = redmine.project.get(pr_id_str)
-print("Obtenemos proyecto: ",my_project.identifier," | ",my_project.name)    
-
-
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_rq_tracker_id, status_id='*')
-my_project_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
-tmp = redmine.issue.filter(project_id=pr_id_str, tracker_id=req_doc_tracker_id, status_id='*')
-my_doc_issues = sorted(tmp, key=lambda k: k.custom_fields.get(req_chapter_cf_id).value)
+my_doc_issues = reqdocs
 
 # Conectaremos con nuestra instancia de PYOO
 # https://github.com/seznam/pyoo
