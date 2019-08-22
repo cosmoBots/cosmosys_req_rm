@@ -52,7 +52,10 @@ def tree_to_list(tree,parentNode):
 
         print(node['subject'])
         node['status'] = data['statuses'][str(node['status_id'])]
-        node['target'] = data['targets'][str(node['fixed_version_id'])]
+        if 'fixed_version_id' in node.keys():
+            if (node['fixed_version_id'] is not None):
+                node['target'] = data['targets'][str(node['fixed_version_id'])]
+
         node['tracker'] = data['trackers'][str(node['tracker_id'])]
         node['doc'] = data['reqdocs'][str(node['doc_id'])]['subject']
         purgednode = node.copy()

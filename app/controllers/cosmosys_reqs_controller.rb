@@ -420,7 +420,7 @@ def show_as_table
                       thisdoc.parent = parentdoc
                       thisdoc.save
                     else
-                      print("error, no encontramos el padre")
+                      print("No encontramos el padre de "+docidstr)
                     end
                 end
                 sheetindex += 1
