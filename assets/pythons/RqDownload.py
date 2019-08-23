@@ -12,14 +12,17 @@ import sys
 #print(req_server_url)
 #print(req_key_txt)
 
-def tree_to_dict(tree,parentNode):
+def tree_to_dict_list(tree,parentNode):
     result = {}
+    result2 = []
+    result3 = []
     print("\n\n\n******ARBOL******* len= ",len(tree))
     for node in tree:
         node['chapters'] = []
         node['reqs'] = []
         print("\n\n\n******NODO*******",node['id'])
         if (node['id']) == (node['doc_id']):
+            result3.append(node)
             print("\n\n\n******DOCUMENTO*******",node['id'])
             # Nos encontramos en un documento, vamos a "enriquecer" el nodo de reqdocs 
             # con la información de "children" para que el generador de informes pueda 
@@ -66,9 +69,13 @@ def tree_to_dict(tree,parentNode):
         purgednode['children'] = []
         #print(purgednode)
         result[str(purgednode['id'])] = purgednode
-        result.update(tree_to_dict(node['children'],node))
+        result2.append(purgednode)
+        r,r2,r3 = tree_to_dict_list(node['children'],node)
+        result.update(r)
+        result2 += r2
+        result3 += r3
 
-    return result
+    return result,result2,result3
 
 
 
@@ -100,9 +107,8 @@ targets = data['targets']
 statuses = data['statuses']
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
 print("len(reqs)",len(reqs))
-reqdict = tree_to_dict(reqs,None)
+reqdict,reqlist,my_doc_issues = tree_to_dict_list(reqs,None)
 print("ACABAMOS!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-my_doc_issues = reqdocs
 
 # Conectaremos con nuestra instancia de PYOO
 # https://github.com/seznam/pyoo
@@ -168,20 +174,20 @@ print("ACABAMOS4!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 tabnumber = 3
 for my_issue in my_doc_issues:
-    print("********** ",my_doc_issues[my_issue]['subject'])
-    prefix = my_doc_issues[my_issue]['prefix']
-    mysheet = doc.sheets.copy('Template', my_doc_issues[my_issue]['subject'], tabnumber)
+    print("********** ",my_issue['subject'])
+    prefix = my_issue['prefix']
+    mysheet = doc.sheets.copy('Template', my_issue['subject'], tabnumber)
     tabnumber += 1
-    mysheet[req_download_doc_row,req_download_doc_name_column].value = my_doc_issues[my_issue]['description']
+    mysheet[req_download_doc_row,req_download_doc_name_column].value = my_issue['description']
     mysheet[req_download_doc_row,req_download_doc_prefix_column].value = prefix
-    current_parent = my_doc_issues[my_issue]['parent_id']
+    current_parent = my_issue['parent_id']
     if current_parent is not None:
-        parent_issue = my_doc_issues[str(current_parent)]
+        parent_issue = reqdocs[str(current_parent)]
         #print("parent: ",parent_issue.subject)
         # Rellenamos la celda del padre
         mysheet[req_download_doc_row,req_download_doc_parent_column].value = parent_issue['subject']
     
-    current_version = my_doc_issues[my_issue]['fixed_version_id']
+    current_version = my_issue['fixed_version_id']
     
 '''
     # De momento en el Excel los docs no tienen versión ni muchas otras informaciones,
@@ -261,12 +267,12 @@ def find_doc(this_issue):
     
 current_row = {}
 for my_issue in my_doc_issues:
-    current_row[my_doc_issues[my_issue]['subject']] = req_upload_first_row
+    current_row[my_issue['subject']] = req_upload_first_row
     
-#print(current_row)
 
-for i in reqdict:
-    my_issue = reqdict[i]
+#print(current_row)
+print(len(reqlist))
+for my_issue in reqlist:
     if my_issue['tracker'] == 'Req':
         reqname = my_issue['subject']
         print("reqname: ",reqname)
@@ -285,7 +291,10 @@ for i in reqdict:
         thistab = doc.sheets[thisdoc]
         currrow = current_row[thisdoc]
         #print("add the req to the row ",currrow," of the tab ",thistab)
-        current_version = my_issue['target']
+        if 'target' in my_issue.keys():
+            current_version = my_issue['target']
+        else:
+            current_version = None
         idstr = my_issue['subject'].replace(thisprefix,'')
 
         thistab[currrow,req_upload_id_column].value = my_issue['subject']
