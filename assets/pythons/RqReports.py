@@ -10,13 +10,13 @@ import json
 
 def tree_to_list(tree,parentNode):
     result = []
-    print("\n\n\n******ARBOL******* len= ",len(tree))
+    #print("\n\n\n******ARBOL******* len= ",len(tree))
     for node in tree:
         node['chapters'] = []
         node['reqs'] = []
-        print("\n\n\n******NODO*******",node['id'])
+        #print("\n\n\n******NODO*******",node['id'])
         if (node['id']) == (node['doc_id']):
-            print("\n\n\n******DOCUMENTO*******",node['id'])
+            #print("\n\n\n******DOCUMENTO*******",node['id'])
             # Nos encontramos en un documento, vamos a "enriquecer" el nodo de reqdocs 
             # con la información de "children" para que el generador de informes pueda 
             # partir de los documentos en forma de árbol
@@ -69,36 +69,36 @@ def tree_to_list(tree,parentNode):
 def propagate_dependence_up(node,firstdependable,currentdependable,server_url,dependents):
     nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
     diagrams[str(currentdependable)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
-    print(node['id']," <- ",firstdependable," <- ... <- ",currentdependable)
+    #print(node['id']," <- ",firstdependable," <- ... <- ",currentdependable)
     if currentdependable != firstdependable:
         # Tebenos que añadirnos al diagraa del precursor
         diagrams[str(currentdependable)]['self_d'].edge(str(firstdependable), str(node['id']),color="blue")
 
-    print(dependents)
+    #print(dependents)
     if str(currentdependable) in dependents.keys():
-        print("entro")
+        #print("entro")
         for dep in dependents[str(currentdependable)]:
             propagate_dependence_up(node,firstdependable,dep,server_url,dependents)
 
 
 def propagate_dependence_down(node,firstdependent,currentdependent,server_url,reqlist):
     # Buscanos el nodo actual
-    print("***************",currentdependent,"*****************")
-    print("***************",firstdependent,"*****************")
+    #print("***************",currentdependent,"*****************")
+    #print("***************",firstdependent,"*****************")
     for n in reqlist:
         if n['id'] == currentdependent:
             break
 
-    print(n)
+    #print(n)
 
     if (firstdependent != currentdependent):
-        print("***************","entro!","*****************")
+        #print("***************","entro!","*****************")
         nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
         diagrams[str(currentdependent)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
-        print(node['id']," -> ",firstdependent," ->...-> ",currentdependent)
+        #print(node['id']," -> ",firstdependent," ->...-> ",currentdependent)
         # Tebenos que añadirnos al diagraa del precursor
         diagrams[str(currentdependent)]['self_d'].edge(str(node['id']),str(firstdependent),color="blue")
-        print("entro")
+        #print("entro")
     
     for dep in n['relations']:
         propagate_dependence_down(node,firstdependent,dep['issue_to_id'],server_url,reqlist)
@@ -110,7 +110,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     node['url_h'] = diagrams[str(node['id'])]['url_h']
     node['url_d'] = diagrams[str(node['id'])]['url_d']
     # Get current graph
-    print(str(node['id']),node['subject'])
+    #print(str(node['id']),node['subject'])
     # Dibujamos el nodo actual en los grafos generales
     nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
     diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
@@ -124,7 +124,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     # Si este grafo tiene relaciones o ha sido marcado como dependiente, lo añadimos en el grafo geneal
     if str(node['id']) in dependents.keys():
         dependables = dependents[str(node['id'])]
-        print(dependables)
+        #print(dependables)
     else:
         dependables = None
 
@@ -133,7 +133,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         # En caso de tratarse de un nodo dependiente, lo añadiremos a los diagramas de los nodos precursores
         if (dependables is not None):
             for pr in dependables:
-                print("propago ",node['id'],": ",node['subject'])
+                #print("propago ",node['id'],": ",node['subject'])
                 # Debemos también recorrer de manera arbórea todos aquellos nodos en la cadena de depndencia
                 propagate_dependence_up(node,pr,pr,server_url,dependents)
 
@@ -168,13 +168,13 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         nodelabel = "{"+anc['subject']+"|"+anc['title']+"}"
         graph.node(str(anc['id']),nodelabel,URL=server_url+'/issues/'+str(anc['id']),tooltip=anc['description'])
         graph.edge(str(anc['id']),str(desc['id']))
-        print("en el grafo de ",node['subject']," meto un ancestro",anc['subject']," como padre de ",desc['subject'])
+        #print("en el grafo de ",node['subject']," meto un ancestro",anc['subject']," como padre de ",desc['subject'])
         # Dibujamos el nodo actual en el grafo del ancestro, con un vínculo a su padre
         graphanc = diagrams[str(anc['id'])]['self_h']
         graphanc.node(str(node['id']),nodelabel,URL=server_url+'/issues/'+str(node['id']),tooltip=node['description'])
         if (parentreq is not None):
             graphanc.edge(str(parentreq['id']),str(node['id']))
-            print("En el grafo de ",anc['subject']," meto un nodo descendiente ",node['subject'],"conectado con su padre ",parentreq['subject'])
+            #print("En el grafo de ",anc['subject']," meto un nodo descendiente ",node['subject'],"conectado con su padre ",parentreq['subject'])
         
         # El ancestro actual pasa a ser el descendiente del ancestro siguiente 
         desc = anc
@@ -232,7 +232,7 @@ data = json.loads(datafromurl)
 
 my_project = data['project']
 
-print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
+#print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
 
 reqdocs = data['reqdocs']
 reqs = data['reqs']
