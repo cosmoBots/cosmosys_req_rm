@@ -879,6 +879,7 @@ def show_as_table
             root_url = request.base_url+splitted_url[0]            
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
             comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath} #{root_url}"
+            p comando
             output = `#{comando}`
             p output
             git_commit_repo(@project,"[reqbot] downloadfile generated")
