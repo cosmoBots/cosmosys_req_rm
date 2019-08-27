@@ -98,6 +98,58 @@ class CosmosysReqsController < ApplicationController
   def project_menu
   end
 
+  def show_as_json(thisproject, node_id,root_url)
+    require 'json'
+
+    if (node_id != nil) then
+      thisnode = @project.issues.find(node_id)
+      roots = [thisnode]
+    else    
+      roots = thisproject.issues.where(:parent => nil)
+    end
+
+    treedata = {}
+
+    treedata[:project] = thisproject.attributes.slice("id","name","identifier")
+    treedata[:project][:url] = root_url
+    treedata[:targets] = {}
+    treedata[:statuses] = {}
+    treedata[:trackers] = {}
+    treedata[:reqdocs] = {}
+    treedata[:reqs] = []
+
+    reqdocs = thisproject.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
+
+    IssueStatus.all.each { |st| 
+      treedata[:statuses][st.id.to_s] = st.name
+    }
+
+    Tracker.all.each { |tr| 
+      treedata[:trackers][tr.id.to_s] = tr.name
+    }
+
+    thisproject.versions.each { |v| 
+      treedata[:targets][v.id.to_s] = v.name
+    }
+
+    reqdocs.each { |r|
+      tree_node = r.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
+      tree_node[:chapter] = r.custom_values.find_by_custom_field_id(@@cfchapter.id).value
+      tree_node[:title] = r.custom_values.find_by_custom_field_id(@@cftitle.id).value
+      tree_node[:prefix] = r.custom_values.find_by_custom_field_id(@@cfprefix.id).value
+      treedata[:reqdocs][r.id.to_s] = tree_node
+    }
+
+
+    roots.each { |r|
+      thisnode=r
+      tree_node = create_json(thisnode,root_url,true,nil)
+      treedata[:reqs] << tree_node
+    }
+    return treedata
+  end
+
+
   def show_as_tree
     require 'json'
 
@@ -108,52 +160,11 @@ class CosmosysReqsController < ApplicationController
       print("GET!!!!!")
       if (params[:node_id]) then
         print("NODO!!!\n")
-        thisnode = @project.issues.find(params[:node_id])
-        roots = [thisnode]
+        treedata = show_as_json(@project,params[:node_id],root_url)
       else
-        print("PROYECTO!!!\n")     
-        roots = @project.issues.where(:parent => nil)
+        print("PROYECTO!!!\n")
+        treedata = show_as_json(@project,nil,root_url)
       end
-
-      treedata = {}
-
-      treedata[:project] = @project.attributes.slice("id","name","identifier")
-      treedata[:project][:url] = root_url
-      treedata[:targets] = {}
-      treedata[:statuses] = {}
-      treedata[:trackers] = {}
-      treedata[:reqdocs] = {}
-      treedata[:reqs] = []
-
-      reqdocs = @project.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
-
-      IssueStatus.all.each { |st| 
-        treedata[:statuses][st.id.to_s] = st.name
-      }
-
-      Tracker.all.each { |tr| 
-        treedata[:trackers][tr.id.to_s] = tr.name
-      }
-
-      @project.versions.each { |v| 
-        treedata[:targets][v.id.to_s] = v.name
-      }
-
-      reqdocs.each { |r|
-        tree_node = r.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
-        tree_node[:chapter] = r.custom_values.find_by_custom_field_id(@@cfchapter.id).value
-        tree_node[:title] = r.custom_values.find_by_custom_field_id(@@cftitle.id).value
-        tree_node[:prefix] = r.custom_values.find_by_custom_field_id(@@cfprefix.id).value
-        treedata[:reqdocs][r.id.to_s] = tree_node
-      }
-
-
-      roots.each { |r|
-        thisnode=r
-        tree_node = create_json(thisnode,root_url,true,nil)
-        treedata[:reqs] << tree_node
-      }
-
 
       respond_to do |format|
         format.html {
@@ -167,7 +178,6 @@ class CosmosysReqsController < ApplicationController
         }
       end
     else
-
       print("POST!!!!!")
       structure = params[:structure]
       json_params_wrapper = JSON.parse(request.body.read())
@@ -182,7 +192,7 @@ class CosmosysReqsController < ApplicationController
     end
   end
 
-def show_as_table
+  def show_as_table
     require 'json'
 
     splitted_url = request.fullpath.split('/cosmosys_reqs')
@@ -878,16 +888,24 @@ def show_as_table
             splitted_url = request.fullpath.split('/cosmosys_reqs')
             root_url = request.base_url+splitted_url[0]            
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
-            comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath} #{root_url}"
-            require 'open3'
-            print(comando)
-            stdin, stdout, stderr = Open3.popen3("#{comando} &")
-            stdin.close
-            stdout.each do |ele|
-              print ("->"+ele+"\n")
-              @output += ele
+            tmpfile = Tempfile.new('rqdownload','./tmp/cosmosys_req_plugin/')
+            begin
+              treedata = show_as_json(@project,nil,root_url)
+              tmpfile.write(treedata.to_json) 
+              tmpfile.close
+              comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath} #{root_url} #{tmpfile.path}"
+              require 'open3'
+              print(comando)
+              stdin, stdout, stderr = Open3.popen3("#{comando} &")
+              stdin.close
+              stdout.each do |ele|
+                print ("->"+ele+"\n")
+                @output += ele
+              end
+              print("acabo el comando")
+            ensure
+               #tmpfile.unlink   # deletes the temp file
             end
-            print("acabo el comando")
 
             #`#{comando}`
             #p output

@@ -91,11 +91,20 @@ print("download_filepath: ",download_filepath)
 root_url = sys.argv[3]
 print("root_url: ",root_url)
 
-import json,urllib.request
-urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
-print("urlfordata: ",urlfordata)
-datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
-data = json.loads(datafromurl)
+# tmpfilepath
+tmpfilepath = sys.argv[4]
+print("tmpfilepath: ",tmpfilepath)
+
+if (tmpfilepath is None):
+    import json,urllib.request
+    urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
+    print("urlfordata: ",urlfordata)
+    datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
+    data = json.loads(datafromurl)
+
+else:
+    import json
+    data = json.loads(tmpfilepath)
 
 my_project = data['project']
 
