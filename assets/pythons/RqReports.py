@@ -50,7 +50,7 @@ def tree_to_list(tree,parentNode):
                     data['reqdocs'][str(node['doc_id'])]['reqs'].append(node)
 
 
-        print(node['subject'])
+        #print(node['subject'])
         node['status'] = data['statuses'][str(node['status_id'])]
         if 'fixed_version_id' in node.keys():
             if (node['fixed_version_id'] is not None):
@@ -239,9 +239,9 @@ reqs = data['reqs']
 targets = data['targets']
 statuses = data['statuses']
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
-print("len(reqs)",len(reqs))
+#print("len(reqs)",len(reqs))
 # Debemos preparar un diagrama para cada nodo
-print("#####Vamos con los documentos!!!!")
+#print("#####Vamos con los documentos!!!!")
 reqlist = tree_to_list(reqs,None)
 data['reqlist'] = reqlist
 
@@ -253,7 +253,7 @@ for r in reqlist:
             data['reqclean'].append(r)
 
 
-print("len(reqlist)",len(reqlist))
+#print("len(reqlist)",len(reqlist))
 
 # Ahora recorremos el proyecto y sacamos los diagramas completos de jerarquía y dependencias, y guardamos los ficheros de esos diagramas en la carpeta doc.
 
@@ -291,7 +291,7 @@ import os
 #print(reqlist)
 # Generamos los diagramas correspondientes a los requisitos del proyecto
 for my_issue in reqlist:
-    print("\n\n---------- Diagrama ----------", my_issue['subject'])
+    #print("\n\n---------- Diagrama ----------", my_issue['subject'])
     path_root = img_path + "/" + str(my_issue['id']) + "_"
 
     parent_h = Digraph(name=path_root + "h", format='svg',
@@ -316,7 +316,7 @@ for my_issue in reqlist:
     my_issue['url_d'] = url_d
 
     # Pinto cada nodo en su diagrama
-    print("Creo los diagrama con id ",my_issue['id'])
+    #print("Creo los diagrama con id ",my_issue['id'])
     diagrams[str(my_issue['id'])] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_h, 'self_h': self_h, 'parent_d': parent_d, 'self_d': self_d, }
 
     nodelabel = "{" + my_issue['subject'] + "|" + my_issue['title'] + "}"
@@ -359,8 +359,8 @@ for my_issue in reqlist:
     prj_graphc_parent.render()
     '''
     symlink_path = img_path + "/" + my_issue['subject'] + "_" + "h.gv.svg"
-    print("file: ", path_root + "h.gv.svg")
-    print("symlink: ", symlink_path)
+    #print("file: ", path_root + "h.gv.svg")
+    #print("symlink: ", symlink_path)
     if (os.path.islink(symlink_path)):
         os.remove(symlink_path)
 
@@ -374,8 +374,8 @@ for my_issue in reqlist:
 
     '''
     symlink_path = img_path + "/" + my_issue['subject'] + "_" + "d.gv.svg"
-    print("file: ", path_root + "d.gv.svg")
-    print("symlink: ", symlink_path)
+    #print("file: ", path_root + "d.gv.svg")
+    #print("symlink: ", symlink_path)
     if (os.path.islink(symlink_path)):
         os.remove(symlink_path)
 
@@ -387,10 +387,10 @@ parent_g_h.render()
 parent_g_d.subgraph(self_g_d)
 parent_g_d.render()
 
-print("project hierarchy diagram file: ", path_root + "h.gv.svg")
-print("project dependence diagram file: ", path_root + "d.gv.svg")
+#print("project hierarchy diagram file: ", path_root + "h.gv.svg")
+#print("project dependence diagram file: ", path_root + "d.gv.svg")
 
-print("Acabamos")
+#print("Acabamos")
 
 # Vamos a grabar el fichero JSON intermedio para generar los reportes
 
@@ -406,7 +406,7 @@ import json
 with open(reporting_path + '/doc/reqs.json', 'w') as outfile:
     json.dump(datadoc, outfile)
 
-print("Acabamos")
+#print("Acabamos")
 
 # Lanzamos la herramienta Carbone en Node, para generar los reportes de documentación.
 
@@ -416,11 +416,11 @@ print("Acabamos")
 from Naked.toolshed.shell import execute_js
 
 # js_command = 'node ' + file_path + " " + arguments
-print(reqdocs.keys())
+#print(reqdocs.keys())
 for doc in reqdocs.keys():
-    print(reqdocs[doc])
+    #print(reqdocs[doc])
     success = execute_js('./plugins/cosmosys_req/assets/pythons/lib/launch_carbone.js', reporting_path+" "+str(reqdocs[doc]['id'])+" "+reqdocs[doc]['subject'])
-    print(success)
+    #print(success)
 
 if success:
     # handle success of the JavaScript
@@ -460,6 +460,6 @@ def create_tree(current_issue):
     return tree_node
 
 
-print("Acabamos")
+#print("Acabamos")
 
 # In[ ]:
