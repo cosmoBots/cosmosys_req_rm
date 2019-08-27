@@ -104,7 +104,7 @@ if (tmpfilepath is None):
 
 else:
     import json
-    with open(tmpfilepath, 'r') as tmpfile:
+    with open(tmpfilepath, 'r', encoding="utf-8") as tmpfile:
         data = json.load(tmpfile)
 
 
