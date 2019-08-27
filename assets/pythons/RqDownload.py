@@ -16,14 +16,14 @@ def tree_to_dict_list(tree,parentNode):
     result = {}
     result2 = []
     result3 = []
-    print("\n\n\n******ARBOL******* len= ",len(tree))
+    #print("\n\n\n******ARBOL******* len= ",len(tree))
     for node in tree:
         node['chapters'] = []
         node['reqs'] = []
-        print("\n\n\n******NODO*******",node['id'])
+        #print("\n\n\n******NODO*******",node['id'])
         if (node['id']) == (node['doc_id']):
             result3.append(node)
-            print("\n\n\n******DOCUMENTO*******",node['id'])
+            #print("\n\n\n******DOCUMENTO*******",node['id'])
             # Nos encontramos en un documento, vamos a "enriquecer" el nodo de reqdocs 
             # con la información de "children" para que el generador de informes pueda 
             # partir de los documentos en forma de árbol
@@ -57,7 +57,7 @@ def tree_to_dict_list(tree,parentNode):
                     data['reqdocs'][str(node['doc_id'])]['reqs'].append(node)
 
 
-        print(node['subject'])
+        #print(node['subject'])
         node['status'] = data['statuses'][str(node['status_id'])]
         if 'fixed_version_id' in node.keys():
             if (node['fixed_version_id'] is not None):
@@ -81,24 +81,24 @@ def tree_to_dict_list(tree,parentNode):
 
 # pr_id_str = req_project_id_str
 pr_id_str = sys.argv[1]
-print("id: ",pr_id_str)
+#print("id: ",pr_id_str)
 
 # reporting_path = reporting_dir
 download_filepath = sys.argv[2]
-print("download_filepath: ",download_filepath)
+#print("download_filepath: ",download_filepath)
 
 # root_url = req_server_url
 root_url = sys.argv[3]
-print("root_url: ",root_url)
+#print("root_url: ",root_url)
 
 # tmpfilepath
 tmpfilepath = sys.argv[4]
-print("tmpfilepath: ",tmpfilepath)
+#print("tmpfilepath: ",tmpfilepath)
 
 if (tmpfilepath is None):
     import json,urllib.request
     urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
-    print("urlfordata: ",urlfordata)
+    #print("urlfordata: ",urlfordata)
     datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
     data = json.loads(datafromurl)
 
@@ -110,16 +110,16 @@ else:
 
 my_project = data['project']
 
-print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
+#print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
 
 reqdocs = data['reqdocs']
 reqs = data['reqs']
 targets = data['targets']
 statuses = data['statuses']
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
-print("len(reqs)",len(reqs))
+#print("len(reqs)",len(reqs))
 reqdict,reqlist,my_doc_issues = tree_to_dict_list(reqs,None)
-print("ACABAMOS!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#print("ACABAMOS!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 # Conectaremos con nuestra instancia de PYOO
 # https://github.com/seznam/pyoo
@@ -166,18 +166,18 @@ doc_dict = doc.sheets['Dict']
 
 
 # In[ ]:
-print("ACABAMOS2!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#print("ACABAMOS2!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 doc_dict[req_download_url_row,req_download_url_column].value = req_server_url+'/'
 rowindex = req_upload_version_startrow
 
-print("ACABAMOS3!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#print("ACABAMOS3!!!!!!!!!!!!!!!!!!!!!!!!!!")
 for v in targets:
-    print(v)
+    #print(v)
     doc_dict[rowindex,req_upload_version_column].value = targets[v]
     rowindex += 1
 
-print("ACABAMOS4!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#print("ACABAMOS4!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 # Ahora generaremos los documentos a partir de los reqdoc
 
 # In[ ]:
@@ -185,7 +185,7 @@ print("ACABAMOS4!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 tabnumber = 3
 for my_issue in my_doc_issues:
-    print("********** ",my_issue['subject'])
+    #print("********** ",my_issue['subject'])
     prefix = my_issue['prefix']
     mysheet = doc.sheets.copy('Template', my_issue['subject'], tabnumber)
     tabnumber += 1
@@ -199,61 +199,7 @@ for my_issue in my_doc_issues:
         mysheet[req_download_doc_row,req_download_doc_parent_column].value = parent_issue['subject']
     
     current_version = my_issue['fixed_version_id']
-    
-'''
-    # De momento en el Excel los docs no tienen versión ni muchas otras informaciones,
-    # que deberemos incorporar, como la BD ID, la BD URL, etc...
-    # Dejamos este código aquí, proviniente de la exportación a DOORSTOP, hasta que 
-    # enriquezcamos el formato LibreOffice para guardar toda esa info.
-    current_version = getattr(my_issue, 'fixed_version', None)
-    if (current_version is not None):
-        print("target:",current_version)
-        print(dir(current_version))
-        version_name = current_version.name
-    else:
-        version_name = ''
-
-    doc.set('BDID', str(my_issue.id))
-    doc.set('BDURL', req_server_url+"/issues/"+str(my_issue.id))
-    doc.set('RqSubject', my_issue.subject)
-    doc.set('RqTitle', my_issue.custom_fields.get(req_title_cf_id).value)
-    if (parent_issue is not None):
-        doc.set('RqParent', parent_issue.subject)
-    else:
-        doc.set('RqParent', '')
-    doc.set('RqRationale', my_issue.custom_fields.get(req_rationale_cf_id).value)
-    doc.set('RqLevel', my_issue.custom_fields.get(req_level_cf_id).value)
-    doc.set('RqType', my_issue.custom_fields.get(req_type_cf_id).value)
-    doc.set('RqSources', my_issue.custom_fields.get(req_sources_cf_id).value)
-    doc.set('RqChapter', my_issue.custom_fields.get(req_chapter_cf_id).value)
-    doc.set('RqTarget', version_name)
-    doc.set('text', my_issue.description)
-    
-    # Ahora grabamos un requisito cero:
-    newitem = Item.new(tree, doc,
-        doc.path, doc.root, my_issue.subject+"-0000",
-        auto=False)
-    newitem.set('BDID', str(my_issue.id))
-    newitem.set('BDURL', req_server_url+"/issues/"+str(my_issue.id))
-    newitem.set('RqSubject', my_issue.subject)
-    newitem.set('RqTitle', my_issue.custom_fields.get(req_title_cf_id).value)
-    if (parent_issue is not None):
-        newitem.set('RqParent', parent_issue.subject)
-        
-    else:
-        newitem.set('RqParent', '')
-        
-    newitem.set('RqRationale', my_issue.custom_fields.get(req_rationale_cf_id).value)
-    newitem.set('RqLevel', my_issue.custom_fields.get(req_level_cf_id).value)
-    newitem.set('RqType', my_issue.custom_fields.get(req_type_cf_id).value)
-    newitem.set('RqSources', my_issue.custom_fields.get(req_sources_cf_id).value)
-    newitem.set('RqChapter', my_issue.custom_fields.get(req_chapter_cf_id).value)
-    newitem.set('RqTarget', version_name)
-    newitem.set('text', my_issue.description)
-    newitem.save()
-'''        
-
-
+          
 # Ahora crearemos los requisitos "hijos" dentro de cada documento
 
 # In[ ]:
@@ -282,19 +228,19 @@ for my_issue in my_doc_issues:
     
 
 #print(current_row)
-print(len(reqlist))
+#print(len(reqlist))
 for my_issue in reqlist:
     if my_issue['tracker'] == 'Req':
         reqname = my_issue['subject']
-        print("reqname: ",reqname)
+        #print("reqname: ",reqname)
         current_parent = my_issue['parent_id']
         if current_parent is not None:
             #print("current_parent 1: ",current_parent)
             parent_issue = reqdict[str(current_parent)]
             if parent_issue['tracker'] != 'Req':
                 current_parent = None
-            else:
-                print("parent: ",parent_issue['subject'])
+            #else:
+                #print("parent: ",parent_issue['subject'])
         
         thisdoc,thisprefix = find_doc(parent_issue)
         #print("thisdoc:",thisdoc)
@@ -315,8 +261,8 @@ for my_issue in reqlist:
             descr = ""
         thistab[currrow,req_upload_descr_column].value = descr
         sources = my_issue['sources']
-        print("*********************************************** SOURCES ")
-        print(sources)
+        #print("*********************************************** SOURCES ")
+        #print(sources)
         if sources is None:
             sources = ""
         thistab[currrow,req_upload_source_column].value = sources
