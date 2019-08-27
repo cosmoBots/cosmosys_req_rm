@@ -104,7 +104,9 @@ if (tmpfilepath is None):
 
 else:
     import json
-    data = json.loads(tmpfilepath)
+    with open(tmpfilepath, 'r') as tmpfile:
+        data = json.load(tmpfile)
+
 
 my_project = data['project']
 
