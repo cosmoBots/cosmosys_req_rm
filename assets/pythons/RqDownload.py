@@ -342,7 +342,7 @@ for my_issue in reqlist:
 
             
         # Busco las relaciones en las que es destinatario
-        my_filtered_issue_relations =  my_issue['relations']
+        my_filtered_issue_relations =  my_issue['relations_back']
 
         # Recorro las relaciones creando los links
         relstr = ""
@@ -351,7 +351,7 @@ for my_issue in reqlist:
             # Obtenemos la incidencia y el item doorstop del objeto que es origen de la relación de Redmine,
             # que significa que es destinatario de la relación de doorstop, ya que es el elemento que está
             # condicionando al actual (el actual depende de él)
-            relissue = reqdict[str(rel['issue_to_id'])]
+            relissue = reqdict[str(rel['issue_from_id'])]
             #print("Relacionado: ",rel," de ",relissue.subject," a ",my_issue.subject)
             if firstrel:
                 firstrel = False
