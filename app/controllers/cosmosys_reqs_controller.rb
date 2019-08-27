@@ -664,15 +664,17 @@ class CosmosysReqsController < ApplicationController
                           #print("residual_relations BEFORE",residual_relations)
 
                           if (related_str != nil) then
-                            #print("related: "+related_str)
+                            #print("\nrelated: '"+related_str+"'")
                             if (related_str[0]!='-') then
                               # Ahora saco todos los ID de los requisitos del otro lado (en el lado origen de la relacion)
                               related_req = related_str.split()
                               related_req.each { |rreq|
-                                #print("related to: ",rreq)
+                                rreq = rreq.strip()
+                                #print("\n  related to: '"+rreq+"'")
                                 # Busco ese requisito
                                 blocking_req = @project.issues.find_by_subject(rreq)
                                 if (blocking_req != nil) then
+                                  #print(" encontrado ",blocking_req.id)
                                   # Veo si ya existe algun tipo de relacion con el
                                   preexistent_relations = thisreq.relations_to.where(issue_from: blocking_req)
                                   #print(preexistent_relations)
