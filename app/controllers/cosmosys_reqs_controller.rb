@@ -1172,6 +1172,10 @@ def create_json(current_issue, root_url, include_doc_children,currentdoc)
     current_issue.relations_from.where(:relation_type => 'blocks').each{|rl|
       tree_node[:relations] << rl.attributes.slice("issue_to_id")
     }
+    tree_node[:relations_back] = []
+    current_issue.relations_to.where(:relation_type => 'blocks').each{|rl|
+      tree_node[:relations_back] << rl.attributes.slice("issue_from_id")
+    }
 
     return tree_node
 end
