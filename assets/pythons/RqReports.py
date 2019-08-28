@@ -224,11 +224,24 @@ print("img_path: ",img_path)
 root_url = sys.argv[4]
 print("root_url: ",root_url)
 
-import json,urllib.request
-urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
-print("urlfordata: ",urlfordata)
-datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
-data = json.loads(datafromurl)
+tmpfilepath = None
+if (len(sys.argv) > 5):
+    # tmpfilepath
+    tmpfilepath = sys.argv[5]
+    #print("tmpfilepath: ",tmpfilepath)
+
+if (tmpfilepath is None):
+    import json,urllib.request
+    urlfordata = root_url+"/cosmosys_reqs/"+pr_id_str+".json?key="+req_key_txt
+    #print("urlfordata: ",urlfordata)
+    datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
+    data = json.loads(datafromurl)
+
+else:
+    import json
+    with open(tmpfilepath, 'r', encoding="utf-8") as tmpfile:
+        data = json.load(tmpfile)
+
 
 my_project = data['project']
 

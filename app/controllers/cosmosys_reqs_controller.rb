@@ -16,23 +16,24 @@ class CosmosysReqsController < ApplicationController
   @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
   @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
+  @@tmpdir = './tmp/cosmosys_req_plugin/'
+
   def index
     @cosmosys_reqs = CosmosysReq.all
   end 
 
   def create_repo
-    print("\n\n\n\n\n\n") 
     if request.get? then
-      print("GET!!!!!")
+      #print("GET!!!!!")
     else
-      print("POST!!!!!")
+      #print("POST!!!!!")
       @output = ""
       # First we check if the setting for the local repo is set
       if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
         # If it is not set, we can not continue
         @output += "Error: the local repos path template is not defined\n"
       else
-        # First, we need to know if the setting to locate the repo template is set
+        # We need to know if the setting to locate the repo template is set
         if (Setting.plugin_cosmosys_req['repo_template_id'].blank?) then
           @output += "Error: the template id setting is not set\n"
         else
@@ -98,58 +99,6 @@ class CosmosysReqsController < ApplicationController
   def project_menu
   end
 
-  def show_as_json(thisproject, node_id,root_url)
-    require 'json'
-
-    if (node_id != nil) then
-      thisnode = @project.issues.find(node_id)
-      roots = [thisnode]
-    else    
-      roots = thisproject.issues.where(:parent => nil)
-    end
-
-    treedata = {}
-
-    treedata[:project] = thisproject.attributes.slice("id","name","identifier")
-    treedata[:project][:url] = root_url
-    treedata[:targets] = {}
-    treedata[:statuses] = {}
-    treedata[:trackers] = {}
-    treedata[:reqdocs] = {}
-    treedata[:reqs] = []
-
-    reqdocs = thisproject.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
-
-    IssueStatus.all.each { |st| 
-      treedata[:statuses][st.id.to_s] = st.name
-    }
-
-    Tracker.all.each { |tr| 
-      treedata[:trackers][tr.id.to_s] = tr.name
-    }
-
-    thisproject.versions.each { |v| 
-      treedata[:targets][v.id.to_s] = v.name
-    }
-
-    reqdocs.each { |r|
-      tree_node = r.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
-      tree_node[:chapter] = r.custom_values.find_by_custom_field_id(@@cfchapter.id).value
-      tree_node[:title] = r.custom_values.find_by_custom_field_id(@@cftitle.id).value
-      tree_node[:prefix] = r.custom_values.find_by_custom_field_id(@@cfprefix.id).value
-      treedata[:reqdocs][r.id.to_s] = tree_node
-    }
-
-
-    roots.each { |r|
-      thisnode=r
-      tree_node = create_json(thisnode,root_url,true,nil)
-      treedata[:reqs] << tree_node
-    }
-    return treedata
-  end
-
-
   def show_as_tree
     require 'json'
 
@@ -160,10 +109,10 @@ class CosmosysReqsController < ApplicationController
       print("GET!!!!!")
       if (params[:node_id]) then
         print("NODO!!!\n")
-        treedata = show_as_json(@project,params[:node_id],root_url)
+        treedata = CosmosysReqBase.show_as_json(@project,params[:node_id],root_url)
       else
         print("PROYECTO!!!\n")
-        treedata = show_as_json(@project,nil,root_url)
+        treedata = CosmosysReqBase.show_as_json(@project,nil,root_url)
       end
 
       respond_to do |format|
@@ -186,66 +135,7 @@ class CosmosysReqsController < ApplicationController
       #print structure
       rootnode = structure[0]
       structure.each { |n|
-        update_node(n,nil,"",1)
-      }
-      redirect_to :action => 'tree', :method => :get, :id => @project.id 
-    end
-  end
-
-  def show_as_table
-    require 'json'
-
-    splitted_url = request.fullpath.split('/cosmosys_reqs')
-    root_url = request.base_url+splitted_url[0]
-
-    if request.get? then
-      print("GET!!!!!")
-      reqdocs = @project.issues.where(:tracker => @@reqdoctracker).sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
-
-      treedata = {}
-
-      treedata[:project] = @project.attributes.slice("id","name","identifier")
-      treedata[:project][:url] = root_url
-      treedata[:targets] = {}
-      treedata[:statuses] = {}
-      treedata[:reqdocs] = {}
-
-      IssueStatus.all.each { |st| 
-        treedata[:statuses][st.id.to_s] = st.name
-      }
-
-      @project.versions.each { |v| 
-        treedata[:targets][v.id.to_s] = v.name
-      }
-
-      reqdocs.each { |r|
-        thisnode=r
-        tree_node = create_json(thisnode,root_url,false,nil)
-        treedata[:reqdocs][r.id.to_s] = tree_node
-      }
-
-      respond_to do |format|
-        format.html {
-          @to_json = treedata.to_json
-        }
-        format.json { 
-          require 'json'
-          ActiveSupport.escape_html_entities_in_json = false
-          render json: treedata
-          ActiveSupport.escape_html_entities_in_json = true        
-        }
-      end
-    else
-
-      print("POST!!!!!")
-      structure = params[:structure]
-      json_params_wrapper = JSON.parse(request.body.read())
-      structure = json_params_wrapper['structure']
-      #print ("structure: \n\n")
-      #print structure
-      rootnode = structure[0]
-      structure.each { |n|
-        update_node(n,nil,"",1)
+        CosmosysReqBase.update_node(n,nil,"",1)
       }
       redirect_to :action => 'tree', :method => :get, :id => @project.id 
     end
@@ -774,30 +664,42 @@ class CosmosysReqsController < ApplicationController
             if (File.directory?(reportingpath)) then
               imgpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_img_path']
               if (File.directory?(imgpath)) then
-                comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath} #{root_url}"
-                print(comando)
-		            #`#{comando}`
-                require 'open3'
-
-                stdin, stdout, stderr = Open3.popen3("#{comando}")
-                stdin.close
-                stdout.each do |ele|
-                  print ("->"+ele+"\n")
-                  @output += ele
+                if not (File.directory?(@@tmpdir)) then
+                  require 'fileutils'
+                  FileUtils.mkdir_p @@tmpdir
                 end
+                tmpfile = Tempfile.new('rqdownload',@@tmpdir)
+                begin
+                  treedata = CosmosysReqBase.show_as_json(@project,nil,root_url)
+                  tmpfile.write(treedata.to_json) 
+                  tmpfile.close
+                  comando = "python3 plugins/cosmosys_req/assets/pythons/RqReports.py #{@project.id} #{reportingpath} #{imgpath} #{root_url} #{tmpfile.path}"
+                  require 'open3'
+                  print(comando)
+                  stdin, stdout, stderr = Open3.popen3("#{comando}")
+                  stdin.close
+                  stdout.each do |ele|
+                    print ("->"+ele+"\n")
+                    @output += ele
+                  end
+                  print("acabo el comando")
+                ensure
+                   #tmpfile.unlink   # deletes the temp file
+                end
+
                 diagrams_pattern = @@cfdiag.default_value
                 diagrams_str_prefix = "{{graphviz_link()\n"
                 diagrams_str_suffix = "\n}} "
                 # Now we have to update all the diagrams
                 # The projects diagram
-                filepath = imgpath + "/" + @project.identifier.to_s
+                filepath = imgpath + "/" + @project.identifier
                 d_filepath = filepath + "_d.gv"
-                print d_filepath
+                #print d_filepath
                 if (File.exists?(d_filepath)) then
                   diagrams_d_str = diagrams_str_prefix + IO.read(d_filepath) + diagrams_str_suffix
                   #print diagrams_d_str
                   h_filepath = filepath + "_h.gv"
-                  print d_filepath
+                  #print h_filepath
                   if (File.exists?(h_filepath)) then
                     diagrams_h_str = diagrams_str_prefix + IO.read(h_filepath) + diagrams_str_suffix
                     pattern = diagrams_pattern.dup                    
@@ -807,22 +709,22 @@ class CosmosysReqsController < ApplicationController
                     cf.value = pattern
                     cf.save
                   else
-                    print("h image file does not exist")
+                    print("h image file does not exist for project "+@project.identifier)
                   end
                 else
-                  print("d image file does not exist")
+                  print("d image file does not exist for project "+@project.identifier)
                 end
 
                 # And the issues diagram
                 @project.issues.each{|i|
                   filepath = imgpath + "/" + i.id.to_s
                   d_filepath = filepath + "_d.gv"
-                  print d_filepath
+                  #print d_filepath
                   if (File.exists?(d_filepath)) then
                     diagrams_d_str = diagrams_str_prefix + IO.read(d_filepath) + diagrams_str_suffix
                     #print diagrams_d_str
                     h_filepath = filepath + "_h.gv"
-                    print d_filepath
+                    #print h_filepath
                     if (File.exists?(h_filepath)) then
                       diagrams_h_str = diagrams_str_prefix + IO.read(h_filepath) + diagrams_str_suffix
                       pattern = diagrams_pattern.dup                    
@@ -832,10 +734,10 @@ class CosmosysReqsController < ApplicationController
                       cf.value = pattern
                       cf.save
                     else
-                      print("h image file does not exist")
+                      print("h image file does not exist for requirement "+@i.subject)
                     end
                   else
-                    print("d image file does not exist")
+                    print("d image file does not exist for requirement "+i.subject)
                   end
                 }
 
@@ -890,29 +792,38 @@ class CosmosysReqsController < ApplicationController
             splitted_url = request.fullpath.split('/cosmosys_reqs')
             root_url = request.base_url+splitted_url[0]            
             downloadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_downloadfile_path']
-            tmpfile = Tempfile.new('rqdownload','./tmp/cosmosys_req_plugin/')
-            begin
-              treedata = show_as_json(@project,nil,root_url)
-              tmpfile.write(treedata.to_json) 
-              tmpfile.close
-              comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath} #{root_url} #{tmpfile.path}"
-              require 'open3'
-              print(comando)
-              stdin, stdout, stderr = Open3.popen3("#{comando} &")
-              stdin.close
-              stdout.each do |ele|
-                print ("->"+ele+"\n")
-                @output += ele
+            if (File.directory?(File.dirname(downloadfilepath))) then
+              if not (File.directory?(@@tmpdir)) then
+                require 'fileutils'
+                FileUtils.mkdir_p @@tmpdir
+              end            
+              tmpfile = Tempfile.new('rqdownload',@@tmpdir)
+              begin
+                treedata = CosmosysReqBase.show_as_json(@project,nil,root_url)
+                tmpfile.write(treedata.to_json) 
+                tmpfile.close
+                comando = "python3 plugins/cosmosys_req/assets/pythons/RqDownload.py #{@project.id} #{downloadfilepath} #{root_url} #{tmpfile.path}"
+                require 'open3'
+                print(comando)
+                stdin, stdout, stderr = Open3.popen3("#{comando} &")
+                stdin.close
+                stdout.each do |ele|
+                  print ("->"+ele+"\n")
+                  @output += ele
+                end
+                print("acabo el comando")
+              ensure
+                 #tmpfile.unlink   # deletes the temp file
               end
-              print("acabo el comando")
-            ensure
-               #tmpfile.unlink   # deletes the temp file
-            end
 
-            #`#{comando}`
-            #p output
-            git_commit_repo(@project,"[reqbot] downloadfile generated")
-            git_pull_rm_repo(@project)
+              #`#{comando}`
+              #p output
+              git_commit_repo(@project,"[reqbot] downloadfile generated")
+              git_pull_rm_repo(@project)
+            else
+              @output += "Error: the downloadfile directory is not found\n"
+              print("DOWNLOADFILEPATH: " + File.dirname(downloadfilepath))
+            end
           end
         else
           @output += "Error: the repo does not exists\n"  
@@ -1011,7 +922,7 @@ class CosmosysReqsController < ApplicationController
       #print structure
       rootnode = structure[0]
       structure.each { |n|
-        update_node(n,nil,"",1)
+        CosmosysReqBase.update_node(n,nil,"",1)
       }
       redirect_to :action => 'tree', :method => :get, :id => @project.id 
     end
@@ -1020,34 +931,6 @@ class CosmosysReqsController < ApplicationController
 
 
   # -------------------------- Filters and actions --------------------
-  def update_node(n,p,prefix,ord)
-    # n is node, p is parent
-    node = Issue.find(n['id'])
-    if (node != nil) then
-      if (node.tracker == @@reqdoctracker) then
-        nodechapter = node.custom_values.find_by_custom_field_id(@@cfchapter.id).value
-      else
-        nodechapter = prefix+ord.to_s.rjust(@@chapterdigits, "0")+"."
-      end
-      cfc = node.custom_values.find_by_custom_field_id(@@cfchapter.id)
-      cfc.value = nodechapter
-      cfc.save      
-      if (p != nil) then
-        parent = Issue.find(p)
-        node.parent = parent
-        node.save
-      end
-      ch = n['children']
-      chord = 1
-      if (ch != nil) then
-         ch.each { |c| 
-          update_node(c,node.id,nodechapter,chord)
-          chord += 1
-        }
-      end
-    end
-  end
-
 
   def git_commit_repo(pr,a_message)
     @output = ""
@@ -1142,55 +1025,16 @@ class CosmosysReqsController < ApplicationController
     end
   end
 
-def create_json(current_issue, root_url, include_doc_children,currentdoc)
-    tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
 
-    tree_node[:chapter] = current_issue.custom_values.find_by_custom_field_id(@@cfchapter.id).value
-    tree_node[:title] = current_issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
-    if (current_issue.tracker == @@reqdoctracker) then
-    tree_node[:prefix] = current_issue.custom_values.find_by_custom_field_id(@@cfprefix.id).value
-    else
-    tree_node[:level] = current_issue.custom_values.find_by_custom_field_id(@@cflevel.id).value
-    tree_node[:type] = current_issue.custom_values.find_by_custom_field_id(@@cftype.id).value
-    tree_node[:sources] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
-    tree_node[:var] = current_issue.custom_values.find_by_custom_field_id(@@cfvar.id).value
-    tree_node[:value] = current_issue.custom_values.find_by_custom_field_id(@@cfvalue.id).value
-    tree_node[:rationale] = current_issue.custom_values.find_by_custom_field_id(@@cfrationale.id).value
-    end
-    if (current_issue.tracker == @@reqdoctracker) then
-      currentdoc = current_issue
-    end
-    tree_node[:doc_id] = currentdoc.id
-    tree_node[:children] = []
-
-    childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
-    childrenitems.each{|c|
-      if (c.tracker != @@reqdoctracker or include_doc_children) then
-        child_node = create_json(c,root_url,include_doc_children,currentdoc)
-        tree_node[:children] << child_node
-      end
-    }
-    tree_node[:relations] = []
-    current_issue.relations_from.where(:relation_type => 'blocks').each{|rl|
-      tree_node[:relations] << rl.attributes.slice("issue_to_id")
-    }
-    tree_node[:relations_back] = []
-    current_issue.relations_to.where(:relation_type => 'blocks').each{|rl|
-      tree_node[:relations_back] << rl.attributes.slice("issue_from_id")
-    }
-
-    return tree_node
-end
-
-def create_tree(current_issue, root_url)
+  def create_tree(current_issue, root_url)
     output = ""
     output += ("\nissue: " + current_issue.subject)
     issue_url = root_url + '/issues/' + current_issue.id.to_s
     output += ("\nissue_url: " + issue_url.to_s)
-    issue_new_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + @@reqtracker.id.to_s
+    issue_new_url = root_url + '/projects/' + current_issue.project.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + @@reqtracker.id.to_s
     output += ("\nissue_new_url: " + issue_new_url.to_s)
     if (current_issue.tracker == @@reqdoctracker) then
-      issue_new_doc_url = root_url + '/projects/' + current_issue.project.identifier.to_s + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + @@reqdoctracker.id.to_s
+      issue_new_doc_url = root_url + '/projects/' + current_issue.project.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + @@reqdoctracker.id.to_s
     else
       issue_new_doc_url = nil
     end

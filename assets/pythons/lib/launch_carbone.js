@@ -1,17 +1,17 @@
 'use strict';
 
 // returns the value of `num1`
-console.log("ARgumentos")
-console.log(process.argv);
+//console.log("ARgumentos")
+//console.log(process.argv);
 
 var myArgs = process.argv.slice(2);
-console.log('myArgs: ', myArgs);
+//console.log('myArgs: ', myArgs);
 var pathRoot = myArgs[0]
-console.log('pathRoot: ', pathRoot);
+//console.log('pathRoot: ', pathRoot);
 var docId = myArgs[1]
-console.log('docId: ', docId);
+//console.log('docId: ', docId);
 var docName = myArgs[2]
-console.log('docName: ', docName);
+//console.log('docName: ', docName);
 
 const fs = require('fs');
 const carbone = require('carbone');

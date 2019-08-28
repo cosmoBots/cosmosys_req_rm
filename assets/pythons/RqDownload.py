@@ -91,9 +91,11 @@ download_filepath = sys.argv[2]
 root_url = sys.argv[3]
 #print("root_url: ",root_url)
 
-# tmpfilepath
-tmpfilepath = sys.argv[4]
-#print("tmpfilepath: ",tmpfilepath)
+tmpfilepath = None
+if (len(sys.argv) > 4):
+    # tmpfilepath
+    tmpfilepath = sys.argv[4]
+    #print("tmpfilepath: ",tmpfilepath)
 
 if (tmpfilepath is None):
     import json,urllib.request
