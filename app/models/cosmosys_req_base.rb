@@ -15,6 +15,19 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
   @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
+def self.cftitle
+  @@cftitle
+end
+def self.cftype
+  @@cftype
+end
+def self.reqtracker
+  @@reqtracker
+end
+def self.reqdoctracker
+  @@reqdoctracker
+end
+
 def self.create_json(current_issue, root_url, include_doc_children,currentdoc)
     tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
 
