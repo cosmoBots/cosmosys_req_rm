@@ -61,7 +61,8 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 			:report_cosmosys,
 			:tree_cosmosys,
 			:upload_cosmosys,
-			:validate_cosmosys
+			:validate_cosmosys,
+			:show_cosmosys
 		]
 
 		reviewer = Role.create! :name => 'RqReviewer',
@@ -82,7 +83,8 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 			:report_cosmosys,
 			:tree_cosmosys,
 			:upload_cosmosys,
-			:validate_cosmosys
+			:validate_cosmosys,
+			:show_cosmosys
 		]
 
 		developer = Role.create! :name => 'RqDev',
@@ -99,7 +101,8 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 			:view_cosmosys,
 			:report_cosmosys,
 			:tree_cosmosys,
-			:validate_cosmosys
+			:validate_cosmosys,
+			:show_cosmosys
 		]
 
 		tester = Role.create! :name => 'RqTest',
@@ -116,7 +119,8 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 			:view_cosmosys,
 			:report_cosmosys,
 			:tree_cosmosys,
-			:validate_cosmosys
+			:validate_cosmosys,
+			:show_cosmosys
 		]
 
 

@@ -15,6 +15,9 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
   @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
+def self.cfchapter
+  @@cfchapter
+end
 def self.cftitle
   @@cftitle
 end

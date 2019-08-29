@@ -2,7 +2,8 @@
     <%= stylesheet_link_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
 <% end %>
 
-<% @project.issues.where(:parent => nil).each { |i| 
+<% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}
+	roots.each { |i| 
 	if (i.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -13,7 +14,7 @@
 <div class="<%= classdiv %>">
 <h1><strong><%= link_to i.subject, issue_path(i.id) %>: </strong><%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
-<% i.children.each { |i2| 
+<% i.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i2| 
 	if (i2.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -24,7 +25,7 @@
 <div class="<%= classdiv %>">
 <h2><strong><%= link_to i2.subject, issue_path(i2.id) %>: </strong><%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
-<% i2.children.each { |i3| 
+<% i2.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i3| 
 	if (i3.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -35,7 +36,7 @@
 <div class="<%= classdiv %>">
 <h3><strong><%= link_to i3.subject, issue_path(i3.id) %>: </strong><%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
-<% i3.children.each { |i4| 
+<% i3.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i4| 
 	if (i4.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -46,7 +47,7 @@
 <div class="<%= classdiv %>">
 <h4><strong><%= link_to i4.subject, issue_path(i4.id) %>: </strong><%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
-<% i4.children.each { |i5| 
+<% i4.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i5| 
 	if (i5.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -57,7 +58,7 @@
 <div class="<%= classdiv %>">
 <h5><strong><%= link_to i5.subject, issue_path(i5.id) %>: </strong><%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
-<% i5.children.each { |i6| 
+<% i5.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i6| 
 	if (i6.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -68,7 +69,7 @@
 <div class="<%= classdiv %>">
 <h6><strong><%= link_to i6.subject, issue_path(i6.id) %>: </strong><%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
-<% i6.children.each { |i7| 
+<% i6.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i7| 
 	if (i7.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -79,7 +80,7 @@
 <div class="<%= classdiv %>">
 <h7><strong><%= link_to i7.subject, issue_path(i7.id) %>: </strong><%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
-<% i7.children.each { |i8| 
+<% i7.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i8| 
 	if (i8.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
@@ -90,7 +91,7 @@
 <div class="<%= classdiv %>">
 <h8><strong><%= link_to i8.subject, issue_path(i8.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
-<% i8.children.each { |i9| 
+<% i8.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i9| 
 	if (i9.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
 	else
