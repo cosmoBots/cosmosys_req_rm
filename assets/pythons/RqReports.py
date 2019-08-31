@@ -110,7 +110,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     node['url_h'] = diagrams[str(node['id'])]['url_h']
     node['url_d'] = diagrams[str(node['id'])]['url_d']
     # Get current graph
-    #print(str(node['id']),node['subject'])
+    print(str(node['id']),node['subject'])
     # Dibujamos el nodo actual en los grafos generales
     nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
     diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
@@ -157,9 +157,6 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         propagate_dependence_down(node,r['issue_to_id'],r['issue_to_id'],server_url,reqlist)
 
 
-            
-
-
     # Ahora pintamos el camino de los ancestros en el grafo correspondiente al nodo actual
     desc = node
     graph = diagrams[str(node['id'])]['self_h']
@@ -171,6 +168,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         #print("en el grafo de ",node['subject']," meto un ancestro",anc['subject']," como padre de ",desc['subject'])
         # Dibujamos el nodo actual en el grafo del ancestro, con un vínculo a su padre
         graphanc = diagrams[str(anc['id'])]['self_h']
+        nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
         graphanc.node(str(node['id']),nodelabel,URL=server_url+'/issues/'+str(node['id']),tooltip=node['description'])
         if (parentreq is not None):
             graphanc.edge(str(parentreq['id']),str(node['id']))
