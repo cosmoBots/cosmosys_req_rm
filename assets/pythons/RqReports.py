@@ -76,8 +76,18 @@ def tree_to_list(tree,parentNode):
     return result
 
 def propagate_dependence_up(node,firstdependable,currentdependable,server_url,dependents):
-    nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
-    diagrams[str(currentdependable)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+    if (node['valid']):
+        colorstr = "black"
+    else:
+        colorstr = "red"
+
+    if node['doc_id'] == node['id']:
+        nodelabel = node['subject'] + "\n----\n" + node['title']
+        diagrams[str(currentdependable)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey', color=colorstr, shape="note")
+    else:
+        nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+        diagrams[str(currentdependable)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey', color=colorstr)
+
     #print("Up: ",node['id']," <- ",firstdependable," <- ... <- ",currentdependable)
     if currentdependable != firstdependable:
         # Tebenos que añadirnos al diagraa del precursor
@@ -100,9 +110,19 @@ def propagate_dependence_down(node,firstdependent,currentdependent,server_url,re
     #print(n)
 
     if (firstdependent != currentdependent):
+        if (node['valid']):
+            colorstr = "black"
+        else:
+            colorstr = "red"
+
         #print("***************","entro!","*****************")
-        nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
-        diagrams[str(currentdependent)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+        if node['doc_id'] == node['id']:
+            nodelabel = node['subject'] + "\n----\n" + node['title']
+            diagrams[str(currentdependent)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey',color=colorstr, shape="note")
+        else:
+            nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+            diagrams[str(currentdependent)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey',color=colorstr)
+
         #print(node['id']," -> ",firstdependent," ->...-> ",currentdependent)
         # Tebenos que añadirnos al diagraa del precursor
         diagrams[str(currentdependent)]['self_d'].edge(str(node['id']),str(firstdependent),color="blue")
@@ -120,8 +140,18 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     # Get current graph
     #print(str(node['id']),node['subject'])
     # Dibujamos el nodo actual en los grafos generales
-    nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
-    diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+    if (node['valid']):
+        colorstr = "black"
+    else:
+        colorstr = "red"
+
+    if node['doc_id'] == node['id']:
+        nodelabel = node['subject'] + "\n----\n" + node['title']
+        diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey',color=colorstr, shape="note")
+    else:
+        nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+        diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey',color=colorstr)
+
     # Si tiene padre, pintaremos el vertice entre el padre y él
     if (len(ancestors)>0):
         parentreq = ancestors[0]
@@ -137,7 +167,16 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         dependables = None
 
     if (len(node['relations']) > 0) or (dependables is not None):
-        diagrams['project']['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+        if (node['valid']):
+            colorstr = "black"
+        else:
+            colorstr = "red"
+
+        if node['doc_id'] == node['id']:
+            diagrams['project']['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], shape="note", fillcolor='grey', color=colorstr)
+        else:
+            diagrams['project']['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey', color=colorstr)
+
         # En caso de tratarse de un nodo dependiente, lo añadiremos a los diagramas de los nodos precursores
         #print("Relaciones tiene")
         if (dependables is not None):
@@ -151,7 +190,16 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         # añadiremos un eje en el grafo general
         diagrams['project']['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
         # En el grafo del dependiente añadiremos el nodo como precursor
-        diagrams[str(r['issue_to_id'])]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
+        if (node['valid']):
+            colorstr = "black"
+        else:
+            colorstr = "red"
+
+        if node['doc_id'] == node['id']:
+            diagrams[str(r['issue_to_id'])]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey', color=colorstr, shape="note")
+        else:
+            diagrams[str(r['issue_to_id'])]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'], fillcolor='grey', color=colorstr)
+
         diagrams[str(r['issue_to_id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
         # En nuestro propio grafo añadiremos una arista hacia el nodo dependiente
         diagrams[str(node['id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
@@ -167,14 +215,36 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     graph = diagrams[str(node['id'])]['self_h']
     for anc in ancestors:
         # Dibujamos el nodo del ancestro y el link a sus descendiente en el grafo actual
-        nodelabel = "{"+anc['subject']+"|"+anc['title']+"}"
-        graph.node(str(anc['id']),nodelabel,URL=server_url+'/issues/'+str(anc['id']),tooltip=anc['description'])
+        if (anc['valid']):
+            colorstr = "black"
+        else:
+            colorstr = "red"
+
+        if anc['doc_id'] == anc['id']:
+            nodelabel = anc['subject']+"\n----\n"+anc['title']
+            graph.node(str(anc['id']),nodelabel,URL=server_url+'/issues/'+str(anc['id']),tooltip=anc['description'], fillcolor='grey', color=colorstr, shape="note")
+        else:
+            nodelabel = "{"+anc['subject']+"|"+anc['title']+"}"
+            graph.node(str(anc['id']),nodelabel,URL=server_url+'/issues/'+str(anc['id']),tooltip=anc['description'], fillcolor='grey', color=colorstr)
+
         graph.edge(str(anc['id']),str(desc['id']))
         #print("en el grafo de ",node['subject']," meto un ancestro",anc['subject']," como padre de ",desc['subject'])
         # Dibujamos el nodo actual en el grafo del ancestro, con un vínculo a su padre
         graphanc = diagrams[str(anc['id'])]['self_h']
-        nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
-        graphanc.node(str(node['id']),nodelabel,URL=server_url+'/issues/'+str(node['id']),tooltip=node['description'])
+
+        if (node['valid']):
+            colorstr = "black"
+        else:
+            colorstr = "red"
+
+        if node['doc_id'] == node['id']:
+            nodelabel = node['subject'] + "\n----\n" + node['title']
+            graphanc.node(str(node['id']),nodelabel,URL=server_url+'/issues/'+str(node['id']),tooltip=node['description'], fillcolor='grey', color=colorstr, shape="note")
+        else:
+            nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
+            graphanc.node(str(node['id']),nodelabel,URL=server_url+'/issues/'+str(node['id']),tooltip=node['description'], fillcolor='grey', color=colorstr)
+
+
         if (parentreq is not None):
             graphanc.edge(str(parentreq['id']),str(node['id']))
             #print("En el grafo de ",anc['subject']," meto un nodo descendiente ",node['subject'],"conectado con su padre ",parentreq['subject'])
@@ -187,20 +257,6 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
             # Solo vamos a generar diagramas cuando bajemos desde el documento que los contiene,
             # Esto lo detectamos cuando el doc al que pertenece el hijo es diferente al que pertenece el padre
             generate_diagrams(child,diagrams,[node]+ancestors,server_url,dependents)
-
-
-'''
-    descr = getattr(my_issue, 'description', my_issue.subject)
-    # https://stackoverflow.com/questions/37543513/read-the-null-value-in-python-redmine-api
-    # Short answer: Use getattr(id, 'assigned_to', None) instead of id.assigned_to.
-    current_parent = getattr(my_issue, 'parent', None)
-    #print("my_issue: "+str(my_issue))
-    if current_parent is not None:
-        #print("parent: "+str(current_parent))
-        draw_ancestors(redmine,server_url,current_parent,issue_id,graph,req_title_cf_id)
-
-    return my_issue
-'''
 
 
 #print ("This is the name of the script: ", sys.argv[0])
@@ -302,7 +358,6 @@ my_project['url_h'] = url_h
 my_project['url_d'] = url_d
 diagrams['project'] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_g_h, 'self_h': self_g_h, 'parent_d': parent_g_d, 'self_d': self_g_d, }
 
-from lib.csysrq_support import *
 import os
 
 #print(reqlist)
@@ -336,21 +391,32 @@ for my_issue in reqlist:
     #print("Creo los diagrama con id ",my_issue['id'])
     diagrams[str(my_issue['id'])] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_h, 'self_h': self_h, 'parent_d': parent_d, 'self_d': self_d, }
 
-    nodelabel = "{" + my_issue['subject'] + "|" + my_issue['title'] + "}"
-    self_h.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']),
-                    color='green', tooltip=my_issue['description'])
-    
-    '''
-    my_issue = draw_postpropagation(redmine, my_project['url'], my_issue['id'], prj_graphd, req_rq_tracker_id,
-                                    req_title_cf_id)
+    if (my_issue['valid']):
+        colorstr = "black"
+    else:
+        colorstr = "red"
 
-    draw_prepropagation(redmine, my_project['url'], my_issue['id'], prj_graphd, req_rq_tracker_id, req_title_cf_id)
-    '''
+    if my_issue['doc_id'] == my_issue['id']:
+        nodelabel = my_issue['subject'] + "\n----\n" + my_issue['title']
+        self_h.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']),
+                        fillcolor='green', tooltip=my_issue['description'], color=colorstr, shape = "note")
+    else:
+        nodelabel = "{" + my_issue['subject'] + "|" + my_issue['title'] + "}"
+        self_h.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']),
+                        fillcolor='green', tooltip=my_issue['description'], color=colorstr)
+    
 
     title_str = my_issue['title']
-    nodelabel = "{" + my_issue['subject'] + "|" + title_str + "}"
-    self_d.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']), color='green',
-                    tooltip=my_issue['description'])
+
+    if my_issue['doc_id'] == my_issue['id']:
+        nodelabel = my_issue['subject'] + "\n----\n" + title_str
+        self_d.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']), fillcolor='green',
+                        tooltip=my_issue['description'], color=colorstr, shape = "note")
+    else:
+        nodelabel = "{" + my_issue['subject'] + "|" + title_str + "}"
+        self_d.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']), fillcolor='green',
+                        tooltip=my_issue['description'], color=colorstr)
+
 
 # Ahora recorrere todo el arbol rellenando los nodos en cada diagrama
 
@@ -358,17 +424,8 @@ for my_issue in reqlist:
 
 for rq in reqs:
     generate_diagrams(rq,diagrams,[],my_project['url'],data['dependents'])
-    #-----------------------------
 
-    '''
-    target_issue = draw_descendants(redmine, my_project['url'], my_issue['id'], prj_graphc, req_title_cf_id)
-    current_parent = getattr(target_issue, 'parent', None)
-    if current_parent is not None:
-        draw_ancestors(redmine, my_project['url'], target_issue.parent, my_issue['id'], prj_graphc, req_title_cf_id)
 
-    '''
-
-    #-----------------------------
 for my_issue in reqlist:
     prj_graphc_parent = diagrams[str(my_issue['id'])]['parent_h']
     prj_graphc = diagrams[str(my_issue['id'])]['self_h']

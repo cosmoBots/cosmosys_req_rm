@@ -15,6 +15,47 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
   @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
+
+@@req_status_maturity = {
+    'RqDraft': 1,
+    'RqStable': 2,
+    'RqApproved': 3,
+    'RqIncluded': 3,
+    'RqValidated': 3,
+    'RqRejected': 0,
+    'RqErased': 1,
+    'RqZombie': 0
+}
+
+@@req_maturity_propagation = ['RqZombie','RqDraft','RqStable','RqApproved']
+
+def self.dependence_validation(i)
+  result = true
+  if (i.tracker == @@reqtracker) then
+    i.relations_to.each{|r|
+      rel_issue = r.issue_from
+      result = self.dependence_validation(rel_issue)
+      if (result) then
+        if (@@req_status_maturity[rel_issue.status.name.to_sym] < 
+          @@req_status_maturity[i.status.name.to_sym]) then
+          #print("\n\n**************")
+          #print(i.id,": ",i.subject,": ",i.status,":",@@req_status_maturity[i.status.name].to_s)
+          #print("\t-",r.relation_type,"-> ",rel_issue.subject," : ",rel_issue.status,":",@@req_status_maturity[rel_issue.status.name].to_s)
+          #print("xxxxxxxxxxxx: Error.  el requisito dependiente está en estado ",i.status," mientras el requisito del que depende está en estado ",rel_issue.status)
+          result = false
+        end
+      end
+    }
+  end
+  #print("\n\nResult: "+result.to_s)
+  return result 
+end
+
+def self.dependence_validation_from_id(id)
+  i = Issue.find(id)
+  self.dependence_validation(i)
+end
+
 def self.cfchapter
   @@cfchapter
 end
@@ -33,7 +74,7 @@ end
 
 def self.create_json(current_issue, root_url, include_doc_children,currentdoc)
     tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
-
+    tree_node[:valid] = self.dependence_validation(current_issue)
     tree_node[:chapter] = current_issue.custom_values.find_by_custom_field_id(@@cfchapter.id).value
     tree_node[:title] = current_issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
     if (current_issue.tracker == @@reqdoctracker) then
