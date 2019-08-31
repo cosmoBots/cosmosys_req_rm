@@ -282,7 +282,7 @@ class CosmosysReqsController < ApplicationController
                       thisdoc.save
                     else                      
                       #print("si existe el documento")
-                      thisdoc.description = docname
+                      #thisdoc.description = docname
                     end
                       cft = thisdoc.custom_values.find_by_custom_field_id(@@cftitle.id)
                       cft.value = docname
