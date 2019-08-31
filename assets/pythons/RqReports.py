@@ -60,6 +60,15 @@ def tree_to_list(tree,parentNode):
         node['doc'] = data['reqdocs'][str(node['doc_id'])]['subject']
         purgednode = node.copy()
         purgednode['children'] = []
+
+        # Rellenamos la tabla de dependencias inversa, para que 
+        # los nodos encuentren aquellos de los que dependen
+        for r in node['relations']:
+            if str(r['issue_to_id']) not in data['dependents'].keys():
+                data['dependents'][str(r['issue_to_id'])] = []
+
+            data['dependents'][str(r['issue_to_id'])].append(node['id'])     
+
         #print(purgednode)
         result.append(purgednode)
         result += tree_to_list(node['children'],node)
@@ -69,7 +78,7 @@ def tree_to_list(tree,parentNode):
 def propagate_dependence_up(node,firstdependable,currentdependable,server_url,dependents):
     nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
     diagrams[str(currentdependable)]['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
-    #print(node['id']," <- ",firstdependable," <- ... <- ",currentdependable)
+    #print("Up: ",node['id']," <- ",firstdependable," <- ... <- ",currentdependable)
     if currentdependable != firstdependable:
         # Tebenos que añadirnos al diagraa del precursor
         diagrams[str(currentdependable)]['self_d'].edge(str(firstdependable), str(node['id']),color="blue")
@@ -83,8 +92,7 @@ def propagate_dependence_up(node,firstdependable,currentdependable,server_url,de
 
 def propagate_dependence_down(node,firstdependent,currentdependent,server_url,reqlist):
     # Buscanos el nodo actual
-    #print("***************",currentdependent,"*****************")
-    #print("***************",firstdependent,"*****************")
+    #print("Down: ",node['id']," -> ",firstdependent," -> ... -> ",currentdependent)
     for n in reqlist:
         if n['id'] == currentdependent:
             break
@@ -110,7 +118,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     node['url_h'] = diagrams[str(node['id'])]['url_h']
     node['url_d'] = diagrams[str(node['id'])]['url_d']
     # Get current graph
-    print(str(node['id']),node['subject'])
+    #print(str(node['id']),node['subject'])
     # Dibujamos el nodo actual en los grafos generales
     nodelabel = "{" + node['subject'] + "|" + node['title'] + "}"
     diagrams['project']['self_h'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
@@ -121,7 +129,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     else:
         parentreq = None
 
-    # Si este grafo tiene relaciones o ha sido marcado como dependiente, lo añadimos en el grafo geneal
+    # Si este nodo tiene relaciones o ha sido marcado como dependiente, lo añadimos en el grafo geneal
     if str(node['id']) in dependents.keys():
         dependables = dependents[str(node['id'])]
         #print(dependables)
@@ -131,6 +139,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
     if (len(node['relations']) > 0) or (dependables is not None):
         diagrams['project']['self_d'].node(str(node['id']), nodelabel, URL=server_url+'/issues/'+str(node['id']), tooltip=node['description'])
         # En caso de tratarse de un nodo dependiente, lo añadiremos a los diagramas de los nodos precursores
+        #print("Relaciones tiene")
         if (dependables is not None):
             for pr in dependables:
                 #print("propago ",node['id'],": ",node['subject'])
@@ -146,11 +155,7 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         diagrams[str(r['issue_to_id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
         # En nuestro propio grafo añadiremos una arista hacia el nodo dependiente
         diagrams[str(node['id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
-        # marcaremos la relación como dependiente
-        if str(r['issue_to_id']) not in dependents.keys():
-            dependents[str(r['issue_to_id'])] = []
 
-        dependents[str(r['issue_to_id'])].append(node['id'])
         # Ahora propagaremos el cambio hacia abajo para que en los diagramas de los dependientes
         # a más de un nivel aparezca el nodo actual y la dependencia con la relacion de primer 
         # nivel
@@ -198,9 +203,9 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
 '''
 
 
-print ("This is the name of the script: ", sys.argv[0])
-print ("Number of arguments: ", len(sys.argv))
-print ("The arguments are: ", str(sys.argv))
+#print ("This is the name of the script: ", sys.argv[0])
+#print ("Number of arguments: ", len(sys.argv))
+#print ("The arguments are: ", str(sys.argv))
 
 #my_project['url'] = 'http://localhost:5555'           # The Redmine URL
 #req_key_txt = 'd32df1cc535477adb95998fb4633bc50e8e664e3'    # The API key of the user (or bot) in which name the actions are undertaken.
@@ -208,19 +213,19 @@ print ("The arguments are: ", str(sys.argv))
 
 # pr_id_str = req_project_id_str
 pr_id_str = sys.argv[1]
-print("id: ",pr_id_str)
+#print("id: ",pr_id_str)
 
 # reporting_path = reporting_dir
 reporting_path = sys.argv[2]
-print("reporting_path: ",reporting_path)
+#print("reporting_path: ",reporting_path)
 
 # img_path = img_dir
 img_path = sys.argv[3]
-print("img_path: ",img_path)
+#print("img_path: ",img_path)
 
 # root_url = req_server_url
 root_url = sys.argv[4]
-print("root_url: ",root_url)
+#print("root_url: ",root_url)
 
 tmpfilepath = None
 if (len(sys.argv) > 5):
@@ -253,6 +258,7 @@ statuses = data['statuses']
 #print("len(reqs)",len(reqs))
 # Debemos preparar un diagrama para cada nodo
 #print("#####Vamos con los documentos!!!!")
+data['dependents'] = {}
 reqlist = tree_to_list(reqs,None)
 data['reqlist'] = reqlist
 
@@ -351,7 +357,7 @@ for my_issue in reqlist:
 #print(diagrams)
 
 for rq in reqs:
-    generate_diagrams(rq,diagrams,[],my_project['url'],{})
+    generate_diagrams(rq,diagrams,[],my_project['url'],data['dependents'])
     #-----------------------------
 
     '''
