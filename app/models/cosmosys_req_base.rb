@@ -15,6 +15,24 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
   @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
+def self.cfchapter
+  @@cfchapter
+end
+def self.cftitle
+  @@cftitle
+end
+def self.cftype
+  @@cftype
+end
+def self.reqtracker
+  @@reqtracker
+end
+def self.reqdoctracker
+  @@reqdoctracker
+end
+def self.cfdiag
+  @@cfdiag
+end
 
 @@req_status_maturity = {
     'RqDraft': 1,
@@ -54,22 +72,6 @@ end
 def self.dependence_validation_from_id(id)
   i = Issue.find(id)
   self.dependence_validation(i)
-end
-
-def self.cfchapter
-  @@cfchapter
-end
-def self.cftitle
-  @@cftitle
-end
-def self.cftype
-  @@cftype
-end
-def self.reqtracker
-  @@reqtracker
-end
-def self.reqdoctracker
-  @@reqdoctracker
 end
 
 def self.create_json(current_issue, root_url, include_doc_children,currentdoc)
@@ -193,7 +195,9 @@ end
     end
   end
 
-  def self.to_graphviz_depupn(cl,n_node,n,upn)
+  # -----------------------------------
+
+  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc)
     if (self.dependence_validation(upn)) then
       colorstr = 'black'
     else
@@ -204,12 +208,15 @@ end
       :URL => "./"+upn.id.to_s)
     cl.add_edges(upn_node, n_node, :color => :blue)
     upn.relations_to.each {|upn2|
-      cl=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from)
+      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc)
     }
-    return cl
+    if (isfirst) then
+      torecalc[upn.id.to_s.to_sym] = upn.id
+    end      
+    return cl,torecalc
   end
 
-  def self.to_graphviz_depdwn(cl,n_node,n,dwn)
+  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc)
     if (self.dependence_validation(dwn)) then
       colorstr = 'black'
     else
@@ -220,12 +227,15 @@ end
       :URL => "./"+dwn.id.to_s)
     cl.add_edges(n_node, dwn_node, :color => :blue)
     dwn.relations_from.each {|dwn2|
-      cl=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to)
-    }    
-    return cl
+      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc)
+    }
+    if (isfirst) then
+      torecalc[dwn.id.to_s.to_sym] = dwn.id
+    end  
+    return cl,torecalc
   end
 
-  def self.to_graphviz_depcluster(cl,n)
+  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc)
     if (self.dependence_validation(n)) then
       colorstr = 'black'
     else
@@ -235,27 +245,27 @@ end
       :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
       :URL => "./"+n.id.to_s)
     n.relations_from.each{|dwn|
-      cl=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to)
+      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc)
     }
     n.relations_to.each{|upn|
-      cl=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from)
+      cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc)
     }
-    return cl
+    return cl,torecalc
   end
 
-  def self.to_graphviz_depgraph(n)
+  def self.to_graphviz_depgraph(n,isfirst,torecalc)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
     cl = g.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
     # Generate output image
     #g.output( :png => "hello_world.png" )
-    cl = self.to_graphviz_depcluster(cl,n)
-    return g
+    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc)  
+    return g,torecalc
   end
 
 
 
-  def self.to_graphviz_hieupn(cl,n_node,n,upn)
+  def self.to_graphviz_hieupn(cl,n_node,n,upn,isfirst,torecalc)
     colorstr = 'black'
     if (upn.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -269,12 +279,15 @@ end
       :URL => "./"+upn.id.to_s)
     cl.add_edges(upn_node, n_node)
     if (upn.parent != nil) then
-      cl=self.to_graphviz_hieupn(cl,upn_node,upn,upn.parent)
+      cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn,upn.parent,isfirst,torecalc)
     end
-    return cl
+    if (isfirst) then
+      torecalc[upn.id.to_s.to_sym] = upn.id
+    end  
+    return cl,torecalc
   end
 
-  def self.to_graphviz_hiedwn(cl,n_node,n,dwn)
+  def self.to_graphviz_hiedwn(cl,n_node,n,dwn,isfirst,torecalc)
     colorstr = 'black'
     if (dwn.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -288,13 +301,16 @@ end
       :URL => "./"+dwn.id.to_s)
     cl.add_edges(n_node, dwn_node)
     dwn.children.each {|dwn2|
-      cl=self.to_graphviz_hiedwn(cl,dwn_node,dwn,dwn2)
-    }    
-    return cl
+      cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn,dwn2,isfirst,torecalc)
+    }
+    if (isfirst) then
+      torecalc[dwn.id.to_s.to_sym] = dwn.id
+    end      
+    return cl,torecalc
   end
 
 
-  def self.to_graphviz_hiecluster(cl,n)
+  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc)
     colorstr = 'black'
     if (n.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -307,30 +323,44 @@ end
       :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => shapestr,
       :URL => "./"+n.id.to_s)
     n.children.each{|dwn|
-      cl=self.to_graphviz_hiedwn(cl,n_node,n,dwn)
+      cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,n,dwn,isfirst,torecalc)
     }
     if (n.parent != nil) then
-      cl=self.to_graphviz_hieupn(cl,n_node,n,n.parent)
+      cl,torecalc=self.to_graphviz_hieupn(cl,n_node,n,n.parent,isfirst,torecalc)
     end
-    return cl
+    return cl,torecalc
   end
 
-  def self.to_graphviz_hiegraph(n)
+  def self.to_graphviz_hiegraph(n,isfirst,torecalc)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
     # Generate output image
     #g.output( :png => "hello_world.png" )
-    cl = self.to_graphviz_hiecluster(cl,n)
-    return g
+    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc)
+    return g,torecalc
   end
 
-  def self.to_graphviz_graph_str(n)
-    g = self.to_graphviz_depgraph(n)
+  def self.to_graphviz_graph_str(n,isfirst,torecalc)
+    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
-    g2 = self.to_graphviz_hiegraph(n)
+    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
-    return result
+    return result,torecalc
+  end
+
+  def self.recalculate_graphs(n)
+    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{})
+    cfd = n.custom_values.find_by_custom_field_id(CosmosysReqBase.cfdiag.id)
+    cfd.value = strdiag
+    cfd.save
+    torecalc.each do |key, value|
+      i = Issue.find(value)
+      strdiag,torecalc2 = self.to_graphviz_graph_str(i,false,{})
+      cfd = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfdiag.id)
+      cfd.value = strdiag
+      cfd.save      
+    end
   end
 
 end

@@ -35,4 +35,6 @@ Redmine::Plugin.register :cosmosys_req do
     'relative_reporting_path' => "reporting",
     'relative_img_path' => "reporting/doc/img"
   }, :partial => 'settings/cosmosys_req_settings'
+
+  require 'cosmosys_req'
 end
