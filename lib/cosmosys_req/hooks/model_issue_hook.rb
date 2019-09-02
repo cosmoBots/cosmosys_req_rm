@@ -20,6 +20,12 @@
 module CosmosysReq
   module Hooks
     class ModelIssueHook < Redmine::Hook::ViewListener
+
+      render_on :view_projects_show_left, :partial => "cosmosys_reqs/project_overview" 
+      #render_on :view_projects_show_right, :partial => "cosmosys_reqs/project_overview_sidebar" 
+      render_on :view_issues_show_description_bottom, :partial => "cosmosys_reqs/issues" 
+
+
       def controller_issues_edit_before_save(context = {})
         req_propagate context
       end
@@ -27,6 +33,7 @@ module CosmosysReq
       def controller_issues_bulk_edit_before_save(context = {})
         req_propagate context
       end
+
 
       def req_propagate(context, create_journal = true)
         issue = context[:issue]

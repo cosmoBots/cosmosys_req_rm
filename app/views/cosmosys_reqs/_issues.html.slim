@@ -1,0 +1,4 @@
+- issue_diagrams_content = "## Diagrams\n"+CosmosysReqBase.show_graphs(@issue)
+- if issue_diagrams_content.present?
+  .issue-content
+    = textilizable(issue_diagrams_content)

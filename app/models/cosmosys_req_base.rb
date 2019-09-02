@@ -363,4 +363,21 @@ end
     end
   end
 
+  def self.show_graphs(n)
+    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{})
+    return strdiag
+  end
+
+  def self.show_graphs_pr(p)
+    result = ""
+    p.issues.each{ |n|
+      if n.parent == nil then
+        result += self.show_graphs(n) + "\n\n"
+      end
+    }
+    return result
+  end
+
+
+
 end

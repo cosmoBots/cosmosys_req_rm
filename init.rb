@@ -37,4 +37,5 @@ Redmine::Plugin.register :cosmosys_req do
   }, :partial => 'settings/cosmosys_req_settings'
 
   require 'cosmosys_req'
+
 end

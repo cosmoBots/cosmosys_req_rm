@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with redmine_tags.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'cosmosys_req/hooks/model_issue_hook'
+require_dependency 'cosmosys_req/hooks/model_issue_hook'
 
 
 module CosmosysReq
