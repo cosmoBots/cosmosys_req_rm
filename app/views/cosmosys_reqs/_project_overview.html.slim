@@ -1,4 +1,6 @@
-- project_overview_content = "## Diagrams\n"+CosmosysReqBase.show_graphs_pr(@project)
+- splitted_url = request.fullpath.split('/projects')
+- root_url = request.base_url+splitted_url[0]
+- project_overview_content = "## Diagrams\n"+CosmosysReqBase.show_graphs_pr(@project,root_url)
 - if project_overview_content.present?
   .project-content.csysreqdiags.wiki.box
     = textilizable(project_overview_content)

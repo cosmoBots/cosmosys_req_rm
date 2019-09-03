@@ -45,6 +45,15 @@ end
     'RqZombie': 0
 }
 
+def self.get_descendents(n)
+  result = []
+  n.children.each{|c|
+    result.append(c)
+    result += self.get_descendents(c)
+  }
+  return result
+end
+
 @@req_maturity_propagation = ['RqZombie','RqDraft','RqStable','RqApproved']
 
 def self.dependence_validation(i)
@@ -197,18 +206,18 @@ end
 
   # -----------------------------------
 
-  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc)
+  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url)
     if (self.dependence_validation(upn)) then
       colorstr = 'black'
     else
       colorstr = 'red'
     end
-    upn_node = cl.add_nodes( "{ "+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",
+    upn_node = cl.add_nodes( upn.id.to_s, :label => "{ "+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",
       :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => 'record',
-      :URL => "./"+upn.id.to_s)
+      :URL => root_url + "/issues/" + upn.id.to_s)
     cl.add_edges(upn_node, n_node, :color => :blue)
     upn.relations_to.each {|upn2|
-      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc)
+      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url)
     }
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -216,18 +225,18 @@ end
     return cl,torecalc
   end
 
-  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc)
+  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url)
     if (self.dependence_validation(dwn)) then
       colorstr = 'black'
     else
       colorstr = 'red'
     end
-    dwn_node = cl.add_nodes( "{ "+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
+    dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ "+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
       :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
-      :URL => "./"+dwn.id.to_s)
+      :URL => root_url + "/issues/" + dwn.id.to_s)
     cl.add_edges(n_node, dwn_node, :color => :blue)
     dwn.relations_from.each {|dwn2|
-      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc)
+      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url)
     }
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
@@ -235,37 +244,54 @@ end
     return cl,torecalc
   end
 
-  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc)
-    if (self.dependence_validation(n)) then
-      colorstr = 'black'
+  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)
+    if (n.tracker == @@reqdoctracker) then
+        shapestr = "record"
+        desc = self.get_descendents(n)
+        desc.each { |e| 
+          if (e.relations.size>0) then
+            labelstr = "{"+e.subject+"|"+e.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
+            e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
+              :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => shapestr,
+              :URL => root_url + "/issues/" + e.id.to_s)
+            e.relations_from.each {|r|
+                cl.add_edges(e_node, r.issue_to_id.to_s, :color => 'blue')
+            }
+          end          
+        }
+        return "",torecalc
     else
-      colorstr = 'red'
-    end
-    n_node = cl.add_nodes( "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
-      :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
-      :URL => "./"+n.id.to_s)
-    n.relations_from.each{|dwn|
-      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc)
-    }
-    n.relations_to.each{|upn|
-      cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc)
-    }
-    return cl,torecalc
+      if (self.dependence_validation(n)) then
+        colorstr = 'black'
+      else
+        colorstr = 'red'
+      end
+      n_node = cl.add_nodes( n.id.to_s, :label => "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
+        :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
+        :URL => root_url + "/issues/" + n.id.to_s)
+      n.relations_from.each{|dwn|
+        cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url)
+      }
+      n.relations_to.each{|upn|
+        cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url)
+      }
+      return cl,torecalc
+    end    
   end
 
-  def self.to_graphviz_depgraph(n,isfirst,torecalc)
+  def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
     cl = g.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
     # Generate output image
     #g.output( :png => "hello_world.png" )
-    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc)  
+    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)  
     return g,torecalc
   end
 
 
 
-  def self.to_graphviz_hieupn(cl,n_node,n,upn,isfirst,torecalc)
+  def self.to_graphviz_hieupn(cl,n_node,n,upn,isfirst,torecalc,root_url)
     colorstr = 'black'
     if (upn.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -274,12 +300,12 @@ end
       shapestr = "record"
       labelstr = "{"+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
     end    
-    upn_node = cl.add_nodes( labelstr,
+    upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr,
       :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
-      :URL => "./"+upn.id.to_s)
+      :URL => root_url + "/issues/" + upn.id.to_s)
     cl.add_edges(upn_node, n_node)
     if (upn.parent != nil) then
-      cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn,upn.parent,isfirst,torecalc)
+      cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn,upn.parent,isfirst,torecalc,root_url)
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -287,7 +313,7 @@ end
     return cl,torecalc
   end
 
-  def self.to_graphviz_hiedwn(cl,n_node,n,dwn,isfirst,torecalc)
+  def self.to_graphviz_hiedwn(cl,n_node,n,dwn,isfirst,torecalc,root_url)
     colorstr = 'black'
     if (dwn.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -296,12 +322,12 @@ end
       shapestr = "record"
       labelstr = "{"+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
     end
-    dwn_node = cl.add_nodes( labelstr,  
+    dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr,  
       :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
-      :URL => "./"+dwn.id.to_s)
+      :URL => root_url + "/issues/" + dwn.id.to_s)
     cl.add_edges(n_node, dwn_node)
     dwn.children.each {|dwn2|
-      cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn,dwn2,isfirst,torecalc)
+      cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn,dwn2,isfirst,torecalc,root_url)
     }
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
@@ -310,7 +336,7 @@ end
   end
 
 
-  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc)
+  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url)
     colorstr = 'black'
     if (n.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -319,62 +345,90 @@ end
       shapestr = "record"
       labelstr = "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
     end
-    n_node = cl.add_nodes( labelstr,  
+    n_node = cl.add_nodes( n.id.to_s, :label => labelstr,  
       :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => shapestr,
-      :URL => "./"+n.id.to_s)
+      :URL => root_url + "/issues/" + n.id.to_s)
     n.children.each{|dwn|
-      cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,n,dwn,isfirst,torecalc)
+      cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,n,dwn,isfirst,torecalc,root_url)
     }
     if (n.parent != nil) then
-      cl,torecalc=self.to_graphviz_hieupn(cl,n_node,n,n.parent,isfirst,torecalc)
+      cl,torecalc=self.to_graphviz_hieupn(cl,n_node,n,n.parent,isfirst,torecalc,root_url)
     end
     return cl,torecalc
   end
 
-  def self.to_graphviz_hiegraph(n,isfirst,torecalc)
+  def self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
-    # Generate output image
-    #g.output( :png => "hello_world.png" )
-    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc)
+    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url)
     return g,torecalc
   end
 
-  def self.to_graphviz_graph_str(n,isfirst,torecalc)
-    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc)
+  def self.to_graphviz_graph_str(n,isfirst,torecalc,root_url)
+    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
-    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc)
+    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
     return result,torecalc
   end
 
-  def self.recalculate_graphs(n)
-    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{})
+  def self.recalculate_graphs(n,root_url)
+    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{},root_url)
     cfd = n.custom_values.find_by_custom_field_id(CosmosysReqBase.cfdiag.id)
     cfd.value = strdiag
     cfd.save
     torecalc.each do |key, value|
       i = Issue.find(value)
-      strdiag,torecalc2 = self.to_graphviz_graph_str(i,false,{})
+      strdiag,torecalc2 = self.to_graphviz_graph_str(i,false,{},root_url)
       cfd = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfdiag.id)
       cfd.value = strdiag
       cfd.save      
     end
   end
 
-  def self.show_graphs(n)
-    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{})
+  def self.show_graphs(n,root_url)
+    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{},root_url)
     return strdiag
   end
 
-  def self.show_graphs_pr(p)
-    result = ""
-    p.issues.each{ |n|
-      if n.parent == nil then
-        result += self.show_graphs(n) + "\n\n"
+  def self.show_graphs_pr(p,root_url)
+    # Create a new hierarchy graph
+    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
+    hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
+
+    # Create a new hierarchy graph
+    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
+    dcl = dg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
+
+    p.issues.each{|n|
+      colorstr = 'black'
+      if (n.tracker == @@reqdoctracker) then
+        shapestr = "note"
+        labelstr = n.subject+"\n----\n"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value
+      else
+        shapestr = "record"
+        labelstr = "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
+      end
+      hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr,  
+        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :URL => root_url + "/issues/" + n.id.to_s)
+      n.children.each{|c|
+          hcl.add_edges(hn_node, c.id.to_s)
+      }
+      if (n.relations.size>0) then
+        dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr,  
+          :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+          :URL => root_url + "/issues/" + n.id.to_s)
+        n.relations_from.each {|r|
+            dcl.add_edges(dn_node, r.issue_to_id.to_s, :color => 'blue')
+        }
       end
     }
+
+    result="{{graphviz_link()\n" + hg.to_s + "\n}}"
+    result+=" {{graphviz_link()\n" + dg.to_s + "\n}}"
+
     return result
   end
 
