@@ -686,7 +686,7 @@ class CosmosysReqsController < ApplicationController
                 ensure
                    #tmpfile.unlink   # deletes the temp file
                 end
-
+=begin
                 diagrams_pattern = @@cfdiag.default_value
                 diagrams_str_prefix = "{{graphviz_link()\n"
                 diagrams_str_suffix = "\n}} "
@@ -740,7 +740,7 @@ class CosmosysReqsController < ApplicationController
                     print("d image file does not exist for requirement "+i.subject)
                   end
                 }
-
+=end
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
                 @output += "Ok: reports generated and diagrams updated.\n"
