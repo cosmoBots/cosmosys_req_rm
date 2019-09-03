@@ -25,7 +25,7 @@ module CosmosysReq
       #render_on :view_projects_show_right, :partial => "cosmosys_reqs/project_overview_sidebar" 
       render_on :view_issues_show_description_bottom, :partial => "cosmosys_reqs/issues" 
 
-
+=begin
       def controller_issues_edit_before_save(context = {})
         req_propagate context
       end
@@ -34,7 +34,6 @@ module CosmosysReq
         req_propagate context
       end
 
-
       def req_propagate(context, create_journal = true)
         issue = context[:issue]
         params = context[:params]
@@ -42,18 +41,10 @@ module CosmosysReq
           print(issue.subject)
           req = Issue.find(issue.id)
           CosmosysReqBase.recalculate_graphs(issue)
-=begin 
-          old_tags = Issue.find(issue.id).tag_list.to_s
-          new_tags = issue.tag_list.to_s
-          if create_journal && !(old_tags == new_tags || issue.current_journal.blank?)
-            issue.current_journal.details << JournalDetail.new(property: 'attr',
-                                                               prop_key: 'tag_list',
-                                                               old_value: old_tags,
-                                                               value: new_tags)
-          end
-=end
         end
       end
+
+=end
     end
   end
 end
