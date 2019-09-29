@@ -191,7 +191,8 @@ for my_issue in my_doc_issues:
     prefix = my_issue['prefix']
     mysheet = doc.sheets.copy('Template', my_issue['subject'], tabnumber)
     tabnumber += 1
-    mysheet[req_download_doc_row,req_download_doc_name_column].value = my_issue['description']
+    mysheet[req_download_doc_row,req_download_doc_title_column].value = my_issue['title']
+    mysheet[req_download_doc_row,req_download_doc_desc_column].value = my_issue['description']
     mysheet[req_download_doc_row,req_download_doc_prefix_column].value = prefix
     current_parent = my_issue['parent_id']
     if current_parent is not None:

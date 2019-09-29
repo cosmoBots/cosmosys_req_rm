@@ -155,9 +155,10 @@ class CosmosysReqsController < ApplicationController
 
     #This section defines the document information cell indexes to retrieve information for the documents from the upload file
     req_upload_doc_row = 0
-    req_upload_doc_name_column = 1
-    req_upload_doc_prefix_column = 10 # 5
-    req_upload_doc_parent_column = 8 # 3
+    req_upload_doc_title_column = 1
+    req_upload_doc_desc_column = 5
+    req_upload_doc_prefix_column = 10
+    req_upload_doc_parent_column = 8
 
     #This section defines the requirements information cell indexes to retrieve information for the requirements from the upload file
     req_upload_first_row = 2
@@ -262,9 +263,11 @@ class CosmosysReqsController < ApplicationController
                     #print("DocID: "+docidstr)
                     # Obtenemos la informacion de la fila donde estan los datos adicionales del documento de requisito
                     d = thissheet.row(req_upload_doc_row+1)
-                    # Como nombre del documento y "description", tomamos la columna de docname
-                    docname = d[req_upload_doc_name_column+1]
-                    #print("DocName: ",docname)
+                    # Como título del documento tomamos la columna de doctitle
+                    doctitle = d[req_upload_doc_title_column+1]
+                    #print("DocTitle: ",doctitle)
+                    docdesc = d[req_upload_doc_desc_column+1]
+                    #print("DocDesc: ",docdesc)
                     # Como prefijo de los codigos generados por el documento, tomamos la columna de prefijo
                     prefixstr = d[req_upload_doc_prefix_column+1]
                     #print("\nprefijo: "+ prefixstr)
@@ -278,14 +281,14 @@ class CosmosysReqsController < ApplicationController
                       thisdoc.author = User.current
                       thisdoc.tracker = @@reqdoctracker
                       thisdoc.subject = docidstr
-                      thisdoc.description = docname
+                      thisdoc.description = docdesc
                       thisdoc.save
                     else                      
                       #print("si existe el documento")
-                      #thisdoc.description = docname
+                      #thisdoc.description = docdesc
                     end
                       cft = thisdoc.custom_values.find_by_custom_field_id(@@cftitle.id)
-                      cft.value = docname
+                      cft.value = doctitle
                       cft.save                      
                       cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
                       cfp.value = prefixstr
