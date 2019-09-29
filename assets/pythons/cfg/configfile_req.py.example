@@ -83,7 +83,7 @@ req_upload_version_endrow = 25
 
 req_download_doc_row = 0
 req_download_doc_title_column = 1
-req_download_doc_desc_column = 5
+req_download_doc_desc_column = 6
 req_download_doc_parent_column = 8
 req_download_doc_prefix_column = 10
 req_download_bdid_column = 3
