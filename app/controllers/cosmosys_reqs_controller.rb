@@ -156,7 +156,7 @@ class CosmosysReqsController < ApplicationController
     #This section defines the document information cell indexes to retrieve information for the documents from the upload file
     req_upload_doc_row = 0
     req_upload_doc_title_column = 1
-    req_upload_doc_desc_column = 5
+    req_upload_doc_desc_column = 6
     req_upload_doc_prefix_column = 10
     req_upload_doc_parent_column = 8
 
@@ -285,7 +285,7 @@ class CosmosysReqsController < ApplicationController
                       thisdoc.save
                     else                      
                       #print("si existe el documento")
-                      #thisdoc.description = docdesc
+                      thisdoc.description = docdesc
                     end
                       cft = thisdoc.custom_values.find_by_custom_field_id(@@cftitle.id)
                       cft.value = doctitle
@@ -503,7 +503,7 @@ class CosmosysReqsController < ApplicationController
                 if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                   # Tratamos la hoja en concreto
                   docidstr = thissheet.name
-                  print("DocID: "+docidstr)
+                  #print("DocID: "+docidstr)
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
                   if (thisdoc != nil) then
