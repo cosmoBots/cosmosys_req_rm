@@ -227,7 +227,7 @@ for my_issue in my_doc_issues:
     current_row[my_issue['subject']] = req_download_first_row
     
 
-rpdeptab = doc.sheets["_RpDep"]
+rpdeptab = doc.sheets["_RqDep"]
 rpdeptab_row_idx = req_download_rpdeptab_startrow
 
 #print(current_row)
