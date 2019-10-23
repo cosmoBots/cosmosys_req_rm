@@ -327,8 +327,8 @@ for my_issue in reqlist:
         current_row[thisdoc] = currrow + 1    
 
         if (my_issue['type'] != 'Info'):        
-            rpdeptab[rpdeptab_row_idx,req_download_id_column].value = my_issue['subject']
-            rpdeptab[rpdeptab_row_idx,req_download_title_column].value = my_issue['title']
+            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_id_column].value = my_issue['subject']
+            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_title_column].value = my_issue['title']
             if not firstrel:
                 rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_related_column].value = relstr
 
