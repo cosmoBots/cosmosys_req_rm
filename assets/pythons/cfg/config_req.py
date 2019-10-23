@@ -12,3 +12,20 @@ req_download_url_column = 1
 
 req_download_version_startrow = 1
 req_download_version_column = 5
+
+
+req_download_first_row = 2
+req_download_id_column = 4
+req_download_title_column = 5
+req_download_descr_column = 6
+req_download_source_columnb = 11
+req_download_type_column = 9
+req_download_level_column = 8
+req_download_rationale_column = 15
+req_download_var_column = 13
+req_download_value_column = 14
+req_download_chapter_column = 0
+req_download_status_column = 16
+req_download_target_column = 12
+req_download_parent_column = 7
+req_download_related_column = 10

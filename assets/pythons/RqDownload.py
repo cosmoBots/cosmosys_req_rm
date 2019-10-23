@@ -223,7 +223,7 @@ def find_doc(this_issue):
     
 current_row = {}
 for my_issue in my_doc_issues:
-    current_row[my_issue['subject']] = req_upload_first_row
+    current_row[my_issue['subject']] = req_download_first_row
     
 
 #print(current_row)
@@ -253,48 +253,48 @@ for my_issue in reqlist:
             current_version = None
         idstr = my_issue['subject'].replace(thisprefix,'')
 
-        thistab[currrow,req_upload_id_column].value = my_issue['subject']
-        thistab[currrow,req_upload_title_column].value = my_issue['title']
+        thistab[currrow,req_download_id_column].value = my_issue['subject']
+        thistab[currrow,req_download_title_column].value = my_issue['title']
         descr = my_issue['description']
         if descr is None:
             descr = ""
-        thistab[currrow,req_upload_descr_column].value = descr
+        thistab[currrow,req_download_descr_column].value = descr
         sources = my_issue['sources']
         #print("*********************************************** SOURCES ")
         #print(sources)
         if sources is None:
             sources = ""
-        thistab[currrow,req_upload_source_column].value = sources
+        thistab[currrow,req_download_source_column].value = sources
         typestr = my_issue['type']
         if typestr is None:
             typestr = ""
-        thistab[currrow,req_upload_type_column].value = typestr
+        thistab[currrow,req_download_type_column].value = typestr
         level = my_issue['level']
         if level is None:
             level = ""
-        thistab[currrow,req_upload_level_column].value = level
+        thistab[currrow,req_download_level_column].value = level
         rationale = my_issue['rationale']
         if rationale is None:
             rationale = ""
-        thistab[currrow,req_upload_rationale_column].value = rationale
+        thistab[currrow,req_download_rationale_column].value = rationale
         var = my_issue['var']
         if var is None:
             var = ""
-        thistab[currrow,req_upload_var_column].value = var
+        thistab[currrow,req_download_var_column].value = var
         value = my_issue['value']
         if value is None:
             value = ""        
-        thistab[currrow,req_upload_value_column].value = value
-        thistab[currrow,req_upload_chapter_column].value = my_issue['chapter'].replace(thisprefix,'')
-        thistab[currrow,req_upload_status_column].value = my_issue['status']
+        thistab[currrow,req_download_value_column].value = value
+        thistab[currrow,req_download_chapter_column].value = my_issue['chapter'].replace(thisprefix,'')
+        thistab[currrow,req_download_status_column].value = my_issue['status']
         thistab[currrow,req_download_rqid_column].value = my_issue['id']
         thistab[currrow,req_download_bdid_column].value = int(idstr)
         
         if (current_version is not None):
-            thistab[currrow,req_upload_target_column].value = current_version
+            thistab[currrow,req_download_target_column].value = current_version
 
         if current_parent is not None:
-            thistab[currrow,req_upload_parent_column].value = parent_issue['subject']
+            thistab[currrow,req_download_parent_column].value = parent_issue['subject']
 
             
         # Busco las relaciones en las que es destinatario
@@ -317,7 +317,7 @@ for my_issue in reqlist:
             relstr += relissue['subject']
             
         if not firstrel:
-            thistab[currrow,req_upload_related_column].value = relstr
+            thistab[currrow,req_download_related_column].value = relstr
 
         current_row[thisdoc] = currrow + 1    
             
