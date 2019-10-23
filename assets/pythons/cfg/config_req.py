@@ -10,3 +10,5 @@ req_download_rqid_column = 1
 req_download_url_row = 0
 req_download_url_column = 1
 
+req_download_version_startrow = 1
+req_download_version_column = 5

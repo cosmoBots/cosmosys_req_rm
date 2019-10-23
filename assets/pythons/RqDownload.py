@@ -167,12 +167,12 @@ doc_dict = doc.sheets['Dict']
 #print("ACABAMOS2!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 doc_dict[req_download_url_row,req_download_url_column].value = root_url+'/'
-rowindex = req_upload_version_startrow
+rowindex = req_download_version_startrow
 
 #print("ACABAMOS3!!!!!!!!!!!!!!!!!!!!!!!!!!")
 for v in targets:
     #print(v)
-    doc_dict[rowindex,req_upload_version_column].value = targets[v]
+    doc_dict[rowindex,req_download_version_column].value = targets[v]
     rowindex += 1
 
 #print("ACABAMOS4!!!!!!!!!!!!!!!!!!!!!!!!!!!")
