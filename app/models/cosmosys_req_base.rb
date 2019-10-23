@@ -12,8 +12,6 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfrationale = IssueCustomField.find_by_name('RqRationale')
   @@cfvar = IssueCustomField.find_by_name('RqVar')
   @@cfvalue = IssueCustomField.find_by_name('RqValue')
-  @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
-  @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
 def self.cfchapter
   @@cfchapter
@@ -29,9 +27,6 @@ def self.reqtracker
 end
 def self.reqdoctracker
   @@reqdoctracker
-end
-def self.cfdiag
-  @@cfdiag
 end
 
 @@req_status_maturity = {
@@ -409,20 +404,6 @@ end
     g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
     return result,torecalc
-  end
-
-  def self.recalculate_graphs(n,root_url)
-    strdiag,torecalc = self.to_graphviz_graph_str(n,true,{},root_url)
-    cfd = n.custom_values.find_by_custom_field_id(CosmosysReqBase.cfdiag.id)
-    cfd.value = strdiag
-    cfd.save
-    torecalc.each do |key, value|
-      i = Issue.find(value)
-      strdiag,torecalc2 = self.to_graphviz_graph_str(i,false,{},root_url)
-      cfd = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfdiag.id)
-      cfd.value = strdiag
-      cfd.save      
-    end
   end
 
   def self.show_graphs(n,root_url)

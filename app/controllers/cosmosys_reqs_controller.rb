@@ -13,8 +13,6 @@ class CosmosysReqsController < ApplicationController
   @@cfrationale = IssueCustomField.find_by_name('RqRationale')
   @@cfvar = IssueCustomField.find_by_name('RqVar')
   @@cfvalue = IssueCustomField.find_by_name('RqValue')
-  @@cfdiag = IssueCustomField.find_by_name('RqDiagrams')
-  @@cfdiagpr = ProjectCustomField.find_by_name('RqDiagrams')
 
   @@tmpdir = './tmp/cosmosys_req_plugin/'
 
@@ -689,61 +687,6 @@ class CosmosysReqsController < ApplicationController
                 ensure
                    #tmpfile.unlink   # deletes the temp file
                 end
-=begin
-                diagrams_pattern = @@cfdiag.default_value
-                diagrams_str_prefix = "{{graphviz_link()\n"
-                diagrams_str_suffix = "\n}} "
-                # Now we have to update all the diagrams
-                # The projects diagram
-                filepath = imgpath + "/" + @project.identifier
-                d_filepath = filepath + "_d.gv"
-                #print d_filepath
-                if (File.exists?(d_filepath)) then
-                  diagrams_d_str = diagrams_str_prefix + IO.read(d_filepath) + diagrams_str_suffix
-                  #print diagrams_d_str
-                  h_filepath = filepath + "_h.gv"
-                  #print h_filepath
-                  if (File.exists?(h_filepath)) then
-                    diagrams_h_str = diagrams_str_prefix + IO.read(h_filepath) + diagrams_str_suffix
-                    pattern = diagrams_pattern.dup                    
-                    pattern['$$h'] = diagrams_h_str
-                    pattern['$$d'] = diagrams_d_str
-                    cf = @project.custom_values.find_by_custom_field_id(@@cfdiagpr.id)
-                    cf.value = pattern
-                    cf.save
-                  else
-                    print("h image file does not exist for project "+@project.identifier)
-                  end
-                else
-                  print("d image file does not exist for project "+@project.identifier)
-                end
-
-                # And the issues diagram
-                @project.issues.each{|i|
-                  filepath = imgpath + "/" + i.id.to_s
-                  d_filepath = filepath + "_d.gv"
-                  #print d_filepath
-                  if (File.exists?(d_filepath)) then
-                    diagrams_d_str = diagrams_str_prefix + IO.read(d_filepath) + diagrams_str_suffix
-                    #print diagrams_d_str
-                    h_filepath = filepath + "_h.gv"
-                    #print h_filepath
-                    if (File.exists?(h_filepath)) then
-                      diagrams_h_str = diagrams_str_prefix + IO.read(h_filepath) + diagrams_str_suffix
-                      pattern = diagrams_pattern.dup                    
-                      pattern['$$h'] = diagrams_h_str
-                      pattern['$$d'] = diagrams_d_str
-                      cf = i.custom_values.find_by_custom_field_id(@@cfdiag.id)
-                      cf.value = pattern
-                      cf.save
-                    else
-                      print("h image file does not exist for requirement "+@i.subject)
-                    end
-                  else
-                    print("d image file does not exist for requirement "+i.subject)
-                  end
-                }
-=end
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
                 @output += "Ok: reports generated and diagrams updated.\n"

@@ -1,4 +1,3 @@
-assets/pythons/cfg/configfile_req.py
 *.pyc
 *.rbc
 capybara-*.html

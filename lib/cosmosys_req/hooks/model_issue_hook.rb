@@ -25,26 +25,6 @@ module CosmosysReq
       #render_on :view_projects_show_right, :partial => "cosmosys_reqs/project_overview_sidebar" 
       render_on :view_issues_show_description_bottom, :partial => "cosmosys_reqs/issues" 
 
-=begin
-      def controller_issues_edit_before_save(context = {})
-        req_propagate context
-      end
-
-      def controller_issues_bulk_edit_before_save(context = {})
-        req_propagate context
-      end
-
-      def req_propagate(context, create_journal = true)
-        issue = context[:issue]
-        params = context[:params]
-        if params && params[:issue] then #&& !params[:issue][:tag_list].nil?
-          print(issue.subject)
-          req = Issue.find(issue.id)
-          CosmosysReqBase.recalculate_graphs(issue)
-        end
-      end
-
-=end
     end
   end
 end

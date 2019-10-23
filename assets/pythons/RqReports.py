@@ -3,8 +3,6 @@
 
 # In[ ]:
 
-from cfg.configfile_req import req_key_txt
-
 import sys
 import json
 

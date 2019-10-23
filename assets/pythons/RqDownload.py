@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from cfg.configfile_req import *
+from cfg.config_req import *
 #from redminelib import Redmine
 
 import sys
