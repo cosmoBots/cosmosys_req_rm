@@ -9,9 +9,6 @@ import sys
 #print("Number of arguments: ", len(sys.argv))
 #print("The arguments are: " , str(sys.argv))
 
-#print(req_server_url)
-#print(req_key_txt)
-
 def tree_to_dict_list(tree,parentNode):
     result = {}
     result2 = []
@@ -87,7 +84,6 @@ pr_id_str = sys.argv[1]
 download_filepath = sys.argv[2]
 #print("download_filepath: ",download_filepath)
 
-# root_url = req_server_url
 root_url = sys.argv[3]
 #print("root_url: ",root_url)
 
@@ -170,7 +166,7 @@ doc_dict = doc.sheets['Dict']
 # In[ ]:
 #print("ACABAMOS2!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-doc_dict[req_download_url_row,req_download_url_column].value = req_server_url+'/'
+doc_dict[req_download_url_row,req_download_url_column].value = root_url+'/'
 rowindex = req_upload_version_startrow
 
 #print("ACABAMOS3!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -325,55 +321,10 @@ for my_issue in reqlist:
 
         current_row[thisdoc] = currrow + 1    
             
-        '''
-        if (prefix is not None):
-            print("prefix: ",prefix)        
-            #newitem = tree.add_item(prefix)
-            #newitem.text = my_issue.description
-            document = tree.find_document(prefix)
-            newitem = Item.new(tree, document,
-                    document.path, document.root, my_issue.subject,
-                    auto=False)
-            newitem.set('BDID', str(my_issue.id))
-            newitem.set('BDURL', req_server_url+"/issues/"+str(my_issue.id))
-            newitem.set('RqSubject', my_issue.subject)
-            newitem.set('RqTitle', my_issue.custom_fields.get(req_title_cf_id).value)
-            if (parent_issue is not None):
-                newitem.set('RqParent', parent_issue.subject)
-            
-            else:
-                newitem.set('RqParent', '')
-
-            newitem.set('RqRationale', my_issue.custom_fields.get(req_rationale_cf_id).value)
-            newitem.set('RqLevel', my_issue.custom_fields.get(req_level_cf_id).value)
-            newitem.set('RqType', my_issue.custom_fields.get(req_type_cf_id).value)
-            newitem.set('RqSources', my_issue.custom_fields.get(req_sources_cf_id).value)
-            newitem.set('RqChapter', my_issue.custom_fields.get(req_chapter_cf_id).value)
-            newitem.set('RqTarget', version_name)
-            newitem.set('text', my_issue.description)
-            newitem.save()
-            print("---->",newitem)'''
-
-
-# In[ ]:
-
-
-# del doc.sheets['Template']
-
-
-# In[ ]:
 
 
 doc.save()
-
-
-# In[ ]:
-
-
 doc.close()
-
-
-# In[ ]:
 
 
 
