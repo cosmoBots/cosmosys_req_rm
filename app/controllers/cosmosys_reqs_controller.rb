@@ -255,9 +255,9 @@ class CosmosysReqsController < ApplicationController
               sheetindex = 1
               thissheet = book.worksheets(sheetindex)
               while (thissheet != nil) do
-                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                docidstr = thissheet.name
+                if ((docidstr[0] != '_') and (thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                     # Tratamos la hoja en concreto
-                    docidstr = thissheet.name
                     #print("DocID: "+docidstr)
                     # Obtenemos la informacion de la fila donde estan los datos adicionales del documento de requisito
                     d = thissheet.row(req_upload_doc_row+1)
@@ -305,9 +305,9 @@ class CosmosysReqsController < ApplicationController
               sheetindex = 1
               thissheet = book.worksheets(sheetindex)
               while (thissheet != nil) do
-                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                docidstr = thissheet.name
+                if ((docidstr[0] != '_') and (thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                     # Tratamos la hoja en concreto
-                    docidstr = thissheet.name
                     #print("DocID: "+docidstr)
                     # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                     thisdoc = @project.issues.find_by_subject(docidstr)
@@ -341,9 +341,9 @@ class CosmosysReqsController < ApplicationController
               sheetindex = 1
               thissheet = book.worksheets(sheetindex)
               while (thissheet != nil) do
-                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                docidstr = thissheet.name
+                if ((docidstr[0] != '_') and (thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                   # Tratamos la hoja en concreto
-                  docidstr = thissheet.name
                   #print("DocID: "+docidstr)
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
@@ -498,9 +498,9 @@ class CosmosysReqsController < ApplicationController
               sheetindex = 1
               thissheet = book.worksheets(sheetindex)
               while (thissheet != nil) do
-                if ((thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
+                docidstr = thissheet.name
+                if ((docidstr[0] != '_') and (thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                   # Tratamos la hoja en concreto
-                  docidstr = thissheet.name
                   #print("DocID: "+docidstr)
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)

@@ -117,6 +117,7 @@ statuses = data['statuses']
 # Ahora vamos a generar los diagramas de jerarquía y de dependencia para cada una de los requisitos, y los guardaremos en la carpeta doc.
 #print("len(reqs)",len(reqs))
 reqdict,reqlist,my_doc_issues = tree_to_dict_list(reqs,None)
+
 #print("ACABAMOS!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 # Conectaremos con nuestra instancia de PYOO
@@ -226,6 +227,9 @@ for my_issue in my_doc_issues:
     current_row[my_issue['subject']] = req_download_first_row
     
 
+rpdeptab = doc.sheets["_RqDep"]
+rpdeptab_row_idx = req_download_rpdeptab_startrow
+
 #print(current_row)
 #print(len(reqlist))
 for my_issue in reqlist:
@@ -319,7 +323,17 @@ for my_issue in reqlist:
         if not firstrel:
             thistab[currrow,req_download_related_column].value = relstr
 
+
         current_row[thisdoc] = currrow + 1    
+
+        if (my_issue['type'] != 'Info'):        
+            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_id_column].value = my_issue['subject']
+            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_title_column].value = my_issue['title']
+            if not firstrel:
+                rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_related_column].value = relstr
+
+            rpdeptab_row_idx = rpdeptab_row_idx +1
+
             
 
 
