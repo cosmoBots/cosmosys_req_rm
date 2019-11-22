@@ -291,8 +291,14 @@ for my_issue in reqlist:
         thistab[currrow,req_download_value_column].value = value
         thistab[currrow,req_download_chapter_column].value = my_issue['chapter'].replace(thisprefix,'')
         thistab[currrow,req_download_status_column].value = my_issue['status']
-        thistab[currrow,req_download_rqid_column].value = my_issue['id']
-        thistab[currrow,req_download_bdid_column].value = int(idstr)
+        thistab[currrow,req_download_bdid_column].value = my_issue['id']
+        begin
+        # if idstr is a number, we will ignore leading zeroes
+        thistab[currrow,req_download_rqid_column].value = int(idstr)
+        rescue
+        # if it is not a number, we will use them as is
+        thistab[currrow,req_download_rqid_column].value = idstr
+        end
         
         if (current_version is not None):
             thistab[currrow,req_download_target_column].value = current_version
