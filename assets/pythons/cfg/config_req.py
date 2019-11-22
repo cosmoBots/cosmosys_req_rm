@@ -14,8 +14,8 @@ req_download_doc_prefix_column = 10
 
 req_download_first_row = 2
 
-req_download_bdid_column = 3
-req_download_rqid_column = 1
+req_download_bdid_column = 1
+req_download_rqid_column = 3
 req_download_id_column = 4
 req_download_title_column = 5
 req_download_descr_column = 6
