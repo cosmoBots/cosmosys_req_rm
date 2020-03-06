@@ -24,11 +24,11 @@ Redmine::Plugin.register :cosmosys_req do
   menu :project_menu, :cosmosys_show, {:controller => 'cosmosys_reqs', :action => 'show' }, :caption => 'ReqShow', :after => :issues, :param => :id
 
   settings :default => {
-    'repo_local_path' => "/home/cosmobots/repos/req_%project_id%",
+    'repo_local_path' => "/home/redmine/repos/req_%project_id%",
     'repo_server_sync' => :false,
-    'repo_server_path'  => 'http://gitlab.com/cosmobots/reqs/req_%project_id%.git',
+    'repo_server_path'  => 'http://gitlab/reqs/req_%project_id%.git',
     'repo_template_id'  => 'template',
-    'repo_redmine_path' => "/home/cosmobots/repos_redmine/req_%project_id%.git",
+    'repo_redmine_path' => "/home/redmine/repos_redmine/req_%project_id%.git",
     'repo_redmine_sync' => :true,
     'relative_uploadfile_path' => "uploading/RqUpload.ods",
     'relative_downloadfile_path' => "downloading/RqDownload.ods",
