@@ -17,7 +17,7 @@ class CosmosysReqsController < ApplicationController
   @@tmpdir = './tmp/cosmosys_req_plugin/'
 
   def index
-    @cosmosys_reqs = CosmosysReq.all
+    @cosmosys_reqs = CosmosysReqBase.all
   end 
 
   def create_repo
