@@ -149,7 +149,7 @@ class CosmosysReqsController < ApplicationController
     req_upload_start_column = 0
     req_upload_end_column = 16
     req_upload_start_row = 0
-    req_upload_end_row = 199
+    req_upload_end_row = 1000
 
     #This section defines the document information cell indexes to retrieve information for the documents from the upload file
     req_upload_doc_row = 0
