@@ -23,7 +23,8 @@ module CosmosysReq
 
       render_on :view_projects_show_left, :partial => "cosmosys_reqs/project_overview" 
       #render_on :view_projects_show_right, :partial => "cosmosys_reqs/project_overview_sidebar" 
-      render_on :view_issues_show_description_bottom, :partial => "cosmosys_reqs/issues" 
+      render_on :view_issues_show_description_bottom, :partial => "cosmosys_reqs/issues"
+      render_on :view_issues_show_details_bottom, :partial => "cosmosys_reqs/issues_title"
 
     end
   end
