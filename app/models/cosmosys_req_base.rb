@@ -13,23 +13,23 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfvar = IssueCustomField.find_by_name('RqVar')
   @@cfvalue = IssueCustomField.find_by_name('RqValue')
 
-def self.cfchapter
-  @@cfchapter
-end
-def self.cftitle
-  @@cftitle
-end
-def self.cftype
-  @@cftype
-end
-def self.reqtracker
-  @@reqtracker
-end
-def self.reqdoctracker
-  @@reqdoctracker
-end
+  def self.cfchapter
+    @@cfchapter
+  end
+  def self.cftitle
+    @@cftitle
+  end
+  def self.cftype
+    @@cftype
+  end
+  def self.reqtracker
+    @@reqtracker
+  end
+  def self.reqdoctracker
+    @@reqdoctracker
+  end
 
-@@req_status_maturity = {
+  @@req_status_maturity = {
     'RqDraft': 1,
     'RqStable': 2,
     'RqApproved': 3,
@@ -38,60 +38,60 @@ end
     'RqRejected': 0,
     'RqErased': 1,
     'RqZombie': 0
-}
-
-def self.get_descendents(n)
-  result = []
-  n.children.each{|c|
-    result.append(c)
-    result += self.get_descendents(c)
   }
-  return result
-end
 
-@@req_maturity_propagation = ['RqZombie','RqDraft','RqStable','RqApproved']
-
-def self.dependence_validation(i)
-  result = true
-  if (i.tracker == @@reqtracker) then
-    i.relations_to.each{|r|
-      rel_issue = r.issue_from
-      result = self.dependence_validation(rel_issue)
-      if (result) then
-        if (@@req_status_maturity[rel_issue.status.name.to_sym] < 
-          @@req_status_maturity[i.status.name.to_sym]) then
-          #print("\n\n**************")
-          #print(i.id,": ",i.subject,": ",i.status,":",@@req_status_maturity[i.status.name].to_s)
-          #print("\t-",r.relation_type,"-> ",rel_issue.subject," : ",rel_issue.status,":",@@req_status_maturity[rel_issue.status.name].to_s)
-          #print("xxxxxxxxxxxx: Error.  el requisito dependiente está en estado ",i.status," mientras el requisito del que depende está en estado ",rel_issue.status)
-          result = false
-        end
-      end
+  def self.get_descendents(n)
+    result = []
+    n.children.each{|c|
+      result.append(c)
+      result += self.get_descendents(c)
     }
+    return result
   end
-  #print("\n\nResult: "+result.to_s)
-  return result 
-end
 
-def self.dependence_validation_from_id(id)
-  i = Issue.find(id)
-  self.dependence_validation(i)
-end
+  @@req_maturity_propagation = ['RqZombie','RqDraft','RqStable','RqApproved']
 
-def self.create_json(current_issue, root_url, include_doc_children,currentdoc)
+  def self.dependence_validation(i)
+    result = true
+    if (i.tracker == @@reqtracker) then
+      i.relations_to.each{|r|
+        rel_issue = r.issue_from
+        result = self.dependence_validation(rel_issue)
+        if (result) then
+          if (@@req_status_maturity[rel_issue.status.name.to_sym] < 
+                @@req_status_maturity[i.status.name.to_sym]) then
+            #print("\n\n**************")
+            #print(i.id,": ",i.subject,": ",i.status,":",@@req_status_maturity[i.status.name].to_s)
+            #print("\t-",r.relation_type,"-> ",rel_issue.subject," : ",rel_issue.status,":",@@req_status_maturity[rel_issue.status.name].to_s)
+            #print("xxxxxxxxxxxx: Error.  el requisito dependiente está en estado ",i.status," mientras el requisito del que depende está en estado ",rel_issue.status)
+            result = false
+          end
+        end
+      }
+    end
+    #print("\n\nResult: "+result.to_s)
+    return result 
+  end
+
+  def self.dependence_validation_from_id(id)
+    i = Issue.find(id)
+    self.dependence_validation(i)
+  end
+
+  def self.create_json(current_issue, root_url, include_doc_children,currentdoc)
     tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
     tree_node[:valid] = self.dependence_validation(current_issue)
     tree_node[:chapter] = current_issue.custom_values.find_by_custom_field_id(@@cfchapter.id).value
     tree_node[:title] = current_issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
     if (current_issue.tracker == @@reqdoctracker) then
-    tree_node[:prefix] = current_issue.custom_values.find_by_custom_field_id(@@cfprefix.id).value
+      tree_node[:prefix] = current_issue.custom_values.find_by_custom_field_id(@@cfprefix.id).value
     else
-    tree_node[:level] = current_issue.custom_values.find_by_custom_field_id(@@cflevel.id).value
-    tree_node[:type] = current_issue.custom_values.find_by_custom_field_id(@@cftype.id).value
-    tree_node[:sources] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
-    tree_node[:var] = current_issue.custom_values.find_by_custom_field_id(@@cfvar.id).value
-    tree_node[:value] = current_issue.custom_values.find_by_custom_field_id(@@cfvalue.id).value
-    tree_node[:rationale] = current_issue.custom_values.find_by_custom_field_id(@@cfrationale.id).value
+      tree_node[:level] = current_issue.custom_values.find_by_custom_field_id(@@cflevel.id).value
+      tree_node[:type] = current_issue.custom_values.find_by_custom_field_id(@@cftype.id).value
+      tree_node[:sources] = current_issue.custom_values.find_by_custom_field_id(@@cfsources.id).value
+      tree_node[:var] = current_issue.custom_values.find_by_custom_field_id(@@cfvar.id).value
+      tree_node[:value] = current_issue.custom_values.find_by_custom_field_id(@@cfvalue.id).value
+      tree_node[:rationale] = current_issue.custom_values.find_by_custom_field_id(@@cfrationale.id).value
     end
     if (current_issue.tracker == @@reqdoctracker) then
       currentdoc = current_issue
@@ -116,7 +116,7 @@ def self.create_json(current_issue, root_url, include_doc_children,currentdoc)
     }
 
     return tree_node
-end
+  end
 
 
 
@@ -191,7 +191,7 @@ end
       ch = n['children']
       chord = 1
       if (ch != nil) then
-         ch.each { |c| 
+        ch.each { |c| 
           update_node(c,node.id,nodechapter,chord)
           chord += 1
         }
@@ -201,7 +201,7 @@ end
 
   # -----------------------------------
 
-  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,invocation_counter)
+  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,invocation_counter,force_end)
     if (self.dependence_validation(upn)) then
       colorstr = 'black'
     else
@@ -223,21 +223,30 @@ end
     return cl,torecalc
   end
 
-  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url,invocation_counter)
-    if (self.dependence_validation(dwn)) then
-      colorstr = 'black'
+  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url,invocation_counter,force_end)
+    if not (force_end) then
+      if (self.dependence_validation(dwn)) then
+        colorstr = 'black'
+      else
+        colorstr = 'red'
+      end
+      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ "+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
+        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
+        :URL => root_url + "/issues/" + dwn.id.to_s)
     else
-      colorstr = 'red'
+      colorstr = 'black'
+      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }",  
+        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
+        :URL => root_url + "/issues/" + dwn.id.to_s)
     end
-    dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ "+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
-      :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
-      :URL => root_url + "/issues/" + dwn.id.to_s)
     cl.add_edges(n_node, dwn_node, :color => :blue)
-    if (invocation_counter < 5) then
-      dwn.relations_from.each {|dwn2|
-        invocation_counter += 1
-        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter)
-      }
+    if not (force_end) then
+      if (invocation_counter < 5) then
+        dwn.relations_from.each {|dwn2|
+          invocation_counter += 1
+          cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter)
+        }
+      end
     end
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
@@ -247,28 +256,28 @@ end
 
   def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
     if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
-        shapestr = "record"
-        desc = self.get_descendents(n)
-        added_nodes = []
-        desc.each { |e| 
-          if (e.relations.size>0) then
-            labelstr = "{"+e.subject+"|"+e.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
-            e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
-              :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => shapestr,
-              :URL => root_url + "/issues/" + e.id.to_s)
-            e.relations_from.each {|r|
-              if (not(desc.include?(r.issue_to))) then
-                if (not(added_nodes.include?(r.issue_to))) then
-                  added_nodes.append(r.issue_to)
-                  ext_node = cl.add_nodes(r.issue_to.id.to_s,
-              :URL => root_url + "/issues/" + r.issue_to.id.to_s)
-                end
+      shapestr = "record"
+      desc = self.get_descendents(n)
+      added_nodes = []
+      desc.each { |e| 
+        if (e.relations.size>0) then
+          labelstr = "{"+e.subject+"|"+e.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
+          e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
+            :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => shapestr,
+            :URL => root_url + "/issues/" + e.id.to_s)
+          e.relations_from.each {|r|
+            if (not(desc.include?(r.issue_to))) then
+              if (not(added_nodes.include?(r.issue_to))) then
+                added_nodes.append(r.issue_to)
+                ext_node = cl.add_nodes(r.issue_to.id.to_s,
+                  :URL => root_url + "/issues/" + r.issue_to.id.to_s)
               end
-              cl.add_edges(e_node, r.issue_to_id.to_s, :color => 'blue')
-            }
-          end          
-        }
-        return cl,torecalc
+            end
+            cl.add_edges(e_node, r.issue_to_id.to_s, :color => 'blue')
+          }
+        end          
+      }
+      return cl,torecalc
     else
       if (self.dependence_validation(n)) then
         colorstr = 'black'
@@ -278,13 +287,30 @@ end
       n_node = cl.add_nodes( n.id.to_s, :label => "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",  
         :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
         :URL => root_url + "/issues/" + n.id.to_s)
+      invocation_counter += 1
+      max_rel = 6
+      count_rel = 0
       n.relations_from.each{|dwn|
-        invocation_counter += 1
-        cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter)
+        if (count_rel < 6) then
+          cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter, false)
+        else
+          if (count_rel == 6) then
+            cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter, true)
+          end
+        end
+        count_rel += 1
       }
+      count_rel = 0      
       n.relations_to.each{|upn|
-        invocation_counter += 1
-        cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter)
+        
+        if (count_rel < 6) then
+          cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter, false)
+        else
+          if (count_rel == 6) then
+            cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter, true)
+          end
+        end
+        count_rel += 1        
       }
       return cl,torecalc
     end    
@@ -450,14 +476,14 @@ end
         :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
         :URL => root_url + "/issues/" + n.id.to_s)
       n.children.each{|c|
-          hcl.add_edges(hn_node, c.id.to_s)
+        hcl.add_edges(hn_node, c.id.to_s)
       }
       if (n.relations.size>0) then
         dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
           :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
           :URL => root_url + "/issues/" + n.id.to_s)
         n.relations_from.each {|r|
-            dcl.add_edges(dn_node, r.issue_to_id.to_s, :color => 'blue')
+          dcl.add_edges(dn_node, r.issue_to_id.to_s, :color => 'blue')
         }
       end
     }
