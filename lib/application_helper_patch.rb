@@ -9,7 +9,7 @@ module ApplicationHelperPatch
     title = nil
     subject = nil
     text = options[:tracker] == false ? "##{issue.subject}" : "#{issue.tracker} ##{issue.subject}"
-    reqtitle = issue.custom_values.find_by_custom_field_id(@@cftitle.id)
+    reqtitle = issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
     if options[:subject] == false
       title = reqtitle.truncate(60)
     else
