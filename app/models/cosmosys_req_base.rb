@@ -219,12 +219,12 @@ class CosmosysReqBase < ActiveRecord::Base
     end
     cl.add_edges(upn_node, n_node, :color => :blue)
     if not (force_end) then
-      if (invocation_counter < 5) then
+      #if (invocation_counter < 5) then
         invocation_counter += 1
         upn.relations_to.each {|upn2|
           cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
         }
-      end
+      #end
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -250,12 +250,12 @@ class CosmosysReqBase < ActiveRecord::Base
     end
     cl.add_edges(n_node, dwn_node, :color => :blue)
     if not (force_end) then
-      if (invocation_counter < 5) then
+      #if (invocation_counter < 5) then
         invocation_counter += 1
         dwn.relations_from.each {|dwn2|
           cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter)
         }
-      end
+      #end
     end
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
