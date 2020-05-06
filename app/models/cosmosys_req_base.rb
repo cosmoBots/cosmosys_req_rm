@@ -371,7 +371,7 @@ end
   end
 
 
-  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url)
+  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
     colorstr = 'black'
     if (n.tracker == @@reqdoctracker) then
       shapestr = "note"
