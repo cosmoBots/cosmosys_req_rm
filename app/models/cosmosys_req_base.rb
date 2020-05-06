@@ -208,7 +208,7 @@ class CosmosysReqBase < ActiveRecord::Base
       else
         colorstr = 'red'
       end
-      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ "+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12) + "}",
+      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ "+upn.subject+"|"+word_wrap(upn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}",
         :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => 'record',
         :URL => root_url + "/issues/" + upn.id.to_s)
     else
@@ -239,7 +239,7 @@ class CosmosysReqBase < ActiveRecord::Base
       else
         colorstr = 'red'
       end
-      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ "+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12) + "}",  
+      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ "+dwn.subject+"|" + word_wrap(dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}",  
         :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
         :URL => root_url + "/issues/" + dwn.id.to_s)
     else
@@ -268,9 +268,9 @@ class CosmosysReqBase < ActiveRecord::Base
       shapestr = "record"
       desc = self.get_descendents(n)
       added_nodes = []
-      desc.each { |e| 
+      desc.each { |e|
         if (e.relations.size>0) then
-          labelstr = "{"+e.subject+"|"+e.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12) + "}"      
+          labelstr = "{"+e.subject+"|"+word_wrap(e.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}"      
           e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
             :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => shapestr,
             :URL => root_url + "/issues/" + e.id.to_s)
@@ -293,7 +293,7 @@ class CosmosysReqBase < ActiveRecord::Base
       else
         colorstr = 'red'
       end
-      n_node = cl.add_nodes( n.id.to_s, :label => "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12) + "}",  
+      n_node = cl.add_nodes( n.id.to_s, :label => "{"+n.subject+"|"+word_wrap(n.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}",  
         :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
         :URL => root_url + "/issues/" + n.id.to_s)
       invocation_counter += 1
@@ -351,15 +351,15 @@ class CosmosysReqBase < ActiveRecord::Base
     colorstr = 'black'
     if (upn.tracker == @@reqdoctracker) then
       shapestr = "note"
-      labelstr = upn.subject+"\n----\n"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12)
+      labelstr = upn.subject+"\n----\n"+word_wrap(upn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)
       fontnamestr = 'times italic'
     else
       shapestr = "record"
       if (upn.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info") then
-        labelstr = upn.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12)
+        labelstr = word_wrap(upn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)
         fontnamestr = 'times italic'
       else            
-        labelstr = "{"+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12) + "}"
+        labelstr = "{"+upn.subject+"|"+word_wrap(upn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}"
         fontnamestr = 'times'
       end
     end    
@@ -469,15 +469,15 @@ class CosmosysReqBase < ActiveRecord::Base
       colorstr = 'black'
       if (n.tracker == @@reqdoctracker) then
         shapestr = "note"
-        labelstr = n.subject+"\n----\n"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12)
+        labelstr = n.subject+"\n----\n"+word_wrap(n.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)
         fontnamestr = 'times italic'
       else
         shapestr = "record"
         if (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info") then
-          labelstr = n.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12)
+          labelstr = word_wrap(n.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)
           fontnamestr = 'times italic'
         else            
-          labelstr = "{"+n.subject+"|"+n.custom_values.find_by_custom_field_id(@@cftitle.id).value.word_wrap(12) + "}"      
+          labelstr = "{"+n.subject+"|"+word_wrap(n.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)) + "}"      
           fontnamestr = 'times'
         end
       end
