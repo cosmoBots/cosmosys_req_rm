@@ -214,7 +214,7 @@ class CosmosysReqBase < ActiveRecord::Base
     if (invocation_counter < 5) then
       upn.relations_to.each {|upn2|
         invocation_counter += 1
-        cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter)
+        cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
       }
     end
     if (isfirst) then
