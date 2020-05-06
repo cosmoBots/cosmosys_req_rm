@@ -3,14 +3,17 @@ require_dependency 'application_helper'
 # Patches Redmine's Issues dynamically.  Adds a relationship 
 # Issue +belongs_to+ to Deliverable
 module ApplicationHelperPatch
-def link_to_issue(issue, options={})
+    @@cftitle = IssueCustomField.find_by_name('RqTitle')  
+  
+  def link_to_issue(issue, options={})
     title = nil
     subject = nil
-    text = options[:tracker] == false ? "##{issue.id}" : "#{issue.tracker} ##{issue.id} hola"
+    text = options[:tracker] == false ? "##{issue.subject}" : "#{issue.tracker} ##{issue.subject}"
+    reqtitle = issue.custom_values.find_by_custom_field_id(@@cftitle.id)
     if options[:subject] == false
-      title = issue.subject.truncate(60)
+      title = reqtitle.truncate(60)
     else
-      subject = issue.subject
+      subject = reqtitle
       if truncate_length = options[:truncate]
         subject = subject.truncate(truncate_length)
       end
