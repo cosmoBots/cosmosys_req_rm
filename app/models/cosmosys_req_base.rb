@@ -202,20 +202,29 @@ class CosmosysReqBase < ActiveRecord::Base
   # -----------------------------------
 
   def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,invocation_counter,force_end)
-    if (self.dependence_validation(upn)) then
-      colorstr = 'black'
+    if not (force_end) then
+      if (self.dependence_validation(upn)) then
+        colorstr = 'black'
+      else
+        colorstr = 'red'
+      end
+      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ "+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",
+        :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => 'record',
+        :URL => root_url + "/issues/" + upn.id.to_s)
     else
-      colorstr = 'red'
+      colorstr = 'black'      
+      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }",
+        :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => 'record',
+        :URL => root_url + "/issues/" + upn.id.to_s)
     end
-    upn_node = cl.add_nodes( upn.id.to_s, :label => "{ "+upn.subject+"|"+upn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}",
-      :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => 'record',
-      :URL => root_url + "/issues/" + upn.id.to_s)
     cl.add_edges(upn_node, n_node, :color => :blue)
-    if (invocation_counter < 5) then
-      upn.relations_to.each {|upn2|
+    if not (force_end) then
+      if (invocation_counter < 5) then
         invocation_counter += 1
-        cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
-      }
+        upn.relations_to.each {|upn2|
+          cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
+        }
+      end
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -242,8 +251,8 @@ class CosmosysReqBase < ActiveRecord::Base
     cl.add_edges(n_node, dwn_node, :color => :blue)
     if not (force_end) then
       if (invocation_counter < 5) then
+        invocation_counter += 1
         dwn.relations_from.each {|dwn2|
-          invocation_counter += 1
           cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter)
         }
       end
