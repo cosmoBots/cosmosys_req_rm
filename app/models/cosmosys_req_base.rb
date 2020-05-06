@@ -201,7 +201,7 @@ end
 
   # -----------------------------------
 
-  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url)
+  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,invocation_counter)
     if (self.dependence_validation(upn)) then
       colorstr = 'black'
     else
@@ -211,16 +211,19 @@ end
       :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => 'record',
       :URL => root_url + "/issues/" + upn.id.to_s)
     cl.add_edges(upn_node, n_node, :color => :blue)
-    upn.relations_to.each {|upn2|
-      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url)
-    }
+    if (invocation_counter < 5) then
+      upn.relations_to.each {|upn2|
+        invocation_counter += 1
+        cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter)
+      }
+    end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
     end      
     return cl,torecalc
   end
 
-  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url)
+  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url,invocation_counter)
     if (self.dependence_validation(dwn)) then
       colorstr = 'black'
     else
@@ -230,16 +233,19 @@ end
       :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
       :URL => root_url + "/issues/" + dwn.id.to_s)
     cl.add_edges(n_node, dwn_node, :color => :blue)
-    dwn.relations_from.each {|dwn2|
-      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url)
-    }
+    if (invocation_counter < 5) then
+      dwn.relations_from.each {|dwn2|
+        invocation_counter += 1
+        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter)
+      }
+    end
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
     end  
     return cl,torecalc
   end
 
-  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)
+  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
     if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
         shapestr = "record"
         desc = self.get_descendents(n)
@@ -273,16 +279,18 @@ end
         :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
         :URL => root_url + "/issues/" + n.id.to_s)
       n.relations_from.each{|dwn|
-        cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url)
+        invocation_counter += 1
+        cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter)
       }
       n.relations_to.each{|upn|
-        cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url)
+        invocation_counter += 1
+        cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter)
       }
       return cl,torecalc
     end    
   end
 
-  def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
+  def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url,invocation_counter)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
     if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
@@ -297,7 +305,8 @@ end
     cl = g.add_graph(:clusterD, :fontname => fontnamestr, :label => labelstr, :labeljust => 'l', :labelloc=>'t', :margin=> '5', :color => colorstr)
     # Generate output image
     #g.output( :png => "hello_world.png" )
-    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)  
+    invocation_counter += 1
+    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url,invocation_counter)  
     return g,torecalc
   end
 
@@ -390,18 +399,19 @@ end
     return cl,torecalc
   end
 
-  def self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
+  def self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url,invocation_counter)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
-    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url)
+    invocation_counter += 1
+    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
     return g,torecalc
   end
 
   def self.to_graphviz_graph_str(n,isfirst,torecalc,root_url)
-    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
+    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc,root_url,1)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
-    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
+    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url,1)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
     return result,torecalc
   end
