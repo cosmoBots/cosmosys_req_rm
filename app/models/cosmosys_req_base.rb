@@ -465,9 +465,9 @@ class CosmosysReqBase < ActiveRecord::Base
   end
 
   def self.to_graphviz_graph_str(n,isfirst,torecalc,root_url)
-    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc,root_url,1)
+    g,torecalc = self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
-    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url,1)
+    g2,torecalc = self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
     return result,torecalc
   end
