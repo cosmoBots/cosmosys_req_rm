@@ -211,23 +211,28 @@ class CosmosysReqBase < ActiveRecord::Base
   # -----------------------------------
 
   def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,levels_counter,force_end)
-    if not (force_end) then
+    if (levels_counter >= @@max_graph_levels)
+      stylestr = 'dotted'
+    else
+      stylestr = 'filled'
+    end      
+    if not(force_end) then
       if (self.dependence_validation(upn)) then
         colorstr = 'black'
       else
         colorstr = 'red'
       end
       upn_node = cl.add_nodes( upn.id.to_s, :label => "{ "+upn.subject+"|"+word_wrap(upn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}",
-        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
+        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => 'record',
         :URL => root_url + "/issues/" + upn.id.to_s)
     else
       colorstr = 'blue'      
       upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }",
-        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
+        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => 'record',
         :URL => root_url + "/issues/" + upn.id.to_s)
     end
     cl.add_edges(upn_node, n_node, :color => :blue)
-    if not (force_end) then
+    if not(force_end) then
       if (levels_counter < @@max_graph_levels) then
         levels_counter += 1
         siblings_counter = 0
@@ -250,23 +255,28 @@ class CosmosysReqBase < ActiveRecord::Base
   end
 
   def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url,levels_counter,force_end)
-    if not (force_end) then
+    if (levels_counter >= @@max_graph_levels)
+      stylestr = 'dotted'
+    else
+      stylestr = 'filled'
+    end          
+    if not(force_end) then
       if (self.dependence_validation(dwn)) then
         colorstr = 'black'
       else
         colorstr = 'red'
       end
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ "+dwn.subject+"|" + word_wrap(dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}",  
-        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
+        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => 'record',
         :URL => root_url + "/issues/" + dwn.id.to_s)
     else
       colorstr = 'blue'
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }",  
-        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => 'record',
+        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => 'record',
         :URL => root_url + "/issues/" + dwn.id.to_s)
     end
     cl.add_edges(n_node, dwn_node, :color => :blue)
-    if not (force_end) then
+    if not(force_end) then
       if (levels_counter < @@max_graph_levels) then
         levels_counter += 1
         siblings_counter = 0
