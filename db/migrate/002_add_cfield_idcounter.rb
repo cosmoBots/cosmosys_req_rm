@@ -8,7 +8,7 @@ class AddCfieldIdcounter < ActiveRecord::Migration[5.2]
 			:description => 'Counter for generating identifiers',
 			:default_value => 1, :is_required => true, 
       :is_filter => false, :visible => false,
-      :role_ids => [rqmngr],
+      :role_ids => [rqmngr.id],
 			:is_for_all => true, :tracker_ids => [rqdoctrck.id])
   end
   def down
