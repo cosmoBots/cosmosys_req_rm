@@ -241,7 +241,7 @@ class CosmosysReqBase < ActiveRecord::Base
           end
           siblings_counter += 1
         }
-      #end
+      end
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -280,7 +280,7 @@ class CosmosysReqBase < ActiveRecord::Base
           end
           siblings_counter += 1
         }
-      #end
+      end
     end
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
