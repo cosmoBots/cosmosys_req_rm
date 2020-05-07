@@ -225,7 +225,7 @@ class CosmosysReqBase < ActiveRecord::Base
     end
     cl.add_edges(upn_node, n_node, :color => :blue)
     if not (force_end) then
-      if (invocation_counter < 5) then
+      #if (invocation_counter < 5) then
         invocation_counter += 1
         max_rel = 6
         count_rel = 0
@@ -239,7 +239,7 @@ class CosmosysReqBase < ActiveRecord::Base
           end
           count_rel += 1
         }
-      end
+      #end
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -265,7 +265,7 @@ class CosmosysReqBase < ActiveRecord::Base
     end
     cl.add_edges(n_node, dwn_node, :color => :blue)
     if not (force_end) then
-      if (invocation_counter < 5) then
+      #if (invocation_counter < 5) then
         invocation_counter += 1
         max_rel = 6
         count_rel = 0
@@ -279,7 +279,7 @@ class CosmosysReqBase < ActiveRecord::Base
           end
           count_rel += 1
         }
-      end
+      #end
     end
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
