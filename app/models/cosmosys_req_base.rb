@@ -233,7 +233,7 @@ class CosmosysReqBase < ActiveRecord::Base
           if (count_rel < max_rel) then
             cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
           else
-            if (count == max_rel) then
+            if (count_rel == max_rel) then
               cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,true)
             end
           end
@@ -273,7 +273,7 @@ class CosmosysReqBase < ActiveRecord::Base
           if (count_rel < max_rel) then
             cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, force_end)
           else
-            if (count == max_rel) then
+            if (count_rel == max_rel) then
               cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, true)
             end
           end
@@ -336,10 +336,10 @@ class CosmosysReqBase < ActiveRecord::Base
       count_rel = 0      
       n.relations_to.each{|upn|
         
-        if (count_rel < 6) then
+        if (count_rel < max_rel) then
           cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter, false)
         else
-          if (count_rel == 6) then
+          if (count_rel == max_rel) then
             cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter, true)
           end
         end
