@@ -13,11 +13,11 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfvar = IssueCustomField.find_by_name('RqVar')
   @@cfvalue = IssueCustomField.find_by_name('RqValue')
 
-def self.word_wrap(text, line_width: 80, break_sequence: "\n")
-  text.split("\n").collect! do |line|
-    line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
-  end * break_sequence
-end
+  def self.word_wrap(text, line_width: 80, break_sequence: "\n")
+    text.split("\n").collect! do |line|
+      line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
+    end * break_sequence
+  end
 
   def self.cfchapter
     @@cfchapter
@@ -227,8 +227,16 @@ end
     if not (force_end) then
       if (invocation_counter < 5) then
         invocation_counter += 1
+        max_rel = 6
+        count_rel = 0
         upn.relations_to.each {|upn2|
-          cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
+          if (count_rel < max_rel) then
+            cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
+          else
+            if (count == max_rel) then
+              cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,true)
+            end
+          end
         }
       end
     end
@@ -258,8 +266,16 @@ end
     if not (force_end) then
       if (invocation_counter < 5) then
         invocation_counter += 1
+        max_rel = 6
+        count_rel = 0
         dwn.relations_from.each {|dwn2|
-          cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, force_end)
+          if (count_rel < max_rel) then
+            cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, force_end)
+          else
+            if (count == max_rel) then
+              cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, true)
+            end
+          end
         }
       end
     end
@@ -306,10 +322,10 @@ end
       max_rel = 6
       count_rel = 0
       n.relations_from.each{|dwn|
-        if (count_rel < 6) then
+        if (count_rel < max_rel) then
           cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter, false)
         else
-          if (count_rel == 6) then
+          if (count_rel == max_rel) then
             cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter, true)
           end
         end
