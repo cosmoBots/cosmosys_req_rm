@@ -237,6 +237,7 @@ class CosmosysReqBase < ActiveRecord::Base
               cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,true)
             end
           end
+          count_rel += 1
         }
       end
     end
@@ -276,6 +277,7 @@ class CosmosysReqBase < ActiveRecord::Base
               cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, true)
             end
           end
+          count_rel += 1
         }
       end
     end
