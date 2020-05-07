@@ -351,7 +351,7 @@ class CosmosysReqBase < ActiveRecord::Base
 
   def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url,invocation_counter)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
     if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
       labelstr = 'Dependences (in subtree)'
       colorstr = 'orange'
@@ -460,7 +460,7 @@ class CosmosysReqBase < ActiveRecord::Base
 
   def self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url,invocation_counter)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
     invocation_counter += 1
     cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
@@ -482,11 +482,11 @@ class CosmosysReqBase < ActiveRecord::Base
 
   def self.show_graphs_pr(p,root_url)
     # Create a new hierarchy graph
-    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
+    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
     hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     # Create a new hierarchy graph
-    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30" )
+    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
     dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     p.issues.each{|n|
