@@ -412,15 +412,15 @@ class CosmosysReqBase < ActiveRecord::Base
     colorstr = 'black'
     if (dwn.tracker == @@reqdoctracker) then
       shapestr = "note"
-      labelstr = dwn.subject+"\n----\n"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value
+      labelstr = dwn.subject+"\n----\n"+word_wrap(dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)
       fontnamestr = 'times italic'
     else
       shapestr = "record"
       if (dwn.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info") then
-        labelstr = dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value    
+        labelstr = word_wrap(dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12)   
         fontnamestr = 'times italic'
       else            
-        labelstr = "{"+dwn.subject+"|"+dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value + "}"      
+        labelstr = "{"+dwn.subject+"|"+word_wrap(dwn.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}"      
         fontnamestr = 'times'
       end
     end
