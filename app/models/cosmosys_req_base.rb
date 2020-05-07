@@ -12,8 +12,11 @@ class CosmosysReqBase < ActiveRecord::Base
   @@cfrationale = IssueCustomField.find_by_name('RqRationale')
   @@cfvar = IssueCustomField.find_by_name('RqVar')
   @@cfvalue = IssueCustomField.find_by_name('RqValue')
+  
+  @@max_graph_levels = 10
+  @@max_graph_siblings = 6
 
-  def self.word_wrap(text, line_width: 80, break_sequence: "\n")
+  def self.word_wrap( text, line_width: 80, break_sequence: "\n")
     text.split("\n").collect! do |line|
       line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
     end * break_sequence
@@ -207,7 +210,7 @@ class CosmosysReqBase < ActiveRecord::Base
 
   # -----------------------------------
 
-  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,invocation_counter,force_end)
+  def self.to_graphviz_depupn(cl,n_node,n,upn,isfirst,torecalc,root_url,levels_counter,force_end)
     if not (force_end) then
       if (self.dependence_validation(upn)) then
         colorstr = 'black'
@@ -225,19 +228,18 @@ class CosmosysReqBase < ActiveRecord::Base
     end
     cl.add_edges(upn_node, n_node, :color => :blue)
     if not (force_end) then
-      #if (invocation_counter < 5) then
-        invocation_counter += 1
-        max_rel = 6
-        count_rel = 0
+      if (levels_counter < @@max_graph_levels) then
+        levels_counter += 1
+        siblings_counter = 0
         upn.relations_to.each {|upn2|
-          if (count_rel < max_rel) then
-            cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,force_end)
+          if (siblings_counter < @@max_graph_siblings) then
+            cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end)
           else
-            if (count_rel == max_rel) then
-              cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,invocation_counter,true)
+            if (siblings_counter <= @@max_graph_siblings) then
+              cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true)
             end
           end
-          count_rel += 1
+          siblings_counter += 1
         }
       #end
     end
@@ -247,7 +249,7 @@ class CosmosysReqBase < ActiveRecord::Base
     return cl,torecalc
   end
 
-  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url,invocation_counter,force_end)
+  def self.to_graphviz_depdwn(cl,n_node,n,dwn,isfirst,torecalc,root_url,levels_counter,force_end)
     if not (force_end) then
       if (self.dependence_validation(dwn)) then
         colorstr = 'black'
@@ -265,19 +267,18 @@ class CosmosysReqBase < ActiveRecord::Base
     end
     cl.add_edges(n_node, dwn_node, :color => :blue)
     if not (force_end) then
-      #if (invocation_counter < 5) then
-        invocation_counter += 1
-        max_rel = 6
-        count_rel = 0
+      if (levels_counter < @@max_graph_levels) then
+        levels_counter += 1
+        siblings_counter = 0
         dwn.relations_from.each {|dwn2|
-          if (count_rel < max_rel) then
-            cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, force_end)
+          if (siblings_counter < @@max_graph_siblings) then
+            cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,levels_counter, force_end)
           else
-            if (count_rel == max_rel) then
-              cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,invocation_counter, true)
+            if (siblings_counter <= @@max_graph_siblings) then
+              cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn,dwn2.issue_to,isfirst,torecalc,root_url,levels_counter, true)
             end
           end
-          count_rel += 1
+          siblings_counter += 1
         }
       #end
     end
@@ -287,7 +288,7 @@ class CosmosysReqBase < ActiveRecord::Base
     return cl,torecalc
   end
 
-  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
+  def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)
     if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
       shapestr = "record"
       desc = self.get_descendents(n)
@@ -320,36 +321,34 @@ class CosmosysReqBase < ActiveRecord::Base
       n_node = cl.add_nodes( n.id.to_s, :label => "{"+n.subject+"|"+word_wrap(n.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}",  
         :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'record',
         :URL => root_url + "/issues/" + n.id.to_s)
-      invocation_counter += 1
-      max_rel = 6
-      count_rel = 0
+      siblings_counter = 0
       n.relations_from.each{|dwn|
-        if (count_rel < max_rel) then
-          cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter, false)
+        if (siblings_counter < @@max_graph_siblings) then
+          cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, 1, false)
         else
-          if (count_rel == max_rel) then
-            cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, invocation_counter, true)
+          if (siblings_counter <= @@max_graph_siblings) then
+            cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, 1, true)
           end
         end
-        count_rel += 1
+        siblings_counter += 1
       }
-      count_rel = 0      
+      siblings_counter = 0      
       n.relations_to.each{|upn|
         
-        if (count_rel < max_rel) then
-          cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter, false)
+        if (siblings_counter < @@max_graph_siblings) then
+          cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, 1, false)
         else
-          if (count_rel == max_rel) then
-            cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, invocation_counter, true)
+          if (siblings_counter <= @@max_graph_siblings) then
+            cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, 1, true)
           end
         end
-        count_rel += 1        
+        siblings_counter += 1        
       }
       return cl,torecalc
     end    
   end
 
-  def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url,invocation_counter)
+  def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
     if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
@@ -364,8 +363,7 @@ class CosmosysReqBase < ActiveRecord::Base
     cl = g.add_graph(:clusterD, :fontname => fontnamestr, :label => labelstr, :labeljust => 'l', :labelloc=>'t', :margin=> '5', :color => colorstr)
     # Generate output image
     #g.output( :png => "hello_world.png" )
-    invocation_counter += 1
-    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url,invocation_counter)  
+    cl,torecalc = self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)  
     return g,torecalc
   end
 
@@ -430,7 +428,7 @@ class CosmosysReqBase < ActiveRecord::Base
   end
 
 
-  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
+  def self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url)
     colorstr = 'black'
     if (n.tracker == @@reqdoctracker) then
       shapestr = "note"
@@ -458,12 +456,11 @@ class CosmosysReqBase < ActiveRecord::Base
     return cl,torecalc
   end
 
-  def self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url,invocation_counter)
+  def self.to_graphviz_hiegraph(n,isfirst,torecalc,root_url)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
-    invocation_counter += 1
-    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url,invocation_counter)
+    cl,torecalc = self.to_graphviz_hiecluster(cl,n,isfirst,torecalc,root_url)
     return g,torecalc
   end
 
