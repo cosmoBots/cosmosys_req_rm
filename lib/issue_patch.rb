@@ -12,7 +12,7 @@ module IssuePatch
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
       #before_save :check_identifier
-      before_validation :bypass_identifier
+      before_validation :bypass_identifier, :bypass_chapter
       before_save :check_identifier
       after_save :check_chapter
     end
@@ -50,7 +50,17 @@ module IssuePatch
       if self.subject == "" or self.subject == nil then
         self.subject = "INVALID_ID"
       end
-      return true
+    end
+    def bypass_chapter
+      if @@cfisschapter != nil then
+        cfisschapter = self.custom_values.find_by_custom_field_id(@@cfisschapter.id)
+        if cfisschapter == nil then
+          cfisschapter = CustomValue.new
+          cfisschapter.custom_field = @@cfisschapter
+          cfisschapter.customized = self
+          cfisschapter.value = "INVALID_CHAPTER"
+        end
+      end
     end
     
     def check_identifier
@@ -95,7 +105,7 @@ module IssuePatch
           cfisschapter.customized = self
           cfisschapter.value = nil
         end
-        if cfisschapter.value == "" or cfisschapter.value == nil then
+        if cfisschapter.value == "" or cfisschapter.value == nil or cfisschapter.value == "INVALID_CHAPTER" then
           if self.parent != nil then
             cfparentiffchapter = self.parent.custom_values.find_by_custom_field_id(@@cfisschapter.id)
             if cfparentiffchapter == nil then
