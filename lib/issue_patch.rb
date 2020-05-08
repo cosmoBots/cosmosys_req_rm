@@ -35,6 +35,8 @@ module IssuePatch
       ret = (self.tracker == @@rqtrck)
       print "entro en is_req..."
       print ret
+      print "padre?"
+      print self
       return ret
     end
     
