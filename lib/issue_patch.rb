@@ -24,7 +24,7 @@ module IssuePatch
   
   module InstanceMethods
     @@cfdoccount = IssueCustomField.find_by_name('RqIdCounter')    
-    @@cfdocprefix = ProjectCustomField.find_by_name('RqPrefix')  
+    @@cfdocprefix = IssueCustomField.find_by_name('RqPrefix')  
     @@cfisschapter = IssueCustomField.find_by_name('RqChapter')  
 		@@rqdoctrck = Tracker.find_by_name('ReqDoc')
     
