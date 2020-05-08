@@ -262,6 +262,8 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 
 		rqprefixfield = IssueCustomField.create!(:name => 'RqPrefix', 
 			:field_format => 'string', :searchable => false,
+			:description => "Prefix for requirements IDs",
+			:is_required => true,
 			:is_for_all => true, :tracker_ids => [rqdoctrck.id])	
 
 

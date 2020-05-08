@@ -185,7 +185,7 @@ class CosmosysReqBase < ActiveRecord::Base
     node = Issue.find(n['id'])
     if (node != nil) then
       if (node.tracker == @@reqdoctracker) then
-        nodechapter = node.custom_values.find_by_custom_field_id(@@cfchapter.id).value
+        nodechapter = node.custom_values.find_by_custom_field_id(@@cfchapter.id).value+"-"
       else
         nodechapter = prefix+ord.to_s.rjust(@@chapterdigits, "0")+"."
       end

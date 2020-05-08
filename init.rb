@@ -39,5 +39,5 @@ Redmine::Plugin.register :cosmosys_req do
   require 'cosmosys_req'
   # Patches to the Redmine core.
   require 'application_helper_patch'  
-
+  require 'issue_patch'  
 end
