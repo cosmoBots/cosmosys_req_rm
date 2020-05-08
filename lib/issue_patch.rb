@@ -15,7 +15,7 @@ module IssuePatch
       before_validation :bypass_identifier, :bypass_chapter
       before_save :check_identifier
       after_save :check_chapter
-      validates :parent, presence: true, if: :is_req?
+      #validates :parent, presence: true, if: :is_req?
 
     end
 
@@ -38,6 +38,10 @@ module IssuePatch
       print "padre?"
       print self.parent
       return ret
+    end
+    
+    def validate_issue
+      super
     end
     
     def document
