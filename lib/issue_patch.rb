@@ -101,16 +101,17 @@ module IssuePatch
               self.parent.save
             end
             cfisschapter.value = cfparentiffchapter.value+"z."
+            cfisschapter.save
+            return true
           else
-            if @@cfdocprefix != nil then
-              cfprjprefix = self.project.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
-            end
-            cfisschapter.value = cfprjprefix.value+"-z.1."
+            return false
           end
-          cfisschapter.save
+        else
+          return true
         end
+      else
+        return false
       end
-      return true 
     end
   end    
 end
