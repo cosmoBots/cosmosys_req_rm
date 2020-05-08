@@ -12,7 +12,8 @@ module IssuePatch
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
       #before_save :check_identifier
-      before_validation :check_identifier
+      before_validation :bypass_identifier
+      before_save :check_identifier
       after_save :check_chapter
     end
 
@@ -43,10 +44,17 @@ module IssuePatch
       end
       return ret
     end
+
+    def bypass_identifier
+      if self.subject == "" or self.subject == nil then
+        self.subject = "INVALID_ID"
+      end
+      return true
+    end
     
     def check_identifier
       # AUTO SUBJECT
-      if self.subject == "" or self.subject == nil then
+      if self.subject == "" or self.subject == nil or self.subject=="INVALID_ID" then
         print "vamos a crear un subject"
         if @@cfdoccount != nil then
           print "tenemos el custom field del contaddor"
