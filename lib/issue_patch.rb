@@ -36,7 +36,7 @@ module IssuePatch
       print "entro en is_req..."
       print ret
       print "padre?"
-      print self
+      print self.parent
       return ret
     end
     
