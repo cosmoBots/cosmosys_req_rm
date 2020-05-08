@@ -28,12 +28,16 @@ module IssuePatch
 		@@rqdoctrck = Tracker.find_by_name('ReqDoc')
     
     def document
+      ret = nil
       if self.tracker == @@rqdoctrck then
+        print "Este doc es un documento"
         ret = self 
       else
+        print "Este doc no es un documento"
         # not do found yet
         ret = self.parent
         if ret != nil then
+          print "retornamos el documento padre"
           ret = ret.document
         end
       end
@@ -45,6 +49,7 @@ module IssuePatch
       if self.subject == "" or self.subject == nil then
         print "vamos a crear un subject"
         if @@cfdoccount != nil then
+          print "tenemos el custom field del contaddor"
           thisdocument = self.document
           if thisdocument != nil then
             print "Tenemos un documento"
