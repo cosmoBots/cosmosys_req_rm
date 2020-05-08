@@ -43,17 +43,23 @@ module IssuePatch
     def check_identifier
       # AUTO SUBJECT
       if self.subject == "" or self.subject == nil then
+        print "vamos a crear un subject"
         if @@cfdoccount != nil then
           thisdocument = self.document
           if thisdocument != nil then
+            print "Tenemos un documento"
             cfdoccount = self.document.custom_values.find_by_custom_field_id(@@cfdoccount.id)
             if cfdoccount != nil then
+              print "vamos a buscar un prefijo"
               if @@cfdocprefix != nil then
                 cfdocprefix = self.project.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
+                print "tenemos un prefijo"
                 if cfdocprefix != nil then
                   self.subject = cfdocprefix.value+"-"+format('%04d', cfdoccount.value)
+                  print "el subject me queda "+self.subject
                   cfdoccount.value = (cfdoccount.value.to_i+1)
                   cfdoccount.save
+                  print "guardado quedo"
                 end
               end
             end
