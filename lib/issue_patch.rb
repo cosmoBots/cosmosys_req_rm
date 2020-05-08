@@ -42,6 +42,11 @@ module IssuePatch
     
     def validate_issue
       super
+      if @parent_issue == nil then
+        if (self.tracker == @@rqtrck) then
+          errors.add :parent_issue_id, :blank
+        end
+      end
     end
     
     def document
