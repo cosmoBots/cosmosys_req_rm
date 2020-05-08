@@ -39,6 +39,7 @@ module IssuePatch
         ret = self.parent
         if ret != nil then
           print "retornamos el documento padre"
+          print self.parent
           ret = ret.document
         end
       end
@@ -61,11 +62,11 @@ module IssuePatch
           thisdocument = self.document
           if thisdocument != nil then
             print "Tenemos un documento"
-            cfdoccount = self.document.custom_values.find_by_custom_field_id(@@cfdoccount.id)
+            cfdoccount = thisdocument.custom_values.find_by_custom_field_id(@@cfdoccount.id)
             if cfdoccount != nil then
               print "vamos a buscar un prefijo"
               if @@cfdocprefix != nil then
-                cfdocprefix = self.project.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
+                cfdocprefix = thisdocument.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
                 print "tenemos un prefijo"
                 if cfdocprefix != nil then
                   self.subject = cfdocprefix.value+"-"+format('%04d', cfdoccount.value)
