@@ -15,7 +15,7 @@ module IssuePatch
       before_validation :bypass_identifier, :bypass_chapter
       before_save :check_identifier
       after_save :check_chapter
-      #validates :parent, presence: true, if: :is_req?
+      validates :parent, presence: true, if: :is_req?
 
     end
 
@@ -32,7 +32,10 @@ module IssuePatch
 		@@rqtrck = Tracker.find_by_name('Req')
  
     def is_req?
-      self.tracker == @@rqtrck
+      ret = (self.tracker == @@rqtrck)
+      print "entro en is_req..."
+      print ret
+      return ret
     end
     
     def document
