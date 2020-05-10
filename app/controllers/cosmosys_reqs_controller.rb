@@ -157,6 +157,7 @@ class CosmosysReqsController < ApplicationController
     req_upload_doc_desc_column = 6
     req_upload_doc_prefix_column = 10
     req_upload_doc_parent_column = 8
+    req_upload_max_rows_column = 12
 
     #This section defines the requirements information cell indexes to retrieve information for the requirements from the upload file
     req_upload_first_row = 2
@@ -188,6 +189,8 @@ class CosmosysReqsController < ApplicationController
       my_project_versions << v
     }
     print my_project_versions
+
+    max_rows_per_doc = {}
 
     if request.get? then
       print("GET!!!!!")
@@ -271,6 +274,19 @@ class CosmosysReqsController < ApplicationController
                     #print("\nprefijo: "+ prefixstr)
                     #print("\ndatos:",d)
                     # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
+                    mrowspdocstr = d[req_upload_max_rows_column+1]
+                    if (mrowspdocstr == "") then
+                      max_rows_per_doc[docidstr] = req_upload_end_row
+                    else
+                      mrowspdoc = mrowspdocstr.to_i
+                      if (mrowspdoc < req_upload_first_row) then
+                        max_rows_per_doc[docidstr] = req_upload_end_row
+                      else
+                        max_rows_per_doc[docidstr] = mrowspdocstr.to_i
+                      end
+                    end
+                    print "Rows "+docidstr+": " + max_rows_per_doc[docidstr].to_s + "\n"
+
                     thisdoc = @project.issues.find_by_subject(docidstr)
                     if (thisdoc == nil) then
                       # no existe el reqdoc asociado a la pestaña, lo creo
@@ -280,22 +296,27 @@ class CosmosysReqsController < ApplicationController
                       thisdoc.tracker = @@reqdoctracker
                       thisdoc.subject = docidstr
                       thisdoc.description = docdesc
-                      thisdoc.save
                     else                      
                       #print("si existe el documento")
                       thisdoc.description = docdesc
                     end
-                      cft = thisdoc.custom_values.find_by_custom_field_id(@@cftitle.id)
-                      cft.value = doctitle
-                      cft.save                      
-                      cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
-                      cfp.value = prefixstr
-                      cfp.save
-                      cfc = thisdoc.custom_values.find_by_custom_field_id(@@cfchapter.id)
-                      cfc.value = prefixstr
-                      cfc.save
-                      thisdoc.save
-                      #print("He actualizado o creado el documento con id "+thisdoc.id.to_s)
+                    cft = thisdoc.custom_field_values.select{|a| a.custom_field_id == @@cftitle.id }.first
+                    cft.value = doctitle
+                    cfp = thisdoc.custom_field_values.select{|a| a.custom_field_id == @@cfprefix.id }.first
+                    cfp.value = prefixstr
+                    cfc = thisdoc.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
+                    cfc.value = prefixstr+'-'
+                    thisdoc.errors.clear
+                    if (thisdoc.save) then
+                      print(thisdoc.subject+" ... ok\n")
+                    else
+                      print(thisdoc.subject+" ... nok\n")
+                      thisdoc.errors.full_messages.each  do |message|
+                        print("--> " + message + "\n")
+                      end                            
+                    end
+
+                    #print("He actualizado o creado el documento con id "+thisdoc.id.to_s)
                 end
                 sheetindex += 1
                 thissheet = book.worksheets(sheetindex)
@@ -320,7 +341,16 @@ class CosmosysReqsController < ApplicationController
                       #print("parent: ",parentdoc)
                       #print("parent id:",parentdoc.id)
                       thisdoc.parent = parentdoc
-                      thisdoc.save
+                      thisdoc.errors.clear
+                      if (thisdoc.save) then
+                        print(thisdoc.subject+" ... parent ok\n")
+                      else
+                        print(thisdoc.subject+" ... parent nok\n")
+                        thisdoc.errors.full_messages.each  do |message|
+                          print("--> " + message + "\n")
+                        end                            
+                      end
+
                     else
                       print("No encontramos el padre de "+docidstr)
                     end
@@ -344,15 +374,15 @@ class CosmosysReqsController < ApplicationController
                 docidstr = thissheet.name
                 if ((docidstr[0] != '_') and (thissheet != dictsheet) and (thissheet != introsheet) and (thissheet != templatesheet)) then
                   # Tratamos la hoja en concreto
-                  #print("DocID: "+docidstr)
+                  print("Cargando requisitos de: "+docidstr)
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
                   if (thisdoc != nil) then
-                    cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
+                    cfp = thisdoc.custom_field_values.select{|a| a.custom_field_id == @@cfprefix.id }.first
                     reqDocPrefix = cfp.value
                     #print("reqDocPrefix:",reqDocPrefix)
                     current_row = req_upload_first_row+1
-                    while (current_row <= req_upload_end_row) do
+                    while (current_row <= max_rows_per_doc[docidstr]) do
                       r = thissheet.row(current_row)
                       #print("\nTrato la fila "+ current_row.to_s)
                       title_str = r[req_upload_title_column+1]
@@ -384,23 +414,17 @@ class CosmosysReqsController < ApplicationController
                         thisreq = @project.issues.find_by_subject(rqidstr)
                         if (thisreq == nil) then
                           # no existe el req asociado a la fila, lo creo
-                          print ("Creando requisito " + rqidstr)
+                          #print ("Creando requisito " + rqidstr)
                           thisreq = @project.issues.new
                           thisreq.author = User.current
                           thisreq.tracker = @@reqtracker
                           thisreq.subject = rqidstr
-                          if (descr != nil) then
-                            #print("description: ",descr)
-                            thisreq.description = descr
-                          end
-                          thisreq.save
-                        else                      
-                          #print("si existe el requisito")
-                          thisreq.tracker = @@reqtracker
-                          if (descr != nil) then
-                            #print("description: ",descr)
-                            thisreq.description = descr
-                          end
+                        end
+                        #print("ya existe el requisito")
+                        thisreq.tracker = @@reqtracker
+                        if (descr != nil) then
+                          #print("description: ",descr)
+                          thisreq.description = descr
                         end
                         if (rqstatus != nil) then
                           #print("rqstatus: ",rqstatus)
@@ -429,55 +453,56 @@ class CosmosysReqsController < ApplicationController
                           end
                         end                        
                         if (title_str != nil) then
-                          cft = thisreq.custom_values.find_by_custom_field_id(@@cftitle.id)
+                          cft = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cftitle.id }.first
                           cft.value = title_str
-                          cft.save
                         end
                         if (rqchapter != nil) then
                           #print("rqchapter: ",rqchapter)
-                          cfc = thisreq.custom_values.find_by_custom_field_id(@@cfchapter.id)
+                          cfc = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
                           cfc.value = rqchapter
-                          cfc.save
                         end
                         if (reqsource != nil) then
                           #print("reqsource: ",reqsource)
-                          cfs = thisreq.custom_values.find_by_custom_field_id(@@cfsources.id)
+                          cfs = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cfsources.id }.first
                           cfs.value = reqsource
-                          cfs.save
                         end
                         if (reqtype != nil) then
                           #print("reqtype: ",reqtype)
-                          cfty = thisreq.custom_values.find_by_custom_field_id(@@cftype.id)
+                          cfty = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cftype.id }.first
                           cfty.value = reqtype
-                          cfty.save
                         end
                         if (reqlevel != nil) then
                           #print("reqlevel: ",reqlevel)
-                          cfl = thisreq.custom_values.find_by_custom_field_id(@@cflevel.id)
+                          cfl = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cflevel.id }.first
                           cfl.value = reqlevel
-                          cfl.save
                         end
                         if (reqrationale != nil) then
                           #print("reqrationale: ",reqrationale)
-                          cfr = thisreq.custom_values.find_by_custom_field_id(@@cfrationale.id)
+                          cfr = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cfrationale.id }.first
                           cfr.value = reqrationale
-                          cfr.save
                         end
                         if (reqvar != nil) then
                           #print("reqvar: ",reqvar)
-                          cfv = thisreq.custom_values.find_by_custom_field_id(@@cfvar.id)
+                          cfv = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cfvar.id }.first
                           cfv.value = reqvar
-                          cfv.save
                         end
                         if (reqvalue != nil) then
                           #print("reqvalue: ",reqvalue)
-                          cfvl = thisreq.custom_values.find_by_custom_field_id(@@cfvalue.id)
+                          cfvl = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cfvalue.id }.first
                           cfvl.value = reqvalue
-                          cfvl.save
                         end
-
-                        thisreq.save
-                        #print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
+                        # We use the reqdoc as default parent
+                        thisreq.parent = thisdoc
+                        #byebug
+                        thisreq.errors.clear
+                        if (thisreq.save) then
+                          print(thisreq.subject+" ... ok\n")
+                        else
+                          print(thisreq.subject+" ... nok\n")
+                          thisreq.errors.full_messages.each  do |message|
+                            print("--> " + message + "\n")
+                          end                            
+                        end
 
 
                       end
@@ -505,11 +530,11 @@ class CosmosysReqsController < ApplicationController
                   # Usando el identificador del documento, determinamos si este ya existe o hay que crearlo
                   thisdoc = @project.issues.find_by_subject(docidstr)
                   if (thisdoc != nil) then
-                    cfp = thisdoc.custom_values.find_by_custom_field_id(@@cfprefix.id)
+                    cfp = thisdoc.custom_field_values.select{|a| a.custom_field_id == @@cfprefix.id }.first
                     reqDocPrefix = cfp.value
                     #print("reqDocPrefix:",reqDocPrefix)
                     current_row = req_upload_first_row+1
-                    while (current_row <= req_upload_end_row) do
+                    while (current_row <= max_rows_per_doc[docidstr]) do
                       r = thissheet.row(current_row)
                       #print("\nTrato la fila "+ current_row.to_s)
                       title_str = r[req_upload_title_column+1]
@@ -584,7 +609,16 @@ class CosmosysReqsController < ApplicationController
                                     relation = blocking_req.relations_from.new
                                     relation.issue_to=thisreq
                                     relation.relation_type='blocks'
-                                    relation.save
+                                    relation.errors.clear
+                                    if (relation.save) then
+                                      #print(relation.to_s+" ... ok\n")
+                                    else
+                                      #print(relation.to_s+" ... nok\n")
+                                      relation.errors.full_messages.each  do |message|
+                                        print("--> " + message + "\n")
+                                      end                            
+                                    end
+
                                   end
 
                                 else
@@ -601,7 +635,15 @@ class CosmosysReqsController < ApplicationController
                               r.issue_from.relations_from.delete(r)
                               r.destroy
                           }
-                          thisreq.save
+                          thisreq.errors.clear
+                          if (thisreq.save) then
+                            print(thisreq.subject+" ... relations ok\n")
+                          else
+                            print(thisreq.subject+" ... relations nok\n")
+                            thisreq.errors.full_messages.each  do |message|
+                              print("--> " + message + "\n")
+                            end                            
+                          end
                           #print("He actualizado o creado el requisito con id "+thisreq.id.to_s)
                         else
                           print("Error, el requisito no pudo ser encontrado")
@@ -986,11 +1028,29 @@ class CosmosysReqsController < ApplicationController
     end
     output += ("\nissue_new_url: " + issue_new_doc_url.to_s)
 
-    cftitlevalue = current_issue.custom_values.find_by_custom_field_id(@@cftitle.id).value
-    cfchaptervalue = current_issue.custom_values.find_by_custom_field_id(@@cfchapter.id).value
+    cftitlevalue = current_issue.custom_field_values.select{|a| a.custom_field_id == @@cftitle.id }.first.value
+    cfchaptervalue = current_issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first.value
+    print(cfchaptervalue + "1\n")
     separator_idx = cfchaptervalue.rindex('-')
+    print(separator_idx)
+    print("... separator \n")
+    if (separator_idx == nil) then
+      if current_issue.parent then
+        parentchapter = current_issue.parent.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first.value
+      else
+        parentchapter = current_issue.document.custom_field_values.select{|a| a.custom_field_id == @@cfprefix.id }.first.value
+      end
+      parentseparator_idx = parentchapter.rindex('-')
+      if (parentseparator_idx == nil) then
+        cfchaptervalue = parentchapter+"-"+cfchaptervalue
+      else
+        cfchaptervalue = parentchapter+"."+cfchaptervalue
+      end
+      separator_idx = cfchaptervalue.rindex('-')
+    end
+    #byebug
     cfchapterarraywrapper = [cfchaptervalue.slice(0..separator_idx), cfchaptervalue.slice((separator_idx+1)..-1)]
-    #print(cfchapterarraywrapper)
+    print(cfchapterarraywrapper)
     cfchapterstring = cfchapterarraywrapper[0]
     if (cfchapterarraywrapper[1] != nil) then 
       cfchapterarray = cfchapterarraywrapper[1].split('.')
@@ -1013,7 +1073,7 @@ class CosmosysReqsController < ApplicationController
     #print tree_node
     #print "children: " + tree_node[:children].to_s + "++++\n"
 
-    childrenitems = current_issue.children.sort_by {|obj| obj.custom_values.find_by_custom_field_id(@@cfchapter.id).value}
+    childrenitems = current_issue.children.sort_by {|obj| obj.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first.value}
     childrenitems.each{|c|
         child_node = create_tree(c,root_url)
         tree_node[:children] << child_node

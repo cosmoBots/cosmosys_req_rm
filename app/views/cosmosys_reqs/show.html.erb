@@ -2,7 +2,36 @@
     <%= stylesheet_link_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
 <% end %>
 
-<% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}
+<% 
+
+	def transform_chapter(c)
+		ret = c
+		allchaps = c.split('-')
+		if (allchaps.size > 1) and (allchaps[1].size>0) then
+			completechapter = allchaps[1]
+			ret = completechapter
+			mychaps = completechapter.split('.')
+			if (mychaps.size>0) then
+				chapstr = ""
+				mychaps.each { |e|
+					eint = e.to_i
+					if eint then
+						if (eint > 0) then
+							chapstr += eint.to_s + "."
+						else
+							chapstr += "INVALID."
+						end
+					else
+						chapstr += "INVALID."
+					end
+				}
+				ret = chapstr
+			end
+		end
+		return ret
+	end
+
+	roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}
 	roots.each { |i| 
 	if (i.tracker == CosmosysReqBase.reqdoctracker) then 
 		classdiv = "ReqDoc"
@@ -10,24 +39,10 @@
 		classdiv = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-") 
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i.subject
+	chapstr = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i.subject
 	end 
 	%>
 <div class="<%= classdiv %>">
@@ -40,19 +55,11 @@
 		classdiv = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-") 
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i2.subject
-	end 	
+	chapstr = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i2.subject
+	end 
 	%>
 <div class="<%= classdiv %>">
 <h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
@@ -64,19 +71,11 @@
 		classdiv = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i3.subject
-	end 	
+	chapstr = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i3.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
@@ -88,19 +87,11 @@
 		classdiv = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i4.subject
-	end 	
+	chapstr = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i4.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
@@ -112,19 +103,11 @@
 		classdiv = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i5.subject
-	end 	
+	chapstr = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i5.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
@@ -136,19 +119,11 @@
 		classdiv = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i6.subject
-	end 	
+	chapstr = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i6.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
@@ -160,19 +135,11 @@
 		classdiv = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i7.subject
-	end 	
+	chapstr = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i7.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
@@ -184,19 +151,11 @@
 		classdiv = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i8.subject
-	end 
+	chapstr = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i8.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
@@ -208,19 +167,11 @@
 		classdiv = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
 	end
 	title = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv == "Info") then
-		chapstr = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-		mychaps = chapstr.split("-")
-		chapstr = mychaps[1]
-		mychaps = chapstr.split(".") 
-		chapstr = ""
-		mychaps.each { |e| 
-			eint = e.to_i
-			chapstr += eint.to_s + "."
-		}
-	else
-		chapstr = i9.subject
-	end 
+	chapstr = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+	chapstr = transform_chapter(chapstr)
+	if (classdiv != "Info") then
+		chapstr = chapstr + " " + i9.subject
+	end
 	%>
 <div class="<%= classdiv %>">
 <h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>

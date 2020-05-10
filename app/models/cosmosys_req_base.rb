@@ -185,13 +185,16 @@ class CosmosysReqBase < ActiveRecord::Base
     node = Issue.find(n['id'])
     if (node != nil) then
       if (node.tracker == @@reqdoctracker) then
-        nodechapter = node.custom_values.find_by_custom_field_id(@@cfchapter.id).value+"-"
+        newprefix = prefix
+        thischapter = node.custom_values.find_by_custom_field_id(@@cfprefix.id).value
       else
-        nodechapter = prefix+ord.to_s.rjust(@@chapterdigits, "0")+"."
+        docchapter = node.document.custom_values.find_by_custom_field_id(@@cfprefix.id).value
+        newprefix = prefix+ord.to_s.rjust(@@chapterdigits, "0")+"."
+        thischapter = docchapter + "-" + newprefix
       end
       cfc = node.custom_values.find_by_custom_field_id(@@cfchapter.id)
-      cfc.value = nodechapter
-      cfc.save      
+      cfc.value = thischapter
+      cfc.save
       if (p != nil) then
         parent = Issue.find(p)
         node.parent = parent
@@ -201,7 +204,7 @@ class CosmosysReqBase < ActiveRecord::Base
       chord = 1
       if (ch != nil) then
         ch.each { |c| 
-          update_node(c,node.id,nodechapter,chord)
+          update_node(c,node.id,newprefix,chord)
           chord += 1
         }
       end

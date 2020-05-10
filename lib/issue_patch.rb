@@ -31,47 +31,32 @@ module IssuePatch
     @@rqtrck = Tracker.find_by_name('Req')
  
     def is_req?
-      ret = (self.tracker == @@rqtrck)
-      print "entro en is_req...\n"
-      print ret
-      print "padre?\n"
-      print self.parent
-      return ret
+      (self.tracker == @@rqtrck)
     end
     
     def validate_issue
       can_continue = true
-      print "1*********************\n"
       if @parent_issue == nil then
-      print "6*********************\n"
-        if (self.tracker == @@rqtrck) then
-      print "7*********************\n"
-          errors.add :parent_issue_id, :blank
-          can_continue = false
+        if self.parent == nil then
+          if (self.tracker == @@rqtrck) then
+            errors.add :parent_issue_id, :blank
+            can_continue = false
+          end
         end
       end
-      print "2*********************\n"
       if can_continue then
-      print "3*********************\n"
         check_identifier
       end
-      print "4*********************\n"
-      print self.subject + "\n"
       super
-      print "5*********************\n"
-
     end
     
     def future_document
       if self.tracker == @@rqdoctrck then
-        print "Este doc es un documento\n"
         ret = self 
       else
         # not do found yet
         ret = @parent_issue
         if ret != nil then
-          print "retornamos el documento padre\n"
-          print self.parent
           ret = ret.document
         end
       end
@@ -81,15 +66,11 @@ module IssuePatch
     def document
       ret = nil
       if self.tracker == @@rqdoctrck then
-        print "Este doc es un documento\n"
         ret = self 
       else
-        print "Este doc no es un documento\n"
         # not do found yet
         ret = self.parent
         if ret != nil then
-          print "retornamos el documento padre\n"
-          print self.parent
           ret = ret.document
         end
       end
@@ -116,24 +97,17 @@ module IssuePatch
     def check_identifier
       # AUTO SUBJECT
       if self.subject == "" or self.subject == nil or self.subject=="INVALID_ID" then
-        print "vamos a crear un subject\n"
         if @@cfdoccount != nil then
-          print "tenemos el custom field del contaddor\n"
           thisdocument = self.future_document
           if thisdocument != nil then
-            print "Tenemos un documento\n"
             cfdoccount = thisdocument.custom_values.find_by_custom_field_id(@@cfdoccount.id)
             if cfdoccount != nil then
-              print "vamos a buscar un prefijo\n"
               if @@cfdocprefix != nil then
                 cfdocprefix = thisdocument.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
-                print "tenemos un prefijo\n"
                 if cfdocprefix != nil then
                   self.subject = cfdocprefix.value+"-"+format('%04d', cfdoccount.value)
-                  print "el subject me queda "+self.subject+"\n"
                   cfdoccount.value = (cfdoccount.value.to_i+1)
                   cfdoccount.save
-                  print "guardado quedo\n"
                 end
               end
             end
