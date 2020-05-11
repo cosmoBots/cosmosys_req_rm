@@ -143,6 +143,20 @@ class CosmosysReqsController < ApplicationController
     show_as_tree
   end
 
+  def obtain_longtext(cell)
+    ret = ""
+    first = true 
+    cell.xmlnode.each_element {|e| 
+      if (first) then
+        first = false
+      else
+        ret += "\n"
+      end
+      ret += e.inner_xml.to_s
+    }
+    return ret
+  end
+
   def upload
 
     # This section defines the connection between the CosmoSys_Req tools and the OpenDocument spreadsheet used for importing requirements
@@ -267,8 +281,8 @@ class CosmosysReqsController < ApplicationController
                     # Como título del documento tomamos la columna de doctitle
                     doctitle = d[req_upload_doc_title_column+1]
                     #print("DocTitle: ",doctitle)
-                    docdesc = d[req_upload_doc_desc_column+1]
-                    #print("DocDesc: ",docdesc)
+                    docdesc = obtain_longtext(d.cell(req_upload_doc_desc_column+1))
+                    print("DocDesc: ",docdesc)
                     # Como prefijo de los codigos generados por el documento, tomamos la columna de prefijo
                     prefixstr = d[req_upload_doc_prefix_column+1]
                     #print("\nprefijo: "+ prefixstr)
@@ -391,11 +405,11 @@ class CosmosysReqsController < ApplicationController
                         # Estamos procesando las lineas de requisitos
                         rqidstr = r[req_upload_id_column+1]
                         #print("rqid: "+rqidstr)
-                        descr = r[req_upload_descr_column+1]
+                        descr = obtain_longtext(r.cell(req_upload_descr_column+1))
                         reqsource = r[req_upload_source_column+1]
                         reqtype = r[req_upload_type_column+1]
                         reqlevel = r[req_upload_level_column+1]
-                        reqrationale = r[req_upload_rationale_column+1]
+                        reqrationale = obtain_longtext(r.cell(req_upload_rationale_column+1))
                         reqvar = r[req_upload_var_column+1]
                         reqvalue = r[req_upload_value_column+1]
                         rqchapterstr = r[req_upload_chapter_column+1].to_s
@@ -423,8 +437,9 @@ class CosmosysReqsController < ApplicationController
                         #print("ya existe el requisito")
                         thisreq.tracker = @@reqtracker
                         if (descr != nil) then
-                          #print("description: ",descr)
+                          print("description: ",descr)
                           thisreq.description = descr
+                          #byebug
                         end
                         if (rqstatus != nil) then
                           #print("rqstatus: ",rqstatus)
