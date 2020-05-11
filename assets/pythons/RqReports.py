@@ -338,13 +338,13 @@ path_root = img_path + "/" + my_project['identifier'] + "_"
 parent_g_h = Digraph(name=path_root + "h", format='svg', strict=True,
                            graph_attr={'ratio': 'compress', 'size': '9,5,30', 'margin': '0'}, engine='dot',
                            node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
-self_g_h = Digraph(name="clusterH",strict=True,
+self_g_h = Digraph(name="clusterH",
                     graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Hierarchy', 'margin': '5'}, engine='dot',
                     node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
 parent_g_d = Digraph(name=path_root + "d", format='svg',strict=True,
                             graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
                             node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
-self_g_d = Digraph(name="clusterD",strict=True,
+self_g_d = Digraph(name="clusterD",
                      graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                      engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
 
@@ -368,14 +368,14 @@ for my_issue in reqlist:
                                 graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
                                 node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
 
-    self_h = Digraph(name="clusterH",strict=True,
+    self_h = Digraph(name="clusterH",
                          graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Hierarchy', 'margin': '5'},
                          engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
     
     parent_d = Digraph(name=path_root + "d", format='svg',strict=True,
                                 graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
                                 node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
-    self_d = Digraph(name="clusterD",strict=True,
+    self_d = Digraph(name="clusterD",
                          graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
                          engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
     url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + str(my_issue['id']) + "_"
