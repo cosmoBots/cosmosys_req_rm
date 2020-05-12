@@ -255,7 +255,7 @@ for my_issue in reqlist:
             current_version = my_issue['target']
         else:
             current_version = None
-        idstr = my_issue['subject'].replace(thisprefix,'')
+        idstr = my_issue['subject'].replace(thisprefix+"-",'')
 
         thistab[currrow,req_download_id_column].value = my_issue['subject']
         thistab[currrow,req_download_title_column].value = my_issue['title']
