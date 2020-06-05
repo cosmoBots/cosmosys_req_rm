@@ -41,6 +41,10 @@ module IssuePatch
           if (self.tracker == @@rqtrck) then
             errors.add :parent_issue_id, :blank
             can_continue = false
+          else
+            if self.tracker == @@rqdoctrck then
+              can_continue = true
+            end            
           end
         end
       end
@@ -52,7 +56,7 @@ module IssuePatch
     
     def future_document
       if self.tracker == @@rqdoctrck then
-        ret = self 
+        ret = self
       else
         # not do found yet
         ret = @parent_issue
