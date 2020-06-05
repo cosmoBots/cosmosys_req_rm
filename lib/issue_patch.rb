@@ -113,11 +113,11 @@ module IssuePatch
               print "Self document"
             end
             cfdoccount = thisdocument.custom_values.find_by_custom_field_id(@@cfdoccount.id)
-            if (thisdocument == self) then
-              print "Count"
-              print cfdoccount.value
-            end
             if cfdoccount != nil then
+              if (thisdocument == self) then
+                print "Count"
+                print cfdoccount.value
+              end
               if @@cfdocprefix != nil then
                 cfdocprefix = thisdocument.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
                 if cfdocprefix != nil then
