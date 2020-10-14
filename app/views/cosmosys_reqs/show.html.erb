@@ -45,7 +45,7 @@
 		chapstr = chapstr + " " + i.subject
 	end 
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i.id %>">
 <h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
 <% i.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i2| 
@@ -61,7 +61,7 @@
 		chapstr = chapstr + " " + i2.subject
 	end 
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i2.id %>">
 <h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
 <% i2.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i3| 
@@ -77,7 +77,7 @@
 		chapstr = chapstr + " " + i3.subject
 	end
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i3.id %>" >
 <h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
 <% i3.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i4| 
@@ -93,7 +93,7 @@
 		chapstr = chapstr + " " + i4.subject
 	end
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i4.id %>" >
 <h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
 <% i4.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i5| 
@@ -109,7 +109,7 @@
 		chapstr = chapstr + " " + i5.subject
 	end
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i5.id %>" >
 <h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
 <% i5.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i6| 
@@ -125,7 +125,7 @@
 		chapstr = chapstr + " " + i6.subject
 	end
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>"  id="Req-<%= i6.id %>">
 <h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
 <% i6.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i7| 
@@ -141,7 +141,7 @@
 		chapstr = chapstr + " " + i7.subject
 	end
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i7.id %>">
 <h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
 <% i7.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i8| 
@@ -157,7 +157,7 @@
 		chapstr = chapstr + " " + i8.subject
 	end
 	%>
-<div class="<%= classdiv %>">
+<div class="<%= classdiv %>" id="Req-<%= i8.id %>">
 <h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
 <% i8.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i9| 

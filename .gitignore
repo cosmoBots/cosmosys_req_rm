@@ -51,3 +51,5 @@ node_modules/
 /.idea
 /nbproject/private/
 /nbproject
+Gemfile.lock
+
