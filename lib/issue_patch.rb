@@ -41,18 +41,27 @@ module IssuePatch
           if (self.tracker == @@rqtrck) then
             errors.add :parent_issue_id, :blank
             can_continue = false
+          else
+            print "ReqDoc?"
+            if self.tracker == @@rqdoctrck then
+              print "Yes"
+              can_continue = true
+            end            
           end
         end
       end
       if can_continue then
+        print "Begin checkID"
         check_identifier
+        print "END checkID"
+        print self.subject
       end
       super
     end
     
     def future_document
       if self.tracker == @@rqdoctrck then
-        ret = self 
+        ret = self
       else
         # not do found yet
         ret = @parent_issue
@@ -100,11 +109,22 @@ module IssuePatch
         if @@cfdoccount != nil then
           thisdocument = self.future_document
           if thisdocument != nil then
+            if (thisdocument == self) then
+              print "Self document"
+            end
             cfdoccount = thisdocument.custom_values.find_by_custom_field_id(@@cfdoccount.id)
             if cfdoccount != nil then
+              if (thisdocument == self) then
+                print "Count"
+                print cfdoccount.value
+              end
               if @@cfdocprefix != nil then
                 cfdocprefix = thisdocument.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
                 if cfdocprefix != nil then
+                  if (thisdocument == self) then
+                    print "Prefix"
+                    print cfdocprefix.value
+                  end
                   self.subject = cfdocprefix.value+"-"+format('%04d', cfdoccount.value)
                   cfdoccount.value = (cfdoccount.value.to_i+1)
                   cfdoccount.save
