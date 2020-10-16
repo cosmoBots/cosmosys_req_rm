@@ -100,7 +100,9 @@ module IssuePatch
         self.subject = nil
         thisdocument = self.future_document
         if thisdocument != nil then
-          self.subject = thisdocument.obtain_new_rqid()
+          if thisdocument != self then
+            self.subject = thisdocument.obtain_new_rqid()
+          end
         end
       end
       return self.subject != nil
@@ -114,28 +116,38 @@ module IssuePatch
           if cfdocprefix != nil then
             if @@cfdoccount != nil then
               cfdoccount = self.custom_values.find_by_custom_field_id(@@cfdoccount.id)
-              counter = cfdoccount.value
-              if counter == nil or counter < 1 then
-                counter = 1
-              end
-              foundid = nil
-              while (foundid == nil) then
-                tmp = cfdocprefix.value+"-"+format('%04d', counter)
-                if Issue.find_by_subject(tmp) == nil
-                  foundid = tmp
-                  cfdoccount.value = counter
-                  cfdoccount.save
-                else
-                  counter += 1
+              if (cfdoccount != nil) then
+                print cfdoccount.value
+                print cfdoccount.value.class
+                
+                counter = cfdoccount.value.to_i
+                if counter == nil or counter < 1 then
+                  counter = 1
                 end
+                foundid = nil
+                
+                while (foundid == nil) do
+                  tmp = cfdocprefix.value+"-"+format('%04d', counter)
+                  if self.project.issues.find_by_subject(tmp) == nil then
+                    foundid = tmp
+                    cfdoccount.value = counter + 1
+                    cfdoccount.save
+                  else
+                    counter += 1
+                  end
+                end
+
+
+
+
+                ret = foundid
               end
-              ret = foundid
             end
           end
         end
       end
       return ret
-    end
+    end    
     
     def check_chapter
       # AUTO CHAPTER
