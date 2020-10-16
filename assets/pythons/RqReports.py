@@ -351,7 +351,7 @@ self_g_d = Digraph(name="clusterD",
 url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + my_project['identifier'] + "_"
 url_sufix = ".gv.svg"
 url_h = url_base +"h"+url_sufix
-url_d = url_base +"h"+url_sufix
+url_d = url_base +"d"+url_sufix
 my_project['url_h'] = url_h
 my_project['url_d'] = url_d
 diagrams['project'] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_g_h, 'self_h': self_g_h, 'parent_d': parent_g_d, 'self_d': self_g_d, }
@@ -381,7 +381,7 @@ for my_issue in reqlist:
     url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + str(my_issue['id']) + "_"
     url_sufix = ".gv.svg"
     url_h = url_base +"h"+url_sufix
-    url_d = url_base +"h"+url_sufix
+    url_d = url_base +"d"+url_sufix
     my_issue['url_h'] = url_h
     my_issue['url_d'] = url_d
 
