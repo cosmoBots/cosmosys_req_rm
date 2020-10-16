@@ -41,27 +41,18 @@ module IssuePatch
           if (self.tracker == @@rqtrck) then
             errors.add :parent_issue_id, :blank
             can_continue = false
-          else
-            print "ReqDoc?"
-            if self.tracker == @@rqdoctrck then
-              print "Yes"
-              can_continue = true
-            end            
           end
         end
       end
       if can_continue then
-        print "Begin checkID"
         check_identifier
-        print "END checkID"
-        print self.subject
       end
       super
     end
     
     def future_document
       if self.tracker == @@rqdoctrck then
-        ret = self
+        ret = self 
       else
         # not do found yet
         ret = @parent_issue
@@ -106,42 +97,46 @@ module IssuePatch
     def check_identifier
       # AUTO SUBJECT
       if self.subject == "" or self.subject == nil or self.subject=="INVALID_ID" then
-        if @@cfdoccount != nil then
-          thisdocument = self.future_document
-          if thisdocument != nil then
-            if (thisdocument == self) then
-              print "Self document"
-            end
-            cfdoccount = thisdocument.custom_values.find_by_custom_field_id(@@cfdoccount.id)
-            if cfdoccount != nil then
-              if (thisdocument == self) then
-                print "Count"
-                print cfdoccount.value
+        self.subject = nil
+        thisdocument = self.future_document
+        if thisdocument != nil then
+          self.subject = thisdocument.obtain_new_rqid()
+        end
+      end
+      return self.subject != nil
+    end
+
+    def obtain_new_rqid
+      ret = nil
+      if self.tracker == @@rqdoctrck then
+        if @@cfdocprefix != nil then
+          cfdocprefix = self.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
+          if cfdocprefix != nil then
+            if @@cfdoccount != nil then
+              cfdoccount = self.custom_values.find_by_custom_field_id(@@cfdoccount.id)
+              counter = cfdoccount.value
+              if counter == nil or counter < 1 then
+                counter = 1
               end
-              if @@cfdocprefix != nil then
-                cfdocprefix = thisdocument.custom_values.find_by_custom_field_id(@@cfdocprefix.id)
-                if cfdocprefix != nil then
-                  if (thisdocument == self) then
-                    print "Prefix"
-                    print cfdocprefix.value
-                  end
-                  self.subject = cfdocprefix.value+"-"+format('%04d', cfdoccount.value)
-                  cfdoccount.value = (cfdoccount.value.to_i+1)
+              foundid = nil
+              while (foundid == nil) then
+                tmp = cfdocprefix.value+"-"+format('%04d', counter)
+                if Issue.find_by_subject(tmp) == nil
+                  foundid = tmp
+                  cfdoccount.value = counter
                   cfdoccount.save
+                else
+                  counter += 1
                 end
               end
+              ret = foundid
             end
-            return true 
-          else
           end
         end
       end
-      if self.subject=="INVALID_ID" then
-        self.subject = nil
-      end
-      return false 
+      return ret
     end
-
+    
     def check_chapter
       # AUTO CHAPTER
       if @@cfisschapter != nil then
