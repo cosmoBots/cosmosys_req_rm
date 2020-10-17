@@ -857,7 +857,7 @@ class CosmosysReqsController < ApplicationController
       else
         print("PROYECTO!!!\n")     
         res = @project.issues.where(:parent => nil).limit(1)
-		if (res != nil) then
+		if (res.size>0) then
 			thisnodeid = res.first.id
 		else
 			thisnodeid = nil
