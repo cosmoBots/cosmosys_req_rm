@@ -857,10 +857,13 @@ class CosmosysReqsController < ApplicationController
       else
         print("PROYECTO!!!\n")     
         res = @project.issues.where(:parent => nil).limit(1)
-        thisnodeid = res.first.id
+		if (res != nil) then
+			thisnodeid = res.first.id
+		else
+			thisnodeid = nil
+		end
       end
-      thisnode=Issue.find(thisnodeid)
-
+      treedata = []
       splitted_url = request.fullpath.split('/cosmosys_reqs')
       print("\nsplitted_url: ",splitted_url)
       root_url = splitted_url[0]
@@ -880,13 +883,12 @@ class CosmosysReqsController < ApplicationController
       print("\nserver_addr ",request.server_addr)
       print("\nhost ",request.host)
       print("\nremote_host ",request.remote_host)
-
-      treedata = []
-
-      tree_node = create_tree(thisnode,root_url)
-
-      treedata << tree_node
-
+	  
+	  if thisnode != nil then
+		  thisnode=Issue.find(thisnodeid)
+		  tree_node = create_tree(thisnode,root_url)
+		  treedata << tree_node
+	  end
       #print treedata
 
 
