@@ -699,6 +699,8 @@ class CosmosysReqsController < ApplicationController
       print("GET!!!!!")
     else
       print("POST!!!!!")
+      git_pull_repo(@project)	  
+	  
       splitted_url = request.fullpath.split('/cosmosys_reqs')
       root_url = request.base_url+splitted_url[0]      
       @output = []
