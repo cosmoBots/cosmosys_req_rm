@@ -127,6 +127,22 @@ class CosmosysReqBase < ActiveRecord::Base
     return tree_node
   end
 
+  def self.phantom_node
+    tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
+	tree_node[:id] = 0
+	tree_node[:tracker_id] = reqdoctracker
+	tree_node[:subject] = "---"
+	tree_node[:description] = This is a void project.  Please populate it with some requirements
+    tree_node[:valid] = false
+    tree_node[:chapter] = "0"
+    tree_node[:title] = "VOID PROJECT"
+    tree_node[:prefix] = "VD"
+
+    return tree_node
+  end
+
+
+
 
 
   def self.show_as_json(thisproject, node_id,root_url)
@@ -171,12 +187,15 @@ class CosmosysReqBase < ActiveRecord::Base
       treedata[:reqdocs][r.id.to_s] = tree_node
     }
 
-
-    roots.each { |r|
-      thisnode=r
-      tree_node = create_json(thisnode,root_url,true,nil)
-      treedata[:reqs] << tree_node
-    }
+	if (roots.size > 0) then
+		roots.each { |r|
+		  thisnode=r
+		  tree_node = create_json(thisnode,root_url,true,nil)
+		  treedata[:reqs] << tree_node
+		}
+	else {
+		treedata[:reqs] << phantom_node
+	}
     return treedata
   end
 
