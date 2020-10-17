@@ -846,6 +846,24 @@ class CosmosysReqsController < ApplicationController
   def propagate
   end
 
+  def create_void_tree
+    tree_node = {'title': 'VOID PROJECT',
+             'subtitle': 'VOID PROJECT',
+             'expanded': false,
+             'id': 0,
+             'return_url': root_url+'/cosmosys_reqs/'+current_issue.project.id.to_s+'/tree.json',
+             'issue_show_url': '',
+             'issue_new_url': '',
+             'issue_new_doc_url': '',
+             'issue_edit_url': '',
+             'children': []
+            }
+
+    return tree_node
+  end
+
+
+
   def tree
     require 'json'
 
@@ -888,6 +906,8 @@ class CosmosysReqsController < ApplicationController
 		  thisnode=Issue.find(thisnodeid)
 		  tree_node = create_tree(thisnode,root_url)
 		  treedata << tree_node
+	  else
+		  treedata << create_void_tree
 	  end
       #print treedata
 
