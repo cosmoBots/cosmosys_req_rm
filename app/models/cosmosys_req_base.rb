@@ -133,7 +133,7 @@ class CosmosysReqBase < ActiveRecord::Base
 	tree_node[:id] = 0
 	tree_node[:tracker_id] = reqdoctracker
 	tree_node[:subject] = "---"
-	tree_node[:description] = This is a void project.  Please populate it with some requirements
+	tree_node[:description] = "This is a void project.  Please populate it with some requirements"
     tree_node[:valid] = false
     tree_node[:chapter] = "0"
     tree_node[:title] = "VOID PROJECT"
