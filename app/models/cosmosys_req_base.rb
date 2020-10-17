@@ -193,9 +193,9 @@ class CosmosysReqBase < ActiveRecord::Base
 		  tree_node = create_json(thisnode,root_url,true,nil)
 		  treedata[:reqs] << tree_node
 		}
-	else {
+	else
 		treedata[:reqs] << phantom_node
-	}
+	end
     return treedata
   end
 
