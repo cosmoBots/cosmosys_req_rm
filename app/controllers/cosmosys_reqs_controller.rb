@@ -851,14 +851,14 @@ class CosmosysReqsController < ApplicationController
              'subtitle': 'VOID PROJECT',
              'expanded': false,
              'id': 0,
-             'return_url': root_url+'/cosmosys_reqs/'+current_issue.project.id.to_s+'/tree.json',
+             'return_url': '',
              'issue_show_url': '',
              'issue_new_url': '',
              'issue_new_doc_url': '',
              'issue_edit_url': '',
              'children': []
             }
-
+ 
     return tree_node
   end
 
