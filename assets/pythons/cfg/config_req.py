@@ -34,5 +34,5 @@ req_download_related_column = 10
 req_download_rpdeptab_startrow = 1
 req_download_rpdeptab_id_column = 0
 req_download_rpdeptab_title_column = 2
-req_download_rpdeptab_related_column = 6
+req_download_rpdeptab_related_column = 4
 
