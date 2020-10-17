@@ -25,15 +25,15 @@ class CosmosysReqsController < ApplicationController
       #print("GET!!!!!")
     else
       #print("POST!!!!!")
-      @output = ""
+      @output = []
       # First we check if the setting for the local repo is set
       if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
         # If it is not set, we can not continue
-        @output += "Error: the local repos path template is not defined\n"
+        @output << "Error: the local repos path template is not defined"
       else
         # We need to know if the setting to locate the repo template is set
         if (Setting.plugin_cosmosys_req['repo_template_id'].blank?) then
-          @output += "Error: the template id setting is not set\n"
+          @output << "Error: the template id setting is not set"
         else
           # The setting exists, so we can create the origin and destination paths
           destdir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
@@ -43,7 +43,7 @@ class CosmosysReqsController < ApplicationController
 
           # Now we have to know if the destination directory already exists
           if (File.directory?(destdir)) then
-            @output += "Error: the destination repo already exists\n"  
+            @output << "Error: the destination repo already exists"  
             print(destdir)            
           else
             if (File.directory?(origdir)) then
@@ -58,7 +58,7 @@ class CosmosysReqsController < ApplicationController
                 # The setting says we must sync with a remote server
                 if (Setting.plugin_cosmosys_req['repo_redmine_path'].blank?) then
                   # The setting is not set, so we can not sync with the remote server
-                  @output += "Error: the redmine repo path template is not defined\n"
+                  @output << "Error: the redmine repo path template is not defined"
                 else
                   redminerepodir = "#{Setting.plugin_cosmosys_req['repo_redmine_path']}"
                   redminerepodir["%project_id%"] = @project.identifier
@@ -76,20 +76,16 @@ class CosmosysReqsController < ApplicationController
                   repo.save
                 end
               else
-                @output += "Info: redmine sync not enabled\n"          
+                @output << "Info: redmine sync not enabled"          
               end
             else
-              @output += "Error: the template repo does not exist\n"
+              @output << "Error: the template repo does not exist"
               print(origdir)
             end
           end
         end 
       end
-      if @output.size <= 255 then 
-          flash[:notice] = @output.to_s
-      else
-          flash[:notice] = "Message too long\n"
-      end
+      flash[:notice] = @output.join("<br>")
       print(@output)
     end
   end
@@ -213,11 +209,11 @@ class CosmosysReqsController < ApplicationController
 
 
       git_pull_repo(@project)
-      @output = ""
+      @output = []
       # First we check if the setting for the local repo is set
       if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
         # If it is not set, we can not continue
-        @output += "Error: the local repos path template is not defined\n"
+        @output << "Error: the local repos path template is not defined"
       else
         # The setting exists, so we can create the origin and destination paths
         repodir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
@@ -226,7 +222,7 @@ class CosmosysReqsController < ApplicationController
         if (File.directory?(repodir)) then
           if (Setting.plugin_cosmosys_req['relative_uploadfile_path'].blank?) then
             # If it is not set, we can not continue
-            @output += "Error: the relative path to upload file is not set\n"
+            @output << "Error: the relative path to upload file is not set"
           else
             uploadfilepath = repodir + "/" + Setting.plugin_cosmosys_req['relative_uploadfile_path']
             if (File.exists?(uploadfilepath)) then
@@ -437,7 +433,7 @@ class CosmosysReqsController < ApplicationController
                         #print("ya existe el requisito")
                         thisreq.tracker = @@reqtracker
                         if (descr != nil) then
-                          print("description: ",descr)
+                          #print("description: ",descr)
                           thisreq.description = descr
                           #byebug
                         end
@@ -469,6 +465,12 @@ class CosmosysReqsController < ApplicationController
                         end                        
                         if (title_str != nil) then
                           cft = thisreq.custom_field_values.select{|a| a.custom_field_id == @@cftitle.id }.first
+                          if (cft.value != title_str) then
+                            # No concuerda, doy una alarma y creo qeu no escribo el requisito
+                            print(thisreq.subject+"NO CONCUERDA!!!!")
+                            thisreq.errors.add('title', 'mismatch', message: "different for same ID req")
+                            @output << "WARNING: "+thisreq.subject+" title mismatch '"+title_str+"'<>'"+cft.value+"'" 
+                          end
                           cft.value = title_str
                         end
                         if (rqchapter != nil) then
@@ -674,23 +676,19 @@ class CosmosysReqsController < ApplicationController
                 sheetindex += 1
                 thissheet = book.worksheets(sheetindex)
               end
-              @output += "UPLOAD successful\n"   
+              @output << "UPLOAD successful"   
             else
-              @output += "Error: the upload file is not found\n"
+              @output << "Error: the upload file is not found"
               print(uploadfilepath)
             end
           end
         else
-          @output += "Error: the repo does not exists\n"  
+          @output << "Error: the repo does not exists"  
           print(repodir)            
         end
       end
-      if @output.size <= 255 then 
-          @output += "Ok: Requirements uploaded.\n"
-          flash[:notice] = @output.to_s
-      else
-          flash[:notice] = "Message too long\n"
-      end
+      @output << "Ok: Requirements uploaded."
+      flash[:notice] = @output.join("<br>")
       print(@output)
     end
   end
@@ -703,11 +701,11 @@ class CosmosysReqsController < ApplicationController
       print("POST!!!!!")
       splitted_url = request.fullpath.split('/cosmosys_reqs')
       root_url = request.base_url+splitted_url[0]      
-      @output = ""
-      # First we check if the setting for the local repo is set
+      @output = []
+      # First we c  heck if the setting for the local repo is set
       if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
         # If it is not set, we can not continue
-        @output += "Error: the local repos path template is not defined\n"
+        @output << "Error: the local repos path template is not defined"
       else
         # The setting exists, so we can create the origin and destination paths
         repodir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
@@ -716,7 +714,7 @@ class CosmosysReqsController < ApplicationController
         if (File.directory?(repodir)) then
           if (Setting.plugin_cosmosys_req['relative_reporting_path'].blank?) then
             # If it is not set, we can not continue
-            @output += "Error: the relative path to upload file is not set\n"
+            @output << "Error: the relative path to upload file is not set"
           else
             reportingpath = repodir + "/" + Setting.plugin_cosmosys_req['relative_reporting_path']
             if (File.directory?(reportingpath)) then
@@ -738,7 +736,7 @@ class CosmosysReqsController < ApplicationController
                   stdin.close
                   stdout.each do |ele|
                     print ("->"+ele+"\n")
-                    @output += ele
+                    @output << ele
                   end
                   print("acabo el comando")
                 ensure
@@ -746,26 +744,22 @@ class CosmosysReqsController < ApplicationController
                 end
                 git_commit_repo(@project,"[reqbot] reports generated")
                 git_pull_rm_repo(@project)
-                @output += "Ok: reports generated and diagrams updated.\n"
+                @output << "Ok: reports generated and diagrams updated."
               else
-                @output += "Error: the img path is not found\n"
+                @output << "Error: the img path is not found"
                 print(imgpath)
               end
             else
-              @output += "Error: the reporting path is not found\n"
+              @output << "Error: the reporting path is not found"
               print(reportingpath)
             end
           end
         else
-          @output += "Error: the repo does not exists\n"  
+          @output << "Error: the repo does not exists"  
           print(repodir)            
         end
       end
-      if @output.size <= 255 then 
-        flash[:notice] = @output.to_s
-      else
-        flash[:notice] = "Message too long\n"
-      end
+      flash[:notice] = @output.join("<br>")
       print(@output)
     end
   end
@@ -777,11 +771,11 @@ class CosmosysReqsController < ApplicationController
     else
       print("POST!!!!!")
       git_pull_repo(@project)
-      @output = ""
+      @output = []
       # First we check if the setting for the local repo is set
       if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
         # If it is not set, we can not continue
-        @output += "Error: the local repos path template is not defined\n"
+        @output << "Error: the local repos path template is not defined"
       else
         # The setting exists, so we can create the origin and destination paths
         repodir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
@@ -790,7 +784,7 @@ class CosmosysReqsController < ApplicationController
         if (File.directory?(repodir)) then
           if (Setting.plugin_cosmosys_req['relative_downloadfile_path'].blank?) then
             # If it is not set, we can not continue
-            @output += "Error: the relative path to the downnload file is not set\n"
+            @output << "Error: the relative path to the downnload file is not set"
           else
             splitted_url = request.fullpath.split('/cosmosys_reqs')
             root_url = request.base_url+splitted_url[0]            
@@ -812,7 +806,7 @@ class CosmosysReqsController < ApplicationController
                 stdin.close
                 stdout.each do |ele|
                   print ("->"+ele+"\n")
-                  @output += ele
+                  @output << ele
                 end
                 print("acabo el comando")
               ensure
@@ -824,20 +818,16 @@ class CosmosysReqsController < ApplicationController
               git_commit_repo(@project,"[reqbot] downloadfile generated")
               git_pull_rm_repo(@project)
             else
-              @output += "Error: the downloadfile directory is not found\n"
+              @output << "Error: the downloadfile directory is not found"
               print("DOWNLOADFILEPATH: " + File.dirname(downloadfilepath))
             end
           end
         else
-          @output += "Error: the repo does not exists\n"  
+          @output << "Error: the repo does not exists"  
           print(repodir)            
         end
       end
-      if @output.size <= 255 then 
-          flash[:notice] = @output.to_s
-      else
-          flash[:notice] = "Message too long\n"
-      end
+      flash[:notice] = @output.join("<br>")
       print(@output)
     end
   end
@@ -902,9 +892,9 @@ class CosmosysReqsController < ApplicationController
         format.html {
           if @output then 
             if @output.size <= 500 then
-              flash[:notice] = "Reqtree:\n" + @output.to_s
+              flash[:notice] = ["Reqtree:",@output].join("<br>")
             else
-              flash[:notice] = "Reqtree too long response\n"
+              flash[:notice] = "Reqtree too long response"
             end
           end
         }
@@ -936,11 +926,11 @@ class CosmosysReqsController < ApplicationController
   # -------------------------- Filters and actions --------------------
 
   def git_commit_repo(pr,a_message)
-    @output = ""
+    @output = []
     # First we check if the setting for the local repo is set
     if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
       # If it is not set, we can not continue
-      @output += "Error: the local repos path template is not defined\n"
+      @output << "Error: the local repos path template is not defined"
     else
       # The repo local path is defined
       destdir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
@@ -958,7 +948,7 @@ class CosmosysReqsController < ApplicationController
         # The setting says we must sync with a remote server
         if (Setting.plugin_cosmosys_req['repo_server_path'].blank?) then
           # The setting is not set, so we can not sync with the remote server
-          @output += "Error: the remote server URL template is not defined\n"
+          @output << "Error: the remote server URL template is not defined"
         else
           remote_url = "#{Setting.plugin_cosmosys_req['repo_server_path']}"
           remote_url["%project_id%"] = pr.identifier
@@ -974,7 +964,7 @@ class CosmosysReqsController < ApplicationController
         end
       else
         # If the sync is not active, we can conclude that we must create the local repo
-        @output += "Info: remote sync not enabled\n"
+        @output << "Info: remote sync not enabled"
       end
 
     end
@@ -996,11 +986,11 @@ class CosmosysReqsController < ApplicationController
   end
 
   def git_pull_repo(pr)
-    @output = ""
+    @output = []
     # First we check if the setting for the local repo is set
     if (Setting.plugin_cosmosys_req['repo_local_path'].blank?) then
       # If it is not set, we can not continue
-      @output += "Error: the local repos path template is not defined\n"
+      @output << "Error: the local repos path template is not defined"
     else
       # The repo local path is defined
       destdir = "#{Setting.plugin_cosmosys_req['repo_local_path']}"
@@ -1012,7 +1002,7 @@ class CosmosysReqsController < ApplicationController
         # The setting says we must sync with a remote server
         if (Setting.plugin_cosmosys_req['repo_server_path'].blank?) then
           # The setting is not set, so we can not sync with the remote server
-          @output += "Error: the remote server URL template is not defined\n"
+          @output << "Error: the remote server URL template is not defined"
         else
           remote_url = "#{Setting.plugin_cosmosys_req['repo_server_path']}"
           remote_url["%project_id%"] = pr.identifier
@@ -1023,7 +1013,7 @@ class CosmosysReqsController < ApplicationController
         end
       else
         # If the sync is not active, we can conclude that we must create the local repo
-        @output += "Info: remote sync not enabled\n"
+        @output << "Info: remote sync not enabled"
       end
     end
   end
