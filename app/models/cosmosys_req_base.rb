@@ -129,6 +129,7 @@ class CosmosysReqBase < ActiveRecord::Base
 
   def self.phantom_node
     #tree_node = current_issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id")
+	tree_node = {}
 	tree_node[:id] = 0
 	tree_node[:tracker_id] = reqdoctracker
 	tree_node[:subject] = "---"
