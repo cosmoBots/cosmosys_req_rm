@@ -884,7 +884,7 @@ class CosmosysReqsController < ApplicationController
       print("\nhost ",request.host)
       print("\nremote_host ",request.remote_host)
 	  
-	  if thisnode != nil then
+	  if thisnodeid != nil then
 		  thisnode=Issue.find(thisnodeid)
 		  tree_node = create_tree(thisnode,root_url)
 		  treedata << tree_node
