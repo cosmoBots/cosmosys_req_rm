@@ -289,7 +289,7 @@ for my_issue in reqlist:
         if value is None:
             value = ""        
         thistab[currrow,req_download_value_column].value = value
-        thistab[currrow,req_download_chapter_column].value = my_issue['chapter'].replace(thisprefix,'')
+        thistab[currrow,req_download_chapter_column].value = my_issue['chapter'].replace(thisprefix+'-','')
         thistab[currrow,req_download_status_column].value = my_issue['status']
         thistab[currrow,req_download_bdid_column].value = my_issue['id']
         try:
