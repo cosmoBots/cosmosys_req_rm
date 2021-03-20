@@ -34,147 +34,72 @@
 		return ret
 	end
 
+	def compute_link(i)
+		chapstr = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
+		title = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
+		if (i.tracker == CosmosysReqBase.reqdoctracker) then 
+			classdiv = "ReqDoc"
+		else
+			classdiv = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
+			chapstr = transform_chapter(chapstr)
+			if (classdiv != "Info") then
+				chapstr = chapstr + " " + i.subject
+			end
+		end
+		return classdiv,chapstr,title
+	end
+
 	roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}
 	roots.each { |i| 
-	chapstr = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i.subject
-	end 
+		classdiv,chapstr,title = compute_link(i)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i.id %>">
 <h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
 <% i.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i2| 
-	chapstr = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i2.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i2.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i2.subject
-	end 
+		classdiv,chapstr,title = compute_link(i2)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i2.id %>">
 <h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
 <% i2.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i3| 
-	chapstr = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i3.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i3.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i3.subject
-	end
+		classdiv,chapstr,title = compute_link(i3)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i3.id %>" >
 <h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
 <% i3.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i4| 
-	chapstr = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i4.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i4.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i4.subject
-	end
+		classdiv,chapstr,title = compute_link(i4)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i4.id %>" >
 <h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
 <% i4.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i5| 
-	chapstr = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i5.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i5.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i5.subject
-	end
+		classdiv,chapstr,title = compute_link(i5)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i5.id %>" >
 <h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
 <% i5.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i6| 
-	chapstr = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i6.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i6.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i6.subject
-	end
+		classdiv,chapstr,title = compute_link(i6)
 	%>
 <div class="<%= classdiv %>"  id="Req-<%= i6.id %>">
 <h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
 <% i6.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i7| 
-	chapstr = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i7.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i7.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i7.subject
-	end
+		classdiv,chapstr,title = compute_link(i7)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i7.id %>">
 <h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
 <% i7.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i8| 
-	chapstr = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i8.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i8.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i8.subject
-	end
+		classdiv,chapstr,title = compute_link(i8)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i8.id %>">
 <h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
 <% i8.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i9| 
-	chapstr = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value
-	if (i9.tracker == CosmosysReqBase.reqdoctracker) then 
-		classdiv = "ReqDoc"
-	else
-		classdiv = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cftype.id).value
-		chapstr = transform_chapter(chapstr)
-	end
-	title = i9.custom_values.find_by_custom_field_id(CosmosysReqBase.cftitle.id)
-	if (classdiv != "Info") then
-		chapstr = chapstr + " " + i9.subject
-	end
+		classdiv,chapstr,title = compute_link(i9)
 	%>
 <div class="<%= classdiv %>">
 <h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
