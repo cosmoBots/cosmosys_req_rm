@@ -12,9 +12,42 @@ td.description {
     margin-top: 2px;
 }
 
+.ReqDoc > h1 {
+    text-align: right;
+}
+
+.ReqDoc > h2 {
+    text-align: right;
+}
+
+.ReqDoc > h3 {
+    text-align: right;
+}
+
+.ReqDoc > h4 {
+    text-align: right;
+}
+
+.ReqDoc > h5 {
+    text-align: right;
+}
+
+.ReqDoc > h6 {
+    text-align: right;
+}
+
+.ReqDoc > h7 {
+    text-align: right;
+}
+
+.ReqDoc > h8 {
+    text-align: right;
+}
+
+
 .Infodescr{
 	color: grey;
-	font-style: italic;
+	font-sytyle: italic;
 }
 
 .ReqDocdescr{
