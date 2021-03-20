@@ -7,25 +7,28 @@
 	def transform_chapter(c)
 		ret = c
 		allchaps = c.split('-')
-		if (allchaps.size > 1) and (allchaps[1].size>0) then
-			completechapter = allchaps[1]
-			ret = completechapter
-			mychaps = completechapter.split('.')
-			if (mychaps.size>0) then
-				chapstr = ""
-				mychaps.each { |e|
-					eint = e.to_i
-					if eint then
-						if (eint > 0) then
-							chapstr += eint.to_s + "."
+		if (allchaps.size > 1) then
+			lastgroup = allchaps.size - 1
+			if (allchaps[lastgroup].size>0) then
+				completechapter = allchaps[lastgroup]
+				ret = completechapter
+				mychaps = completechapter.split('.')
+				if (mychaps.size>0) then
+					chapstr = ""
+					mychaps.each { |e|
+						eint = e.to_i
+						if eint then
+							if (eint > 0) then
+								chapstr += eint.to_s + "."
+							else
+								chapstr += "INVALID."
+							end
 						else
 							chapstr += "INVALID."
 						end
-					else
-						chapstr += "INVALID."
-					end
-				}
-				ret = chapstr
+					}
+					ret = chapstr
+				end
 			end
 		end
 		return ret
