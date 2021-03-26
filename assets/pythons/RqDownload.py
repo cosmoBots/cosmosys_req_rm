@@ -190,7 +190,7 @@ for my_issue in my_doc_issues:
     tabnumber += 1
     mysheet[req_download_doc_row,req_download_doc_title_column].formula = my_issue['title']
     mysheet[req_download_doc_row,req_download_doc_desc_column].formula = my_issue['description']
-    mysheet[req_download_doc_row,req_download_doc_prefix_column].formula = prefix
+    mysheet[req_download_doc_row,req_download_doc_prefix_column].value = prefix
     current_parent = my_issue['parent_id']
     if current_parent is not None:
         parent_issue = reqdocs[str(current_parent)]
