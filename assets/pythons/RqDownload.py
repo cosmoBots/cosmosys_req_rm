@@ -173,7 +173,7 @@ rowindex = req_download_version_startrow
 #print("ACABAMOS3!!!!!!!!!!!!!!!!!!!!!!!!!!")
 for v in targets:
     #print(v)
-    doc_dict[rowindex,req_download_version_column].formula = targets[v]
+    doc_dict[rowindex,req_download_version_column].value = targets[v]
     rowindex += 1
 
 #print("ACABAMOS4!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -188,7 +188,7 @@ for my_issue in my_doc_issues:
     prefix = my_issue['prefix']
     mysheet = doc.sheets.copy('Template', my_issue['subject'], tabnumber)
     tabnumber += 1
-    mysheet[req_download_doc_row,req_download_doc_title_column].formula = my_issue['title']
+    mysheet[req_download_doc_row,req_download_doc_title_column].value = my_issue['title']
     mysheet[req_download_doc_row,req_download_doc_desc_column].formula = my_issue['description']
     mysheet[req_download_doc_row,req_download_doc_prefix_column].value = prefix
     current_parent = my_issue['parent_id']
@@ -196,7 +196,7 @@ for my_issue in my_doc_issues:
         parent_issue = reqdocs[str(current_parent)]
         #print("parent: ",parent_issue.subject)
         # Rellenamos la celda del padre
-        mysheet[req_download_doc_row,req_download_doc_parent_column].formula = parent_issue['subject']
+        mysheet[req_download_doc_row,req_download_doc_parent_column].value = parent_issue['subject']
     
     current_version = my_issue['fixed_version_id']
           
@@ -257,8 +257,8 @@ for my_issue in reqlist:
             current_version = None
         idstr = my_issue['subject'].replace(thisprefix+"-",'')
 
-        thistab[currrow,req_download_id_column].formula = my_issue['subject']
-        thistab[currrow,req_download_title_column].formula = my_issue['title']
+        thistab[currrow,req_download_id_column].value = my_issue['subject']
+        thistab[currrow,req_download_title_column].value = my_issue['title']
         descr = my_issue['description']
         if descr is None:
             descr = ""
@@ -268,15 +268,15 @@ for my_issue in reqlist:
         #print(sources)
         if sources is None:
             sources = ""
-        thistab[currrow,req_download_source_column].formula = sources
+        thistab[currrow,req_download_source_column].value = sources
         typestr = my_issue['type']
         if typestr is None:
             typestr = ""
-        thistab[currrow,req_download_type_column].formula = typestr
+        thistab[currrow,req_download_type_column].value = typestr
         level = my_issue['level']
         if level is None:
             level = ""
-        thistab[currrow,req_download_level_column].formula = level
+        thistab[currrow,req_download_level_column].value = level
         rationale = my_issue['rationale']
         if rationale is None:
             rationale = ""
@@ -284,13 +284,13 @@ for my_issue in reqlist:
         var = my_issue['var']
         if var is None:
             var = ""
-        thistab[currrow,req_download_var_column].formula = var
+        thistab[currrow,req_download_var_column].value = var
         value = my_issue['value']
         if value is None:
             value = ""        
-        thistab[currrow,req_download_value_column].formula = value
-        thistab[currrow,req_download_chapter_column].formula = my_issue['chapter'].replace(thisprefix+'-','')
-        thistab[currrow,req_download_status_column].formula = my_issue['status']
+        thistab[currrow,req_download_value_column].value = value
+        thistab[currrow,req_download_chapter_column].value = my_issue['chapter'].replace(thisprefix+'-','')
+        thistab[currrow,req_download_status_column].value = my_issue['status']
         thistab[currrow,req_download_bdid_column].value = my_issue['id']
         try:
             # if idstr is a number, we will ignore leading zeroes
@@ -300,10 +300,10 @@ for my_issue in reqlist:
             thistab[currrow,req_download_rqid_column].value = idstr
         
         if (current_version is not None):
-            thistab[currrow,req_download_target_column].formula = current_version
+            thistab[currrow,req_download_target_column].value = current_version
 
         if current_parent is not None:
-            thistab[currrow,req_download_parent_column].formula = parent_issue['subject']
+            thistab[currrow,req_download_parent_column].value = parent_issue['subject']
 
             
         # Busco las relaciones en las que es destinatario
@@ -326,16 +326,16 @@ for my_issue in reqlist:
             relstr += relissue['subject']
             
         if not firstrel:
-            thistab[currrow,req_download_related_column].formula = relstr
+            thistab[currrow,req_download_related_column].value = relstr
 
 
         current_row[thisdoc] = currrow + 1    
 
         if (my_issue['type'] != 'Info'):        
-            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_id_column].formula = my_issue['subject']
-            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_title_column].formula = my_issue['title']
+            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_id_column].value = my_issue['subject']
+            rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_title_column].value = my_issue['title']
             if not firstrel:
-                rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_related_column].formula = relstr
+                rpdeptab[rpdeptab_row_idx,req_download_rpdeptab_related_column].value = relstr
 
             rpdeptab_row_idx = rpdeptab_row_idx +1
 
