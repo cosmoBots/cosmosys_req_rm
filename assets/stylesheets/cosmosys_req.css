@@ -1,3 +1,24 @@
+
+div > table {
+  background-color: aliceblue;
+  border-spacing: 0px;
+}
+div > table > thead{
+  background-color: lightblue;
+  border-spacing: 0px;
+}
+div > table > tbody > tr > td {
+  border-style: solid;
+  border-width: 0.5px;
+  border-spacing: 0px;
+}
+
+div > table > thead > tr > th {
+  border-style: solid;
+  border-width: 0.5px;
+  border-spacing: 0px;
+}
+
 td.cf_1.string {
     font-weight: bold;
 }
