@@ -61,7 +61,7 @@ class CosmosysReqBase < ActiveRecord::Base
   @@req_maturity_propagation = ['RqZombie','RqDraft','RqStable','RqApproved']
 
   def self.invisible?(i)
-    return @@req_status_maturity[rel_issue.status.name.to_sym] == 0
+    return @@req_status_maturity[i.status.name.to_sym] == 0
   end
   def self.invisible_from_id?(id)
     i = Issue.find(id)
