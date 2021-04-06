@@ -339,31 +339,35 @@ class CosmosysReqBase < ActiveRecord::Base
   end
 
   def self.to_graphviz_depcluster(cl,n,isfirst,torecalc,root_url)
-    if not(self.invisible?(n)) then  
+    if not(self.invisible?(n)) then
       if ((n.tracker == @@reqdoctracker) or (n.custom_values.find_by_custom_field_id(@@cftype.id).value == "Info")) then
         shapestr = "record"
         desc = self.get_descendents(n)
         added_nodes = []
         desc.each { |e|
-            if (e.relations.size>0) then
+        if not(self.invisible?(e)) then
+          if (e.relations.size>0) then
               labelstr = "{"+e.subject+"|"+word_wrap(e.custom_values.find_by_custom_field_id(@@cftitle.id).value, line_width: 12) + "}"      
               e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
                 :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => shapestr,
                 :URL => root_url + "/issues/" + e.id.to_s)
               e.relations_from.each {|r|
-                if (not(desc.include?(r.issue_to))) then
-                  if (not(added_nodes.include?(r.issue_to))) then
-                    added_nodes.append(r.issue_to)
-                    ext_node = cl.add_nodes(r.issue_to.id.to_s,
-                      :URL => root_url + "/issues/" + r.issue_to.id.to_s)
+                if not(self.invisible?(r.issue_to)) then
+                  if (not(desc.include?(r.issue_to))) then
+                    if (not(added_nodes.include?(r.issue_to))) then
+                      added_nodes.append(r.issue_to)
+                      ext_node = cl.add_nodes(r.issue_to.id.to_s,
+                        :URL => root_url + "/issues/" + r.issue_to.id.to_s)
+                    end
                   end
+                  cl.add_edges(e_node, r.issue_to_id.to_s, :color => 'blue')
                 end
-                cl.add_edges(e_node, r.issue_to_id.to_s, :color => 'blue')
               }
             end
+          end
         }
         return cl,torecalc
-      else 
+      else
         if (self.dependence_validation(n)) then
           colorstr = 'black'
         else
@@ -374,30 +378,33 @@ class CosmosysReqBase < ActiveRecord::Base
           :URL => root_url + "/issues/" + n.id.to_s)
         siblings_counter = 0
         n.relations_from.each{|dwn|
-          if (siblings_counter < @@max_graph_siblings) then
-            cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, 1, false)
-          else
-            if (siblings_counter <= @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, 1, true)
+          if not(self.invisible?(dwn.issue_to)) then 
+            if (siblings_counter < @@max_graph_siblings) then
+              cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, 1, false)
+            else
+              if (siblings_counter <= @@max_graph_siblings) then
+                cl,torecalc=self.to_graphviz_depdwn(cl,n_node,n,dwn.issue_to,isfirst,torecalc,root_url, 1, true)
+              end
             end
+            siblings_counter += 1
           end
-          siblings_counter += 1
         }
         siblings_counter = 0      
         n.relations_to.each{|upn|
-          
-          if (siblings_counter < @@max_graph_siblings) then
-            cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, 1, false)
-          else
-            if (siblings_counter <= @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, 1, true)
+          if not(self.invisible?(upn.issue_from)) then 
+            if (siblings_counter < @@max_graph_siblings) then
+              cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, 1, false)
+            else
+              if (siblings_counter <= @@max_graph_siblings) then
+                cl,torecalc=self.to_graphviz_depupn(cl,n_node,n,upn.issue_from,isfirst,torecalc,root_url, 1, true)
+              end
             end
-          end
-          siblings_counter += 1        
+            siblings_counter += 1
+          end      
         }
       end
-      return cl,torecalc
     end    
+    return cl,torecalc
   end
 
   def self.to_graphviz_depgraph(n,isfirst,torecalc,root_url)
