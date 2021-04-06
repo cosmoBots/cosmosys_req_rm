@@ -51,75 +51,84 @@
 
 	roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}
 	roots.each { |i| 
-		classdiv,chapstr,title = compute_link(i)
+		if not(CosmosysReqBase.invisible?(i)) then
+			classdiv,chapstr,title = compute_link(i)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i.id %>">
 <h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
 <% i.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i2| 
-		classdiv,chapstr,title = compute_link(i2)
+		if not(CosmosysReqBase.invisible?(i2)) then
+			classdiv,chapstr,title = compute_link(i2)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i2.id %>">
 <h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
 <% i2.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i3| 
-		classdiv,chapstr,title = compute_link(i3)
+		if not(CosmosysReqBase.invisible?(i3)) then
+			classdiv,chapstr,title = compute_link(i3)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i3.id %>" >
 <h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
 <% i3.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i4| 
-		classdiv,chapstr,title = compute_link(i4)
+		if not(CosmosysReqBase.invisible?(i4)) then
+			classdiv,chapstr,title = compute_link(i4)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i4.id %>" >
 <h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
 <% i4.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i5| 
-		classdiv,chapstr,title = compute_link(i5)
+		if not(CosmosysReqBase.invisible?(i5)) then
+			classdiv,chapstr,title = compute_link(i5)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i5.id %>" >
 <h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
 <% i5.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i6| 
-		classdiv,chapstr,title = compute_link(i6)
+		if not(CosmosysReqBase.invisible?(i6)) then
+			classdiv,chapstr,title = compute_link(i6)
 	%>
 <div class="<%= classdiv %>"  id="Req-<%= i6.id %>">
 <h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
 <% i6.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i7| 
-		classdiv,chapstr,title = compute_link(i7)
+		if not(CosmosysReqBase.invisible?(i7)) then
+			classdiv,chapstr,title = compute_link(i7)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i7.id %>">
 <h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
 <% i7.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i8| 
-		classdiv,chapstr,title = compute_link(i8)
+		if not(CosmosysReqBase.invisible?(i8)) then
+			classdiv,chapstr,title = compute_link(i8)
 	%>
 <div class="<%= classdiv %>" id="Req-<%= i8.id %>">
 <h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
 <% i8.children.sort_by{|obj| obj.custom_values.find_by_custom_field_id(CosmosysReqBase.cfchapter.id).value}.each { |i9| 
-		classdiv,chapstr,title = compute_link(i9)
+		if not(CosmosysReqBase.invisible?(i9)) then
+			classdiv,chapstr,title = compute_link(i9)
 	%>
 <div class="<%= classdiv %>">
 <h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i9, :description %></div>
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>	
+<% end } %>	
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>
+<% end } %>
 </div>
-<% } %>
+<% end } %>
 
