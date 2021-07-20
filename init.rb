@@ -1,43 +1,16 @@
 Redmine::Plugin.register :cosmosys_req do
-  name 'cosmoSys-Req plugin'
-  author 'cosmoBots.eu'
-  description 'This plugin converts a Redmine server in a cosmSys-Req one'
-  version '0.1.0'
-  url 'http://cosmobots.eu/projects/csysreq/wiki'
-  author_url 'http://cosmobots.eu/'
+  name 'Cosmosys Req plugin'
+  author 'Txinto Vaz'
+  description 'This is a plugin for Redmine, which converts a cosmoSys instance into a cosmoSys-Req instance'
+  version '0.2.0'
+  url 'http://cosmobots.eu'
+  author_url 'http://cosmobots.eu'
 
-
-  permission :view_cosmosys, :cosmosys_reqs => :project_menu
-  permission :tree_cosmosys, :cosmosys_reqs => :tree
-  permission :download_cosmosys, :cosmosys_reqs => :download
-  permission :dstopexport_cosmosys, :cosmosys_reqs => :dstopexport
-  permission :dstopimport_cosmosys, :cosmosys_reqs => :dstopimport
-  permission :propagate_cosmosys, :cosmosys_reqs => :propagate
-  permission :report_cosmosys, :cosmosys_reqs => :report
-  permission :upload_cosmosys, :cosmosys_reqs => :upload
-  permission :validate_cosmosys, :cosmosys_reqs => :validate
-  permission :create_repo, :cosmosys_reqs => :create_repo
-  permission :show_cosmosys, :cosmosys_reqs => :show
-
-  menu :project_menu, :cosmosys_reqs, {:controller => 'cosmosys_reqs', :action => 'project_menu' }, :caption => 'cosmoSys-Req', :after => :activity, :param => :id
-  menu :project_menu, :cosmosys_req_tree, {:controller => 'cosmosys_reqs', :action => 'tree' }, :caption => 'ReqTree', :after => :issues, :param => :id
-  menu :project_menu, :cosmosys_show, {:controller => 'cosmosys_reqs', :action => 'show' }, :caption => 'ReqShow', :after => :issues, :param => :id
-
-  settings :default => {
-    'repo_local_path' => "/home/redmine/repos/req_%project_id%",
-    'repo_server_sync' => :false,
-    'repo_server_path'  => 'http://gitlab/reqs/req_%project_id%.git',
-    'repo_template_id'  => 'template',
-    'repo_redmine_path' => "/home/redmine/repos_redmine/req_%project_id%.git",
-    'repo_redmine_sync' => :true,
-    'relative_uploadfile_path' => "uploading/RqUpload.ods",
-    'relative_downloadfile_path' => "downloading/RqDownload.ods",
-    'relative_reporting_path' => "reporting",
-    'relative_img_path' => "reporting/doc/img"
-  }, :partial => 'settings/cosmosys_req_settings'
+  requires_redmine_plugin :cosmosys, :version_or_higher => '0.0.2'
+  requires_redmine_plugin :cosmosys_git, :version_or_higher => '0.0.2'
 
   require 'cosmosys_req'
+
   # Patches to the Redmine core.
-  require 'application_helper_patch'  
-  require 'issue_patch'  
+  require 'cosmosys_issue_patch'  
 end
