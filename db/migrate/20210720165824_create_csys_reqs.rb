@@ -86,10 +86,10 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 		# Statuses
 		stdraft = IssueStatus.create!(:name => 'rqDraft', :is_closed => false)
 		ststable = IssueStatus.create!(:name => 'rqStable', :is_closed => false)
-		stapproved = IssueStatus.create!(:name => 'rqApproved', :is_closed => false)
+		stapproved = IssueStatus.create!(:name => 'rqApproved', :is_closed => true)
 		strejected = IssueStatus.create!(:name => 'rqRejected', :is_closed => false)
-		sterased = IssueStatus.create!(:name => 'rqErased', :is_closed => true)
-		stzombie = IssueStatus.create!(:name => 'rqZombie', :is_closed => true)
+		sterased = IssueStatus.create!(:name => 'rqErased', :is_closed => false)
+		stzombie = IssueStatus.create!(:name => 'rqZombie', :is_closed => false)
 
 		rqstatuses = [stdraft, ststable, stapproved, strejected, sterased, stzombie]
 
