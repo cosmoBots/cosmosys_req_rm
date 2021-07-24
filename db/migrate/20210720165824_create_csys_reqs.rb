@@ -1,5 +1,6 @@
 class CreateCsysReqs < ActiveRecord::Migration[5.2]
   def up
+
     create_table :csys_reqs do |t|
       t.integer :cosmosys_issue_id, foreign_key: true      
     end
@@ -87,6 +88,8 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 			:csys_menu
 		]
 
+		rqroles = [writer,reviewer,reader,manager]
+
 		# Statuses
 		stdraft = IssueStatus.create!(:name => 'rqDraft', :is_closed => false)
 		ststable = IssueStatus.create!(:name => 'rqStable', :is_closed => false)
@@ -145,6 +148,19 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
       }
     }
 
+	# Let's make the new roles to respect cosmosys cf permissions
+	csid = IssueCustomField.find_by_name('csID')
+	cschapter = IssueCustomField.find_by_name('csChapter')
+	rqroles.each{|r|
+		Tracker.all.each{|tr|
+			IssueStatus.all.each{|s|
+				WorkflowPermission.create(:role_id => r.id, :tracker_id => tr.id, :old_status_id => s.id, :field_name => csid.id, :rule => "readonly")
+				WorkflowPermission.create(:role_id => r.id, :tracker_id => tr.id, :old_status_id => s.id, :field_name => cschapter.id, :rule => "readonly")
+			}
+		}
+	}
+
+
 	rqtypefield = IssueCustomField.create!(:name => 'rqType', 
 		:field_format => 'list', :possible_values => ['Info', 'Complex','Opt','Mech','Hw','Sw'], 
 		:is_filter => true, :is_required => true,
@@ -185,12 +201,38 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 			field_name: fn)
 	end
 
+=begin	
+	#  This is here for debugging
+	rqtypefield = IssueCustomField.find_by_name('rqType')
+    rqlevelfield = IssueCustomField.find_by_name('rqLevel')
+    rqrationalefield = IssueCustomField.find_by_name('rqRationale')
+    rqsrcfield = IssueCustomField.find_by_name('rqSources')
+    rqvarfield = IssueCustomField.find_by_name('rqVar')
+	rqvaluefield = IssueCustomField.find_by_name('rqValue')
+
+	t = Tracker.find_by_name("rq")
+	stdraft = IssueStatus.find_by_name("rqDraft")
+=end
 	# If it is a requirement, belongs to the project it belongs, forever
 	WorkflowTransition.all.each{|wft|
 		if (wft.tracker == t) then
 			ro_field(wft.tracker_id,"project_id",wft.role_id,wft.old_status_id,wft.new_status_id)
+			if wft.old_status_id != stdraft.id then
+				# We ar not in the draft status, so we have to block all the requirements fields
+				ro_field(wft.tracker_id,"subject",wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,"description",wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,"tracker_id",wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,rqtypefield.id,wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,rqlevelfield.id,wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,rqrationalefield.id,wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,rqsrcfield.id,wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,rqvarfield.id,wft.role_id,wft.old_status_id,wft.new_status_id)
+				ro_field(wft.tracker_id,rqvaluefield.id,wft.role_id,wft.old_status_id,wft.new_status_id)				
+			end
 		end
 	}
+
+
 
 	# Adapting cosmosys custom fields to work with req tracker
 	cfid = IssueCustomField.find_by_name("csID")
