@@ -105,6 +105,12 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 			:is_in_chlog => true,  :is_in_roadmap => true)    
 
     # Writer transitions
+=begin	
+		# Creemos que no hace falta	
+    WorkflowTransition.create!(:tracker_id => t.id,
+      :role_id => writer.id, :old_status_id => 0, 
+      :new_status_id => stdraft.id)
+=end
     WorkflowTransition.create!(:tracker_id => t.id,
       :role_id => writer.id, :old_status_id => stdraft.id, 
       :new_status_id => ststable.id)
@@ -139,7 +145,13 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
       :new_status_id => strejected.id)
 
     # Manager transitions
-    rqstatuses.each { |os|
+=begin	
+		# Creemos que no hace falta
+    WorkflowTransition.create!(:tracker_id => t.id,
+      :role_id => manager.id, :old_status_id => 0, 
+      :new_status_id => stdraft.id)	
+=end
+    rqstatuses.each { |os|	
       rqstatuses.each { |ns|
         WorkflowTransition.create!(:tracker_id => t.id, 
           :role_id => manager.id, 
