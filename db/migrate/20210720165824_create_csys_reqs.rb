@@ -15,7 +15,8 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 		manager.save!
 
 		writer = Role.create!  :name => 'rqWriter',
-		:permissions => [:manage_versions,
+		:permissions => [
+			:manage_versions,
 			:manage_categories,
 			:view_issues,
 			:add_issues,
@@ -49,7 +50,9 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 		]
 
     reviewer = Role.create! :name => 'rqReviewer',
-		:permissions => [:view_issues,
+		:permissions => [
+			:view_issues,
+			:edit_issues,			
 			:add_issue_notes,
 			:save_queries,
 			:view_documents,
