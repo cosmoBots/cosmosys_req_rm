@@ -241,7 +241,7 @@ class CreateCosmosysReqBases < ActiveRecord::Migration[5.2]
 			:default_value => '', :is_required => false, 
 			:is_filter => false, :searchable => true, 
 			:visible => true, :role_ids => [],
-			:full_width_layout => true, :text_formatting => "full",
+			:full_width_layout => "1", :text_formatting => "full",
 			:is_for_all => true, :tracker_ids => [rqtrck.id])
 
 		rqsrcfield = IssueCustomField.create!(:name => 'RqSources', 
