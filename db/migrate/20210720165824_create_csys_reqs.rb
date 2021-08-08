@@ -43,6 +43,7 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 			:csys_up,
 			:csys_show,
 			:csys_treeview,
+			:csys_treeview_commit,
 			:csys_tree,
 			:csys_menu,
 			:csys_git_menu,
