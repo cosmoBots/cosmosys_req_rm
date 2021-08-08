@@ -22,9 +22,9 @@ module CosmosysIssuePatch
   
   module InstanceMethods
 
-    def csys_req
+    def req
       if self.csys_req == nil then
-        CosmosysReq.create!(cosmosys_issue:self)
+        CsysReq.create!(cosmosys_issue:self)
       end      
       self.csys_req
     end
@@ -38,3 +38,9 @@ end
 # Add module to Issue
 CosmosysIssue.send(:include, CosmosysIssuePatch)
 
+module CosmosysIssueOverwritePatch
+  def dependence_validation
+    self.req.dependence_validation
+  end      
+end
+CosmosysIssue.send(:prepend, CosmosysIssueOverwritePatch)
