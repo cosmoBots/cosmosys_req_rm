@@ -11,13 +11,13 @@ class CsysReq < ActiveRecord::Base
         'rqZombie': 0
       }
     
-    def dependence_validation
+    def is_valid?
         result = true
         i = self.cosmosys_issue.issue
         if (i.tracker == @@reqtracker) then
             i.relations_to.each{|r|
             rel_issue = r.issue_from
-            result = rel_issue.dependence_validation
+            result = rel_issue.csys.is_valid?
             if (result) then
                 if (@@req_status_maturity[rel_issue.status.name.to_sym] < 
                     @@req_status_maturity[i.status.name.to_sym]) then
