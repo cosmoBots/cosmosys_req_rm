@@ -1,0 +1,14 @@
+<% 
+ %>
+<%= stylesheet_link_tag 'cosmosys_req', plugin: 'cosmosys_req' %>
+<div class="req-content">
+  <button class="reqtablink" onclick="openReqTab('Analysis', this, 'green')">Analysis</button>
+  <button class="reqtablink" onclick="openReqTab('Actions', this, 'green')" id="defaultOpenReqTab">Actions</button>
+  <div id="Analysis" class="reqtabcontent">
+  <h2>Analysis</h2>
+  </div>
+  <div id="Actions" class="reqtabcontent">
+  <h2>Actions</h2>
+  </div>
+</div>
+<%= javascript_include_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
