@@ -47,7 +47,8 @@ class CreateCsysReqs < ActiveRecord::Migration[5.2]
 			:csys_tree,
 			:csys_menu,
 			:csys_git_menu,
-			:csys_git_report
+			:csys_git_report,
+			:csys_req_derive
 		]
 
     reviewer = Role.create! :name => 'rqReviewer',

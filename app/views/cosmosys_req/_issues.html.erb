@@ -8,7 +8,16 @@
   <h2>Analysis</h2>
   </div>
   <div id="Actions" class="reqtabcontent">
-  <h2>Actions</h2>
+  <%= form_tag({:controller => 'csys_req', :action => 'derive'}, :class => "tabular", :multipart => true) do %>
+    <p>
+      <label><%= "Select the number of derived requirements to create" %> </label>
+      <%= select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>") %>
+    </p>
+  <%= submit_tag l(:button_derive) %>
+  <% end %>
+
   </div>
 </div>
 <%= javascript_include_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
+
+

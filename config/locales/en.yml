@@ -201,3 +201,5 @@ en:
   label_blocked_by: Blocked by
   label_precedes: Precedes
   label_follows: Follows
+
+  button_derive: Derive!

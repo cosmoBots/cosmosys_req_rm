@@ -9,6 +9,8 @@ Redmine::Plugin.register :cosmosys_req do
   requires_redmine_plugin :cosmosys, :version_or_higher => '0.0.2'
   requires_redmine_plugin :cosmosys_git, :version_or_higher => '0.0.2'
 
+  permission :csys_req_derive, :csys_req => :derive
+
   require 'cosmosys_req'
 
   # Patches to the Redmine core.

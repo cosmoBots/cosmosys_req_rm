@@ -1,5 +1,3 @@
-
-
 .reqtablink {
   background-color: #555;
   color: white;
@@ -16,8 +14,8 @@
 
 /* Style the tab content */
 .reqtabcontent {
-  color: white;
-  display: none;
-  padding: 50px;
+  color: rgb(31, 2, 58);
+  display: block;
+  padding: 5px;
   text-align: center;
 }
