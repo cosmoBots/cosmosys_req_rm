@@ -40,7 +40,7 @@ class CsysReq < ActiveRecord::Base
             }
             return result 
         else
-            return super
+            return true
         end
         #print("\n\nResult: "+result.to_s)
     end
