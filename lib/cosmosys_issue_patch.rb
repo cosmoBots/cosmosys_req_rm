@@ -44,17 +44,62 @@ module CosmosysIssueOverwritePatch
   end
   
   def is_chapter?
-    cftype = IssueCustomField.find_by_name('rqType')
-    rqtypevalues = self.issue.custom_values.where(custom_field_id: cftype.id)
-    if (rqtypevalues.size == 0) then
-      ret = self.issue.children.size > 0
+    if self.issue.tracker.name == "rq" then
+      cftype = IssueCustomField.find_by_name('rqType')
+      rqtypevalues = self.issue.custom_values.where(custom_field_id: cftype.id)
+      if (rqtypevalues.size == 0) then
+        ret = self.issue.children.size > 0
+      else
+        ret = rqtypevalues.first.value == 'Info'
+      end
+      return ret
     else
-      ret = rqtypevalues.first.value == 'Info'
+      super
     end
-    return ret
   end
 
-  def get_label_chapter
+  def shall_show_id
+    if self.issue.tracker.name == "prSys" or 
+      self.issue.tracker.name === "prParam" or 
+      self.issue.tracker.name == "prMode" then
+      return true
+    else
+      if self.issue.tracker.name == "prValue" or 
+        self.issue.tracker.name == "prValFloat" or 
+        self.issue.tracker.name == "prValText" then 
+        return false
+      else
+        return not(self.is_chapter?)
+      end
+    end
+  end
+
+  def get_fill_color
+    i = self.issue
+    if i.tracker.name == "prSys"
+      colorstr = "white"
+    else
+      if self.issue.tracker.name === "prParam" then
+        colorstr = "aquamarine"
+      else
+        if self.issue.tracker.name == "prValue" or 
+          self.issue.tracker.name == "prValFloat" or 
+          self.issue.tracker.name == "prValText" then 
+          colorstr = "lightblue"
+        else
+          if self.issue.tracker.name == "prMode" then
+            colorstr = "orange"
+          else
+            colorstr = self.inner_get_fill_color
+          end
+        end
+      end
+    end
+    return colorstr
+  end
+
+
+  def get_label_noid
     self.class.word_wrap(self.issue.subject, line_width: 12)
   end
 
