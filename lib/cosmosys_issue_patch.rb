@@ -61,16 +61,13 @@ module CosmosysIssueOverwritePatch
   def shall_show_id
     if self.issue.tracker.name == "prSys" or 
       self.issue.tracker.name === "prParam" or 
-      self.issue.tracker.name == "prMode" then
+      self.issue.tracker.name == "prMode" or 
+      self.issue.tracker.name == "prValue" or 
+      self.issue.tracker.name == "prValFloat" or 
+      self.issue.tracker.name == "prValText" then 
       return true
     else
-      if self.issue.tracker.name == "prValue" or 
-        self.issue.tracker.name == "prValFloat" or 
-        self.issue.tracker.name == "prValText" then 
-        return false
-      else
         return not(self.is_chapter?)
-      end
     end
   end
 
@@ -80,15 +77,15 @@ module CosmosysIssueOverwritePatch
       colorstr = "white"
     else
       if self.issue.tracker.name === "prParam" then
-        colorstr = "aquamarine"
+        colorstr = "darkseagreen1"
       else
         if self.issue.tracker.name == "prValue" or 
           self.issue.tracker.name == "prValFloat" or 
           self.issue.tracker.name == "prValText" then 
-          colorstr = "lightblue"
+          colorstr = "lightcyan"
         else
           if self.issue.tracker.name == "prMode" then
-            colorstr = "orange"
+            colorstr = "moccasin"
           else
             colorstr = self.inner_get_fill_color
           end
@@ -98,15 +95,73 @@ module CosmosysIssueOverwritePatch
     return colorstr
   end
 
-
-  def get_label_noid
-    self.class.word_wrap(self.issue.subject, line_width: 12)
+  def get_valuestr(cfname)
+    cftype = IssueCustomField.find_by_name(cfname)
+    if cftype != nil then
+      cfvalues = self.issue.custom_values.where(custom_field_id: cftype.id)
+      if cfvalues.size > 0 then
+        ret = cfvalues.first.to_s
+      else
+        ret = "?"
+      end
+    else
+      ret = "?"
+    end
+    return ret
   end
 
-=begin
+  def get_ancestor_based_label
+    i = self.issue
+    if i.tracker.name == "prValFloat" then
+      if i.parent != nil then
+        minval = get_valuestr("prMin")
+        defval = get_valuestr("prDefault")
+        maxval = get_valuestr("prMax")
+        ret = "{ "+i.parent.subject+":"+self.class.word_wrap(i.subject, line_width: 12) + "|{"+minval+"|"+defval+"|"+maxval+"}}"
+      else
+        ret = "{<?>|"+self.class.word_wrap(i.subject, line_width: 12) + "}"
+      end
+    else
+      if i.parent != nil then
+        ret = "{ "+i.parent.subject+"|"+self.class.word_wrap(i.subject, line_width: 12) + "}"
+      else
+        ret = "{<?>|"+self.class.word_wrap(i.subject, line_width: 12) + "}"
+      end
+      end        
+    return ret
+  end
+
+  def get_ancestor_based_norecord_label
+    i = self.issue
+    if i.parent != nil then
+      ret = i.parent.subject+":"+self.class.word_wrap(i.subject, line_width: 12)
+    else
+      ret = "<?>:"+self.class.word_wrap(i.subject, line_width: 12)
+    end
+    if i.tracker.name == "prValFloat" then
+      ret += ":[min|def|max]"
+    end
+    return ret    
+  end
+  
   def get_label_issue
-    "{ "+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"
+    i = self.issue
+    trname = i.tracker.name
+    if trname == "prParam" or trname == "prSys" then
+      ret = get_ancestor_based_label
+    else
+      if trname == "prValue" or trname == "prValFloat" or trname == "prValText" then 
+        ret = get_ancestor_based_label
+      else
+        if trname == "prMode" then
+          ret = get_ancestor_based_label
+        else
+          ret = inner_get_label_issue
+        end
+      end
+    end
+    return ret
   end
-=end
+
 end
 CosmosysIssue.send(:prepend, CosmosysIssueOverwritePatch)
