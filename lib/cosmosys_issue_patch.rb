@@ -110,33 +110,50 @@ module CosmosysIssueOverwritePatch
     return ret
   end
 
-  def get_ancestor_based_label
+  def get_ancestor_based_label(baseproj,boundary_node=false)
     i = self.issue
+    prependstr = ""
+    if (baseproj != i.project) then
+      prependstr = "+"
+    else
+      if (boundary_node) then
+        prependstr = "*"
+      end
+    end
     if i.tracker.name == "prValFloat" then
       if i.parent != nil then
         minval = get_valuestr("prMin")
         defval = get_valuestr("prDefault")
         maxval = get_valuestr("prMax")
-        ret = "{ "+i.parent.subject+":"+self.class.word_wrap(i.subject, line_width: 12) + "|{"+minval+"|"+defval+"|"+maxval+"}}"
+        ret = "{ "+prependstr+i.parent.subject+":"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "|{"+minval+"|"+defval+"|"+maxval+"}}"
       else
-        ret = "{<?>|"+self.class.word_wrap(i.subject, line_width: 12) + "}"
+        ret = "{"+prependstr+"<?>|"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "}"
       end
     else
       if i.parent != nil then
-        ret = "{ "+i.parent.subject+"|"+self.class.word_wrap(i.subject, line_width: 12) + "}"
+        ret = "{ "+prependstr+i.parent.subject+"|"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "}"
       else
-        ret = "{<?>|"+self.class.word_wrap(i.subject, line_width: 12) + "}"
+        ret = "{"+prependstr+"<?>|"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "}"
       end
       end        
     return ret
   end
 
-  def get_ancestor_based_norecord_label
+  def get_ancestor_based_norecord_label(baseproj,boundary_node=false)
     i = self.issue
-    if i.parent != nil then
-      ret = i.parent.subject+":"+self.class.word_wrap(i.subject, line_width: 12)
+    prependstr = ""
+    prependstr = ""
+    if (baseproj != i.project) then
+      prependstr = "+"
     else
-      ret = "<?>:"+self.class.word_wrap(i.subject, line_width: 12)
+      if (boundary_node) then
+        prependstr = "*"
+      end
+    end
+    if i.parent != nil then
+      ret = prependstr+i.parent.subject+":"+self.class.word_wrap(prependstr+i.subject, line_width: 12)
+    else
+      ret = prependstr+"<?>:"+self.class.word_wrap(prependstr+i.subject, line_width: 12)
     end
     if i.tracker.name == "prValFloat" then
       ret += ":[min|def|max]"
@@ -144,19 +161,19 @@ module CosmosysIssueOverwritePatch
     return ret    
   end
   
-  def get_label_issue
+  def get_label_issue(baseproj,boundary_node=false)
     i = self.issue
     trname = i.tracker.name
     if trname == "prParam" or trname == "prSys" then
-      ret = get_ancestor_based_label
+      ret = get_ancestor_based_label(baseproj,boundary_node)
     else
       if trname == "prValue" or trname == "prValFloat" or trname == "prValText" then 
-        ret = get_ancestor_based_label
+        ret = get_ancestor_based_label(baseproj,boundary_node)
       else
         if trname == "prMode" then
-          ret = get_ancestor_based_label
+          ret = get_ancestor_based_label(baseproj,boundary_node)
         else
-          ret = inner_get_label_issue
+          ret = inner_get_label_issue(baseproj,boundary_node)
         end
       end
     end
