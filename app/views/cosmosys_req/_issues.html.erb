@@ -2,12 +2,15 @@
  %>
 <%= stylesheet_link_tag 'cosmosys_req', plugin: 'cosmosys_req' %>
 <div class="req-content">
-  <button class="reqtablink" onclick="openReqTab('Analysis', this, 'green')">Analysis</button>
   <button class="reqtablink" onclick="openReqTab('Actions', this, 'green')" id="defaultOpenReqTab">Actions</button>
+  <button class="reqtablink" onclick="openReqTab('Analysis', this, 'green')">Analysis</button>
   <div id="Analysis" class="reqtabcontent">
   <h2>Analysis</h2>
   </div>
   <div id="Actions" class="reqtabcontent">
+  <table>
+  <tr><td>Derive</td><td>Clone item</td><td>Clone subtree</td></tr>
+  <tr><td>
   <%= form_tag({:controller => 'csys_req', :action => 'derive'}, :class => "tabular", :multipart => true) do %>
     <p>
       <label><%= "Select the number of derived requirements to create" %> </label>
@@ -15,13 +18,15 @@
     </p>
   <%= submit_tag l(:button_derive) %>
   <% end %>
+  </td><td>
   <%= form_tag({:controller => 'csys_req', :action => 'clone'}, :class => "tabular", :multipart => true) do %>
     <p>
       <label><%= "Press the button to clone this item with its same relationships and parent" %> </label>
     </p>
   <%= submit_tag l(:button_clone) %>
   <% end %>
-
+  </td><td>TODO...</td></tr>
+  </table>
   </div>
 </div>
 <%= javascript_include_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
