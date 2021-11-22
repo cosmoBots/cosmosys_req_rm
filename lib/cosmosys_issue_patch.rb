@@ -125,7 +125,7 @@ module CosmosysIssueOverwritePatch
         minval = get_valuestr("prMin")
         defval = get_valuestr("prDefault")
         maxval = get_valuestr("prMax")
-        ret = "{ "+prependstr+i.parent.subject+"/\n"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "|{"+minval+"|"+defval+"|"+maxval+"}}"
+        ret = "{{ "+prependstr+i.parent.subject+"|"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "}|{"+minval+"|"+defval+"|"+maxval+"}}"
       else
         ret = "{"+prependstr+"<?>|"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "}"
       end
@@ -151,7 +151,7 @@ module CosmosysIssueOverwritePatch
       end
     end
     if i.parent != nil then
-      ret = prependstr+i.parent.subject+"/\n"+self.class.word_wrap(prependstr+i.subject, line_width: 12)
+      ret = prependstr+i.parent.subject+"|"+self.class.word_wrap(prependstr+i.subject, line_width: 12)
     else
       ret = prependstr+"<?>:"+self.class.word_wrap(prependstr+i.subject, line_width: 12)
     end
