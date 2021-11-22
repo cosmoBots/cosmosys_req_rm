@@ -22,7 +22,8 @@ module CosmosysTrackerPatch
           'own' => 'blue',
         },
         :issue_shape => 'record',
-        :chapter_shape => 'note'
+        :chapter_shape => 'note',
+        :deprankdir => 'LR'
       }
     else
       if self.tracker.name == "prSys" then
@@ -45,7 +46,8 @@ module CosmosysTrackerPatch
             'own' => 'black',
           },
           :issue_shape => 'record',
-          :chapter_shape => 'note'
+          :chapter_shape => 'note',
+          :deprankdir => 'RL'
         }
       else
         if self.tracker.name == "prParam" then
@@ -68,7 +70,8 @@ module CosmosysTrackerPatch
               'own' => 'black',
             },        
             :issue_shape => 'record',
-            :chapter_shape => 'note'
+            :chapter_shape => 'note',
+            :deprankdir => 'RL'
           }
         else
           if self.tracker.name == "prMode" then
@@ -91,7 +94,8 @@ module CosmosysTrackerPatch
                 'own' => 'black',
               },        
               :issue_shape => 'Mrecord',
-              :chapter_shape => 'note'
+              :chapter_shape => 'note',
+              :deprankdir => 'RL'
             }
           else
             if self.tracker.name == "prValFloat" or 
@@ -116,7 +120,8 @@ module CosmosysTrackerPatch
                     'own' => 'black',
                   },        
                   :issue_shape => 'record',
-                  :chapter_shape => 'note'
+                  :chapter_shape => 'note',
+                  :deprankdir => 'RL'
                 }
             else
               super

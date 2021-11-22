@@ -28,8 +28,8 @@ class CsysReq < ActiveRecord::Base
                                 if (@@req_status_maturity[rel_issue.status.name.to_sym] < 
                                     @@req_status_maturity[i.status.name.to_sym]) then
                                 #print("\n\n**************")
-                                #print(i.id,": ",i.subject,": ",i.status,":",@@req_status_maturity[i.status.name].to_s)
-                                #print("\t-",r.relation_type,"-> ",rel_issue.subject," : ",rel_issue.status,":",@@req_status_maturity[rel_issue.status.name].to_s)
+                                #print(i.id,": ",i.subject,": ",i.status,"/\n",@@req_status_maturity[i.status.name].to_s)
+                                #print("\t-",r.relation_type,"-> ",rel_issue.subject," : ",rel_issue.status,"/\n",@@req_status_maturity[rel_issue.status.name].to_s)
                                 #print("xxxxxxxxxxxx: Error.  el requisito dependiente está en estado ",i.status," mientras el requisito del que depende está en estado ",rel_issue.status)
                                 result = false
                                 end
