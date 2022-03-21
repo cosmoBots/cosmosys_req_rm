@@ -14,7 +14,7 @@ module CosmosysTrackerPatch
           'blocks' => true,
           'precedes' => true,
           'relates' => true,
-          'copied_to' => false
+          'copied_to' => true
         },
         :issue_color => {
           'normal' => 'black',
@@ -23,6 +23,7 @@ module CosmosysTrackerPatch
         },
         :issue_shape => 'record',
         :chapter_shape => 'note',
+        :hierankdir => 'TB',   
         :deprankdir => 'LR'
       }
     else
@@ -47,6 +48,7 @@ module CosmosysTrackerPatch
           },
           :issue_shape => 'record',
           :chapter_shape => 'note',
+          :hierankdir => 'TB',
           :deprankdir => 'RL'
         }
       else
@@ -71,6 +73,7 @@ module CosmosysTrackerPatch
             },        
             :issue_shape => 'record',
             :chapter_shape => 'note',
+            :hierankdir => 'TB',
             :deprankdir => 'RL'
           }
         else
@@ -95,6 +98,7 @@ module CosmosysTrackerPatch
               },        
               :issue_shape => 'Mrecord',
               :chapter_shape => 'note',
+              :hierankdir => 'TB',
               :deprankdir => 'RL'
             }
           else
@@ -121,6 +125,7 @@ module CosmosysTrackerPatch
                   },        
                   :issue_shape => 'record',
                   :chapter_shape => 'note',
+                  :hierankdir => 'TB',
                   :deprankdir => 'RL'
                 }
             else

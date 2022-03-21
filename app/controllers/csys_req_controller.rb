@@ -6,7 +6,7 @@ class CsysReqController < ApplicationController
       print("derive GET!!!!!")
     else
       print("derive POST!!!!!")
-      if @issue.tracker == "rq" then
+      if @issue.tracker.name == "rq" then
         cftype = IssueCustomField.find_by_name("rqType")
         thistype = @issue.custom_values.where(custom_field: cftype).first.value
         if thistype != nil then
