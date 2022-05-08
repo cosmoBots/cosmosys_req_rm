@@ -1,6 +1,25 @@
 require_dependency 'cosmosys_tracker'
 
 module CosmosysTrackerPatch
+
+  def childrentype
+    if self.tracker.name == "rq" then
+      return ["rq"]
+    else
+      if self.tracker.name == "prSys" then
+        return ["prSys","prParam","prMode"]
+      else
+        if self.tracker.name == "prParam" then
+          return ["prValue","prValFloat","prValText","prMode"]
+        else
+          if ["prValue","prValFloat","prValText","prMode"].include?(self.tracker.name) then
+            return []
+          end              
+        end
+      end
+    end
+  end
+
   def paint_pref
     if self.tracker.name == "rq" then
       return {
