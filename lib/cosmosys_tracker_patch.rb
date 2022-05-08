@@ -2,21 +2,29 @@ require_dependency 'cosmosys_tracker'
 
 module CosmosysTrackerPatch
 
-  def childrentype
-    if self.tracker.name == "rq" then
+  def childrentype(i)
+    if i.tracker.name == "rq" then
       return ["rq"]
     else
-      if self.tracker.name == "prSys" then
+      if i.tracker.name == "prSys" then
         return ["prSys","prParam","prMode"]
       else
-        if self.tracker.name == "prParam" then
+        if i.tracker.name == "prParam" then
           return ["prValue","prValFloat","prValText","prMode"]
         else
-          if ["prValue","prValFloat","prValText","prMode"].include?(self.tracker.name) then
+          if ["prValue","prValFloat","prValText","prMode"].include?(i.tracker.name) then
             return []
           end              
         end
       end
+    end
+  end
+
+  def nodetype(i)
+    if i.tracker.name == "rq" then
+      return "rq"
+    else
+      return self.tracker.name
     end
   end
 
