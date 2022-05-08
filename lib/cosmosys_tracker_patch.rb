@@ -4,7 +4,15 @@ module CosmosysTrackerPatch
 
   def childrentype(i)
     if i.tracker.name == "rq" then
-      return ["rq"]
+      cftype = IssueCustomField.find_by_name('rqType')
+      rqtypevalues = i.custom_values.where(custom_field_id: cftype.id)
+      rqtype=rqtypevalues.first.value
+      if (rqtype == "Info") then
+        # return ["rqInfo","rqComplex","rqOpt","rqMech","rqHw","rqSw"]
+        return cftype.possible_values.map{|v| "rq"+v}
+      else
+          return []
+      end
     else
       if i.tracker.name == "prSys" then
         return ["prSys","prParam","prMode"]
@@ -22,7 +30,9 @@ module CosmosysTrackerPatch
 
   def nodetype(i)
     if i.tracker.name == "rq" then
-      return "rq"
+      cftype = IssueCustomField.find_by_name('rqType')
+      rqtypevalues = i.custom_values.where(custom_field_id: cftype.id)
+      return "rq"+rqtypevalues.first.value
     else
       return self.tracker.name
     end
