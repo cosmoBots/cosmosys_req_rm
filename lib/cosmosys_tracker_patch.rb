@@ -22,6 +22,9 @@ module CosmosysTrackerPatch
         else
           if ["prValue","prValFloat","prValText","prMode"].include?(i.tracker.name) then
             return []
+          else
+            # Do nothing
+            i.project.trackers.map{|t| t.name}
           end              
         end
       end
