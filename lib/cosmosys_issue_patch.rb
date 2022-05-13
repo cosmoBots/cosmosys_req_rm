@@ -71,6 +71,14 @@ module CosmosysIssueOverwritePatch
     end
   end
 
+  def shall_draw
+    if self.issue.tracker.name == "rq" then
+      return not(self.issue.status.is_closed)
+    else
+      return true
+    end
+  end
+
   def get_fill_color
     i = self.issue
     if i.tracker.name == "prSys"
