@@ -15,12 +15,12 @@ module CosmosysTrackerPatch
       end
     else
       if i.tracker.name == "prSys" then
-        return ["prSys","prParam","prMode"]
+        return ["prSys","prParam","prMode","prCmd"]
       else
         if i.tracker.name == "prParam" then
           return ["prValue","prValFloat","prValText","prMode"]
         else
-          if ["prValue","prValFloat","prValText","prMode"].include?(i.tracker.name) then
+          if ["prValue","prValFloat","prValText","prMode","prCmd"].include?(i.tracker.name) then
             return []
           else
             # Do nothing
@@ -169,7 +169,33 @@ module CosmosysTrackerPatch
                   :deprankdir => 'RL'
                 }
             else
-              super
+              if self.tracker.name == "prCmd" then
+                  return {
+                    :relation_color => {
+                      'blocks' => 'blue',
+                      'precedes' => 'grey',
+                      'relates' => 'grey',
+                      'copied_to' => 'grey'
+                    },
+                    :shall_draw_relation => {
+                      'blocks' => true,
+                      'precedes' => false,
+                      'relates' => false,
+                      'copied_to' => false
+                    },          
+                    :issue_color => {
+                      'normal' => 'black',
+                      'invalid' => 'red',
+                      'own' => 'black',
+                    },        
+                    :issue_shape => 'Mrecord',
+                    :chapter_shape => 'note',
+                    :hierankdir => 'TB',
+                    :deprankdir => 'RL'
+                  }
+              else
+                super
+              end
             end
           end
         end

@@ -62,6 +62,7 @@ module CosmosysIssueOverwritePatch
     if self.issue.tracker.name == "prSys" or 
       self.issue.tracker.name === "prParam" or 
       self.issue.tracker.name == "prMode" or 
+      self.issue.tracker.name == "prCmd" or 
       self.issue.tracker.name == "prValue" or 
       self.issue.tracker.name == "prValFloat" or 
       self.issue.tracker.name == "prValText" then 
@@ -85,7 +86,7 @@ module CosmosysIssueOverwritePatch
       colorstr = "white"
     else
       if self.issue.tracker.name === "prParam" then
-        colorstr = "darkseagreen1"
+        colorstr = "skyblue2"
       else
         if self.issue.tracker.name == "prValue" or 
           self.issue.tracker.name == "prValFloat" or 
@@ -95,7 +96,11 @@ module CosmosysIssueOverwritePatch
           if self.issue.tracker.name == "prMode" then
             colorstr = "moccasin"
           else
-            colorstr = self.inner_get_fill_color
+            if self.issue.tracker.name == "prCmd" then
+              colorstr = "darkseagreen1"
+            else
+              colorstr = self.inner_get_fill_color
+            end
           end
         end
       end
@@ -181,7 +186,11 @@ module CosmosysIssueOverwritePatch
         if trname == "prMode" then
           ret = get_ancestor_based_label(baseproj,boundary_node)
         else
-          ret = inner_get_label_issue(baseproj,boundary_node)
+          if trname == "prCmd" then
+            ret = get_ancestor_based_label(baseproj,boundary_node)
+          else
+            ret = inner_get_label_issue(baseproj,boundary_node)
+          end
         end
       end
     end
