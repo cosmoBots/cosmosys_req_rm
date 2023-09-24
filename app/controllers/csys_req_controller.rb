@@ -1,6 +1,7 @@
 class CsysReqController < ApplicationController
-  before_action :find_this_issue
-  #before_action :authorize
+  before_action :find_this_project
+  before_action :authorize, :except => [:find_this_project]
+
   def derive
     if request.get? then
       print("derive GET!!!!!")
@@ -59,6 +60,9 @@ class CsysReqController < ApplicationController
       end
       redirect_to(issue_path(@issue))
     end    
+  end
+
+  def menu
   end
 
   def clone
@@ -125,12 +129,19 @@ class CsysReqController < ApplicationController
   end
 
 
-  def find_this_issue
-    if(params[:id]) then
-      @issue = Issue.find(params[:id])
+  def find_this_project
+    # @project variable must be set before calling the authorize filter
+    if (params[:issue_id]) then
+      @issue = Issue.find(params[:issue_id])
+      @project = @issue.project
     else
-      @issue = nil
+      if(params[:id]) then
+        @project = Project.find(params[:id])
+      else
+        @project = Project.first
+      end
     end
+    #print("Project: "+@project.to_s+"\n")
   end  
 
 end

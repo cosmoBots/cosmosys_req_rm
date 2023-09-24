@@ -10,6 +10,11 @@ Redmine::Plugin.register :cosmosys_req do
   requires_redmine_plugin :cosmosys_git, :version_or_higher => '0.0.2'
 
   permission :csys_req_derive, :csys_req => :derive
+  permission :csys_req_menu, :csys_req => :menu
+  permission :csys_req_show, :csys_req => :show
+
+  menu :project_menu, :csys_req, {:controller => 'csys_req', :action => 'menu' }, :caption => 'cosmoSysReq', :after => :activity, :param => :id
+
 
   require 'cosmosys_req'
 

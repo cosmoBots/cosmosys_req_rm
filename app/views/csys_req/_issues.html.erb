@@ -11,7 +11,7 @@
   <table>
   <tr><td>Derive</td><td>Clone item</td><td>Clone subtree</td></tr>
   <tr><td>
-  <%= form_tag({:controller => 'csys_req', :action => 'derive'}, :class => "tabular", :multipart => true) do %>
+  <%= form_tag({:controller => 'csys_req', :action => 'derive', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
     <p>
       <label><%= "Select the number of derived requirements to create" %> </label>
       <%= select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>") %>
