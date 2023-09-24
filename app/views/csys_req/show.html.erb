@@ -1,0 +1,93 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
+	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
+<% end %>
+
+<% 
+
+if params[:sortbychapter] 
+  requirements = @project.issues.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+else
+  requirements = @project.issues.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
+end
+cftype = IssueCustomField.find_by_name("rqType")
+tr = Tracker.find_by_name("rq")
+rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
+rqstatefield = IssueCustomField.find_by_name('rqComplanceState')
+rqjustiffield = IssueCustomField.find_by_name('rqComplianceJustif')
+
+%>
+<h1>Compliance table</h1>
+<div class="compliancetable">
+<table>
+<thead>
+<tr>
+<%
+if params[:sortbychapter] 
+%>
+<th>Chapter</th>
+<th>csID</th>
+<%
+else
+%>
+<th>csID</th>
+<th>Chapter</th>
+<%
+end
+%>
+<th>Subject</th>
+<th>Sta of Compl</th>
+<th>Justification</th>
+<th>RefDoc</th>
+</tr>
+</thead>
+<tbody>
+<%
+
+requirements.each{|i|
+%>
+<tr>
+<%
+  puts i.subject
+  if (i.csys.shall_draw) then
+    if (not i.csys.is_chapter?) then
+      compl_state = i.custom_field_values.select{|a| a.custom_field_id == rqstatefield.id }.first
+      compl_justif = i.custom_field_values.select{|a| a.custom_field_id == rqjustiffield.id }.first
+      compl_refdocs = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+%>
+<td>
+<%
+if params[:sortbychapter] 
+%>
+<%= i.csys.chapter_str %>
+</td><td>
+<%= link_to i.csys.get_identifier, issue_path(i.id) %>
+<%
+else
+%>
+<%= link_to i.csys.get_identifier, issue_path(i.id) %>
+</td><td>
+<%= i.csys.chapter_str %>
+<%
+end
+%>
+</td><td>
+<%= i.subject %>
+</td><td>
+<%= compl_state.value.to_s %>
+</td><td>
+<%= textilizable(compl_justif.value.to_s) %>
+</td><td>
+<div><%= if (compl_refdocs.value.to_s.lines.count > 2) then textilizable(+ compl_refdocs.value.to_s) else "" end %></div>
+</td>
+<%
+    end
+  end
+%>
+</tr>
+<%
+}
+%>
+</tbody>
+</table>
+</div>

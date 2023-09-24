@@ -17,7 +17,7 @@ class AddRefDocs < ActiveRecord::Migration[5.2]
 		:field_format => 'text',
 		:description => 'Reference documents for current requirement. Please use conventional format!',
 		:min_length => '', :max_length => '', :regexp => '',
-		:default_value => "| Reference | Description |\n| --------- | ----------- |\n|  |  |\n", :is_required => false, 
+		:default_value => "| Reference | Description |\n| --------- | ----------- |\n", :is_required => false, 
 		:is_filter => false, :searchable => true, 
 		:visible => true, :role_ids => [],
 		:full_width_layout => "1", :text_formatting => "full",
