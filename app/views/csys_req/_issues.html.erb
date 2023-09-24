@@ -3,9 +3,12 @@
 <%= stylesheet_link_tag 'cosmosys_req', plugin: 'cosmosys_req' %>
 <div class="req-content">
   <button class="reqtablink" onclick="openReqTab('Actions', this, 'green')" id="defaultOpenReqTab">Actions</button>
-  <button class="reqtablink" onclick="openReqTab('Analysis', this, 'green')">Analysis</button>
-  <div id="Analysis" class="reqtabcontent">
-  <h2>Analysis</h2>
+  <button class="reqtablink" onclick="openReqTab('Documents', this, 'green')">Documents</button>
+  <div id="Documents" class="reqtabcontent">
+  <% 
+    dest = @issue.csys.get_documents_table
+  %>
+  <%= textilizable(dest)%>
   </div>
   <div id="Actions" class="reqtabcontent">
   <table>
@@ -30,5 +33,4 @@
   </div>
 </div>
 <%= javascript_include_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
-
 

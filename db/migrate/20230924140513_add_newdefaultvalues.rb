@@ -12,14 +12,14 @@ class AddNewdefaultvalues < ActiveRecord::Migration[5.2]
         if (i.children.size <= 0) then
           typecv = i.custom_field_values.select{|a| a.custom_field_id == cftype.id }.first
           if typecv.value != 'Info' then
-              thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
-              thiscv.value=rqrefdocfield.default_value
-              thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqcomprefdocfield.id }.first
-              thiscv.value=rqcomprefdocfield.default_value
-              thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
-              thiscv.value=rqcompliancefield.default_value              
-              i.save
-              end
+            thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+            thiscv.value=rqrefdocfield.default_value
+            thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqcomprefdocfield.id }.first
+            thiscv.value=rqcomprefdocfield.default_value
+            thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
+            thiscv.value=rqcompliancefield.default_value              
+            i.save
+          end
         end
       end
     }

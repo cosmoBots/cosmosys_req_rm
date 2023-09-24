@@ -197,5 +197,64 @@ module CosmosysIssueOverwritePatch
     return ret
   end
 
+  def get_documents_table
+    rqrefdocfield = IssueCustomField.find_by_name('rqRefDocs')
+    rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+    source = rqrefdoc.value
+    if source == nil then
+      ""
+    else
+      header = "|Ref|Subject|Comments|\n"
+      header += "|---|---|---|\n"
+      retdest = ""
+      refchapterdone = false
+      refchapter = nil
+      retdest = ""
+      for line in source.lines do
+        dest = ""
+        line = line.strip()
+        cells = line.split('|')
+        if cells.size > 1 then
+          if not refchapterdone
+            refchapterdone = true
+            refchapter = self.issue.project.issues.find_by_subject("References")
+            if (refchapter == nil) then
+              rqtypefield = IssueCustomField.find_by_name('rqType')
+              rqlevelfield = IssueCustomField.find_by_name('rqLevel')
+              rqcompliancefield = IssueCustomField.find_by_name('rqComplanceState')
+              refchapter = self.issue.project.issues.new
+              refchapter.tracker = Tracker.find_by_name("rq")
+              refchapter.subject = "References"
+              rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqtypefield.id }.first
+              rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqlevelfield.id }.first
+              rqtype.value = "Info"
+              rqlevel.value = "None"
+              thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
+              thiscv.value=rqcompliancefield.default_value
+              refchapter.author = User.current
+              refchapter.save
+            end
+          end
+          ref = "| " + cells[0] + " | - unknown reference - | "
+          if refchapter.id != nil then
+            ch = refchapter.children.find_by_subject(cells[0])
+            if (ch != nil) then
+              ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + ch.description + " | "
+            end
+          end
+          dest += ref
+          for i in 1..cells.size-1 do
+            dest += cells[i] + " |"
+          end
+        end
+        retdest += dest + "\n"
+      end
+      if retdest != "" then
+        retdest = header + retdest
+      end
+      retdest
+    end
+  end
+
 end
 CosmosysIssue.send(:prepend, CosmosysIssueOverwritePatch)
