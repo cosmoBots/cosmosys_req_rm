@@ -1,0 +1,34 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
+	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
+<% end %>
+
+<% 
+refchapter = @project.issues.find_by_subject("References")
+if params[:sortbychapter] 
+  requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+else
+  requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
+end
+%>
+<h1>Reference documents</h1>
+<div class="refdocstable">
+  <table>
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+<% requirements.each{|i| %>
+      <tr>
+        <td><%= link_to i.subject, issue_path(i.id) %></td>
+        <td><%= textilizable(i.description) %></td>
+      </tr>
+<%
+}
+%>
+    </tbody>
+  </table>
+</div>
