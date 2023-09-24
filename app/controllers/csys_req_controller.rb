@@ -1,6 +1,6 @@
 class CsysReqController < ApplicationController
   before_action :find_this_project
-  before_action :authorize, :except => [:find_this_project]
+  #before_action :authorize, :except => [:find_this_project]
 
   def derive
     if request.get? then
@@ -44,9 +44,9 @@ class CsysReqController < ApplicationController
                     print("--> " + message + "\n")
                   end
                 end
+                # Force the identifier creationg
+                puts i.csys.identifier+" created!"
               end
-              # Force the identifier creationg
-              puts i.csys.identifier+" created!"
             end
             flash.now[:notice] = 'Derivation executed.  Check your ' + count.to_s + ' new derived requirements'
           else
@@ -77,12 +77,14 @@ class CsysReqController < ApplicationController
       i.parent = par
       i.subject = "[Cloned:" + @issue.subject+"]"
       i.tracker = @issue.tracker
-      for src_cfv in i.custom_field_values
+      for src_cfv in @issue.custom_field_values
         src_cf = src_cfv.custom_field
         # We have to skip the csID in the clone, because a new exclusive ID must be generated for the clone
         if src_cf.name != "csID" then
-          dst_cfv = i.custom_field_values.select{|a| a.custom_field_id == src_cf.id }.first
-          dst_cfv.value = src_cfv.value
+          if (src_cfv.value != nil) then
+            dst_cfv = i.custom_field_values.select{|a| a.custom_field_id == src_cf.id }.first
+            dst_cfv.value = src_cfv.value
+            end
         end
       end
       i.author = User.current

@@ -19,7 +19,7 @@
   <%= submit_tag l(:button_derive) %>
   <% end %>
   </td><td>
-  <%= form_tag({:controller => 'csys_req', :action => 'clone'}, :class => "tabular", :multipart => true) do %>
+  <%= form_tag({:controller => 'csys_req', :action => 'clone', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
     <p>
       <label><%= "Press the button to clone this item with its same relationships and parent" %> </label>
     </p>
