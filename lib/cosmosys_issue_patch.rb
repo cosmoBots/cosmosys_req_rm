@@ -323,5 +323,31 @@ module CosmosysIssueOverwritePatch
       retdest
     end
   end
+
+
+
+  def csys_cfields_to_sync_with_copy
+    ret = super
+    if self.issue.tracker = Tracker.find_by_name("rq")
+      cf = CustomField.find_by_name("rqType")
+      ret << cf 
+      cf = CustomField.find_by_name("rqLevel")
+      ret << cf 
+      cf = CustomField.find_by_name("rqVar")
+      ret << cf 
+      cf = CustomField.find_by_name("rqValue")
+      ret << cf 
+      cf = CustomField.find_by_name("rqVerif")
+      ret << cf 
+      cf = CustomField.find_by_name("rqVerifDescr")
+      ret << cf 
+      cf = CustomField.find_by_name("rqRationale")
+      ret << cf 
+    end
+    return ret
+  end
+
+
+
 end
 CosmosysIssue.send(:prepend, CosmosysIssueOverwritePatch)
