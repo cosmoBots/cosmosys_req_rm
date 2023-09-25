@@ -58,6 +58,14 @@ module CosmosysIssueOverwritePatch
     end
   end
 
+  def shall_show_dependences?
+    if self.issue.tracker.name == "rq" then
+      not is_chapter?
+    else
+      super
+    end
+  end
+
   def shall_show_id
     if self.issue.tracker.name == "prSys" or 
       self.issue.tracker.name === "prParam" or 
