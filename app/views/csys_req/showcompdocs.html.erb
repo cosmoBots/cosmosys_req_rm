@@ -4,7 +4,7 @@
 <% end %>
 
 <% 
-refchapter = @project.issues.find_by_subject("References")
+refchapter = @project.issues.find_by_subject("Compliance Documents")
 if (refchapter != nil) then
 if params[:sortbychapter] 
   requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}

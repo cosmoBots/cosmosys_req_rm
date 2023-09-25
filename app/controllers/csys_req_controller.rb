@@ -71,6 +71,9 @@ class CsysReqController < ApplicationController
   def showdocs
   end
 
+  def showcompdocs
+  end
+
   def clone
     if request.get? then
       print("clone GET!!!!!")
