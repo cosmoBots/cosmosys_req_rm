@@ -2,9 +2,11 @@
  %>
 <%= stylesheet_link_tag 'cosmosys_req', plugin: 'cosmosys_req' %>
 <div class="req-content">
-  <button class="reqtablink" onclick="openReqTab('Actions', this, 'green')" id="defaultOpenReqTab">Actions</button>
-  <button class="reqtablink" onclick="openReqTab('Documents', this, 'green')">Documents</button>
-  <button class="reqtablink" onclick="openReqTab('ComplDocs', this, 'green')">Compliance Documents</button>
+  <div class="reqtabsContainer">
+  <button class="reqtablink" onclick="openReqTab('Actions', this, 'steelblue')" id="defaultOpenReqTab">Actions</button>
+  <button class="reqtablink" onclick="openReqTab('Documents', this, 'steelblue')">Documents</button>
+  <button class="reqtablink" onclick="openReqTab('ComplDocs', this, 'steelblue')">Compliance Documents</button>
+  </div>
   <div id="Documents" class="reqtabcontent">
   <% 
     dest = @issue.csys.get_documents_table

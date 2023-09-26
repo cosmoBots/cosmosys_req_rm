@@ -1,15 +1,17 @@
 .reqtablink {
-  background-color: #555;
+  background-color: lightblue;
   color: white;
   float: left;
-  border: none;
+  border: 1px;
   outline: none;
   cursor: pointer;
-  width: 33%;
+  width: 12em;
+  border-color: darkblue;
+  border-style: solid;
 }
 
 .reqtablink:hover {
-  background-color: #777;
+  background-color: dodgerblue;
 }
 
 /* Style the tab content */
@@ -18,4 +20,12 @@
   display: block;
   padding: 5px;
   text-align: center;
+  border-style: solid;
+  border-color: gray;
+  border-width: thin;
+  background-color: white;  
+}
+
+.reqtabsContainer {
+  overflow: hidden;
 }
