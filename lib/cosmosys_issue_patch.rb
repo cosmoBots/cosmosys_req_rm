@@ -264,6 +264,26 @@ module CosmosysIssueOverwritePatch
     end
   end
 
+  def create_a_chapter(chaptername)
+    rqtypefield = IssueCustomField.find_by_name('rqType')
+    rqlevelfield = IssueCustomField.find_by_name('rqLevel')
+    rqcompliancefield = IssueCustomField.find_by_name('rqComplanceState')
+    refchapter = self.issue.project.issues.new
+    refchapter.tracker = Tracker.find_by_name("rq")
+    refchapter.subject = chaptername
+    rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqtypefield.id }.first
+    rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqlevelfield.id }.first
+    rqtype.value = "Info"
+    rqlevel.value = "None"
+    thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
+    thiscv.value=rqcompliancefield.default_value
+    refchapter.author = User.current
+    refchapter.save
+
+    return refchapter
+  end
+
+
   def get_compdocs_table
     rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
     rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
@@ -286,20 +306,7 @@ module CosmosysIssueOverwritePatch
             refchapterdone = true
             refchapter = self.issue.project.issues.find_by_subject("Compliance Documents")
             if (refchapter == nil) then
-              rqtypefield = IssueCustomField.find_by_name('rqType')
-              rqlevelfield = IssueCustomField.find_by_name('rqLevel')
-              rqcompliancefield = IssueCustomField.find_by_name('rqComplanceState')
-              refchapter = self.issue.project.issues.new
-              refchapter.tracker = Tracker.find_by_name("rq")
-              refchapter.subject = "Compliance Documents"
-              rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqtypefield.id }.first
-              rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqlevelfield.id }.first
-              rqtype.value = "Info"
-              rqlevel.value = "None"
-              thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
-              thiscv.value=rqcompliancefield.default_value
-              refchapter.author = User.current
-              refchapter.save
+              refchapter = create_a_chapter("Compliance Documents")
             end
           end
           ref = "| " + cells[0] + " | - unknown reference - | "
@@ -328,7 +335,7 @@ module CosmosysIssueOverwritePatch
 
   def csys_cfields_to_sync_with_copy
     ret = super
-    if self.issue.tracker = Tracker.find_by_name("rq")
+    if self.issue.tracker == Tracker.find_by_name("rq")
       cf = CustomField.find_by_name("rqType")
       ret << cf 
       cf = CustomField.find_by_name("rqLevel")
@@ -347,6 +354,29 @@ module CosmosysIssueOverwritePatch
     return ret
   end
 
+  def save_post_process
+  end
+  def save_pre_process
+      if self.issue.tracker == Tracker.find_by_name("rq") then
+      if self.issue.status.is_closed then
+        refchapter = self.issue.project.issues.find_by_subject("Deleted requirements")
+        if (refchapter == nil) then
+          refchapter = create_a_chapter("Deleted requirements")
+        end
+        if (self.issue != refchapter) then
+          ret = "parent | " + self.issue.parent_id.to_s + "\n"
+          self.issue.parent = refchapter
+          self.issue.relations.each {|ir|
+            ret += ir.to_s + "\n"
+          }
+          self.issue.relations.each {|ir|
+            ir.destroy
+          }
+          self.issue.description << ret.to_s
+        end
+    end
+    end
+  end
 
 
 end
