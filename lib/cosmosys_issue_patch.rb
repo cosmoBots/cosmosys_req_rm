@@ -293,11 +293,11 @@ module CosmosysIssueOverwritePatch
     thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
     thiscv.value=rqcompliancefield.default_value
     refchapter.author = User.current
+    refchapter.csys.update_cschapter_no_bd
     refchapter.save
     refchapter.project.reenumerate_children(true)
     return refchapter
   end
-
 
   def get_compdocs_table
     rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
