@@ -268,12 +268,15 @@ module CosmosysIssueOverwritePatch
     end
   end
 
-  def create_a_chapter(chaptername)
+  def create_a_chapter(chaptername, status = nil)
     rqtypefield = IssueCustomField.find_by_name('rqType')
     rqlevelfield = IssueCustomField.find_by_name('rqLevel')
     rqcompliancefield = IssueCustomField.find_by_name('rqComplanceState')
     refchapter = self.issue.project.issues.new
     refchapter.tracker = Tracker.find_by_name("rq")
+    if status != nil then
+      refchapter.status = status
+    end
     refchapter.subject = chaptername
     rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqtypefield.id }.first
     rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqlevelfield.id }.first
@@ -283,7 +286,7 @@ module CosmosysIssueOverwritePatch
     thiscv.value=rqcompliancefield.default_value
     refchapter.author = User.current
     refchapter.save
-
+    refchapter.project.reenumerate_children(true)
     return refchapter
   end
 
@@ -406,62 +409,69 @@ module CosmosysIssueOverwritePatch
       puts("******** "+self.issue.status.to_s)
       if self.issue.status.is_closed then
         # We are closing, but were already closed?
-        oldreq = Issue.find(self.issue.id)
-        oldreq.reload
-        puts("******** "+oldreq.status.to_s)
-        if not(oldreq.status.is_closed) then
-          # No, we were not closed, so going closing
-          puts("Going closing")
-          # The closed requirements (rqErased, rqZombie) have to go to the chapter named "Deleted requirements"
-          if (self.issue.subject != "Deleted requirements") then
-            refchapter = self.issue.project.issues.find_by_subject("Deleted requirements")
-            # If there is no such chapter, we create it
-            if (refchapter == nil) then
-              puts("BEGIN Creating a chapter")
-              refchapter = create_a_chapter("Deleted requirements")
-              puts("END Creating a chapter")
-            else
-              puts("Deleted requirements chapter found")
-            end
-            puts("BEGIN relations")
-            # Let's see if the current issue is the deleted requirement, or if the issue is already in the deleted requirmements section
-            # in those cases we will not actuate (requirements were already there)
-            if (self.issue != refchapter and self.issue.parent != refchapter) then
-              # Let's prepare the dictionary for storing the things to recover in the future
-              relations_vector = []
-              if (self.issue.parent != nil) then
-                # If it has a parent, we'll store its has in the vector
-                relations_vector << {parent: self.issue.parent_id.to_s, csID:self.issue.parent.csys.identifier}
+        # In case we are creating this issue for the first time, we can simply skip 
+        # relationships
+        if (self.issue.id != nil) then
+          oldreq = Issue.find(self.issue.id)
+          oldreq.reload
+          puts("******** "+oldreq.status.to_s)
+          if not(oldreq.status.is_closed) then
+            # No, we were not closed, so going closing
+            puts("Going closing")
+            # The closed requirements (rqErased, rqZombie) have to go to the chapter named "Deleted requirements"
+            if (self.issue.subject != "Deleted requirements") then
+              refchapter = self.issue.project.issues.find_by_subject("Deleted requirements")
+              # If there is no such chapter, we create it
+              if (refchapter == nil) then
+                puts("BEGIN Creating a chapter")
+                # This can not be done yet, because we first need an action to recover the erased requirements
+                # refchapter = create_a_chapter("Deleted requirements",IssueStatus.find_by_name("rqErased"))
+                # so we still need to create these chapters as rqDraft
+                refchapter = create_a_chapter("Deleted requirements")
+                puts("END Creating a chapter")
+              else
+                puts("Deleted requirements chapter found")
               end
-              # Now we can assign the deleted requirements chapter as its parent
-              self.issue.parent = refchapter
-
-              # Now we will backup the relations before destroying them
-              self.issue.relations.each {|ir|
-                # We'll save the csID of the counterpart issue
-                if ir.issue_from != self then
-                  otherissuecsid = ir.issue_from.csys.identifier
-                else
-                  otherissuecsid = ir.issue_to.csys.identifier
+              puts("BEGIN relations")
+              # Let's see if the current issue is the deleted requirement, or if the issue is already in the deleted requirmements section
+              # in those cases we will not actuate (requirements were already there)
+              if (self.issue != refchapter and self.issue.parent != refchapter) then
+                # Let's prepare the dictionary for storing the things to recover in the future
+                relations_vector = []
+                if (self.issue.parent != nil) then
+                  # If it has a parent, we'll store its has in the vector
+                  relations_vector << {parent: self.issue.parent_id.to_s, csID:self.issue.parent.csys.identifier}
                 end
-                # We'll store then a hash containing the counterpart csID and the serialization of the issue relation object
-                irdict = { csID: otherissuecsid, ir: ir.attributes }
-                # And push the hash to the relations vector
-                relations_vector << irdict
-              }
-              # Then we serialize the relations vector in the custom field
-              self.relations_on_close = relations_vector.to_s
-              self.save
-              # And then we can remove the relations
-              self.issue.relations.each {|ir|
-                ir.destroy
-              }
-              puts("END relations")
+                # Now we can assign the deleted requirements chapter as its parent
+                self.issue.parent = refchapter
+
+                # Now we will backup the relations before destroying them
+                self.issue.relations.each {|ir|
+                  # We'll save the csID of the counterpart issue
+                  if ir.issue_from != self then
+                    otherissuecsid = ir.issue_from.csys.identifier
+                  else
+                    otherissuecsid = ir.issue_to.csys.identifier
+                  end
+                  # We'll store then a hash containing the counterpart csID and the serialization of the issue relation object
+                  irdict = { csID: otherissuecsid, ir: ir.attributes }
+                  # And push the hash to the relations vector
+                  relations_vector << irdict
+                }
+                # Then we serialize the relations vector in the custom field
+                self.relations_on_close = relations_vector.to_s
+                self.save
+                # And then we can remove the relations
+                self.issue.relations.each {|ir|
+                  ir.destroy
+                }
+                puts("END relations")
+              end
+              puts("END closing")
             end
-            puts("END closing")
           end
         end
-        puts("END is_closed")
+      puts("END is_closed")
       else
         puts("BEGIN is opened")
         if (self.issue.id != nil) then
