@@ -82,7 +82,15 @@ module CosmosysIssueOverwritePatch
 
   def shall_draw
     if self.issue.tracker.name == "rq" then
-      return not(self.issue.status.is_closed)
+      if self.issue.subject == "Deleted requirements" then
+        return false
+      else
+        if self.issue.subject == "Undeleted requirements" then
+          return self.issue.children.size > 0
+        else
+          return not(self.issue.status.is_closed)
+        end
+      end
     else
       return true
     end
@@ -465,6 +473,7 @@ module CosmosysIssueOverwritePatch
                 self.issue.relations.each {|ir|
                   ir.destroy
                 }
+                self.update_cschapter_no_bd
                 puts("END relations")
               end
               puts("END closing")
@@ -538,6 +547,7 @@ module CosmosysIssueOverwritePatch
               self.issue.parent.save
               puts("END call saving parent")
             end
+            self.update_cschapter_no_bd
           end
         end
         puts("END is opened")
