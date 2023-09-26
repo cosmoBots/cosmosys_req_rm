@@ -202,6 +202,8 @@ en:
   label_precedes: Precedes
   label_follows: Follows
 
-  button_derive: Derive!
-  button_clone: Clone!
+  button_derive: Derive
+  button_clone: Clone
+  button_erase: Erase
+  button_zombie: Zombie
   

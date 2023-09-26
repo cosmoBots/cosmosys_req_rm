@@ -9,6 +9,9 @@ Redmine::Plugin.register :cosmosys_req do
   requires_redmine_plugin :cosmosys, :version_or_higher => '0.0.2'
   requires_redmine_plugin :cosmosys_git, :version_or_higher => '0.0.2'
 
+  permission :csys_req_zombie, :csys_req => :zombie
+  permission :csys_req_erase, :csys_req => :erase
+  permission :csys_req_clone, :csys_req => :derive
   permission :csys_req_derive, :csys_req => :derive
   permission :csys_req_menu, :csys_req => :menu
   permission :csys_req_show, :csys_req => :show

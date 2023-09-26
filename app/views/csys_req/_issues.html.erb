@@ -23,23 +23,64 @@
   <!--p><%= dest %></p-->
   <div id="Actions" class="reqtabcontent">
   <table>
-  <tr><td>Derive</td><td>Clone item</td><td>Clone subtree</td></tr>
-  <tr><td>
-  <%= form_tag({:controller => 'csys_req', :action => 'derive', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
-    <p>
-      <label><%= "Select the number of derived requirements to create" %> </label>
-      <%= select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>") %>
-    </p>
-  <%= submit_tag l(:button_derive) %>
+  <tr>
+  <% if not @issue.status.is_closed then %>
+  <td>Derive</td>
+  <td>Clone item</td>
+    <% if @issue.csys.can_be_rq_closed? then %>
+  <td>Erase</td>
+  <td>Zombie</td>
   <% end %>
-  </td><td>
-  <%= form_tag({:controller => 'csys_req', :action => 'clone', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
-    <p>
-      <label><%= "Press the button to clone this item with its same relationships and parent" %> </label>
-    </p>
-  <%= submit_tag l(:button_clone) %>
   <% end %>
-  </td><td>TODO...</td></tr>
+  </tr>
+  <tr>
+
+  <% if not @issue.status.is_closed then %>
+
+  <td>
+    <%= form_tag({:controller => 'csys_req', :action => 'derive', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
+      <p>
+        <label><%= "Select the number of derived requirements to create" %> </label>
+        <%= select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>") %>
+      </p>
+    <%= submit_tag l(:button_derive) %>
+    <% end %>
+  </td>
+  
+  <td>
+    <%= form_tag({:controller => 'csys_req', :action => 'clone', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
+      <p>
+        <label><%= "Press the button to clone this item with its same relationships and parent" %> </label>
+      </p>
+    <%= submit_tag l(:button_clone) %>
+    <% end %>
+  </td>
+  
+  <% if @issue.csys.can_be_rq_closed? then %>
+  <td>
+    <%= form_tag({:controller => 'csys_req', :action => 'erase', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
+      <p>
+        <label><%= "Press the button to send this item to RqErased" %> </label>
+      </p>
+    <%= submit_tag l(:button_erase) %>
+    <% end %>
+  </td>
+
+
+  <td>
+    <%= form_tag({:controller => 'csys_req', :action => 'zombie', :issue_id => @issue}, :class => "tabular", :multipart => true) do %>
+      <p>
+        <label><%= "Press the button to send this item to RqZombie" %> </label>
+      </p>
+    <%= submit_tag l(:button_zombie) %>
+    <% end %>
+  </td>
+
+  <% end %>
+
+  <% end %>
+  
+  </tr>
   </table>
   </div>
 </div>

@@ -29,3 +29,12 @@
 .reqtabsContainer {
   overflow: hidden;
 }
+
+.tabular label {
+  font-weight: normal;
+  float: left;
+  text-align: center;
+  margin-left: -180px;
+  width: fit-content;
+  line-height: 14px;
+}

@@ -2,6 +2,30 @@ class CsysReqController < ApplicationController
   before_action :find_this_project
   #before_action :authorize, :except => [:find_this_project]
 
+  def zombie
+    if request.get? then
+      print("zombie GET!!!!!")
+    else
+      print("zombie POST!!!!!")
+      st = IssueStatus.find_by_name("rqZombie")
+      @issue.status = st
+      @issue.save
+      redirect_to issue_path(@issue)
+    end    
+  end
+
+  def erase
+    if request.get? then
+      print("erase GET!!!!!")
+    else
+      print("erase POST!!!!!")
+      st = IssueStatus.find_by_name("rqErased")
+      @issue.status = st
+      @issue.save
+      redirect_to issue_path(@issue)
+    end    
+  end
+
   def derive
     if request.get? then
       print("derive GET!!!!!")
