@@ -78,7 +78,7 @@ end
 </td><td>
 <%= textilizable(compl_justif.value.to_s) %>
 </td><td>
-<div><%= if (compl_refdocs.value.to_s.lines.count > 2) then textilizable(+ compl_refdocs.value.to_s) else "" end %></div>
+<div><%= if (compl_refdocs != nil and compl_refdocs.value != nil) then textilizable(i.csys.get_compdocs_table) else "" end %></div>
 </td>
 <%
     end
