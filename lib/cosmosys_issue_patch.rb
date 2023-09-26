@@ -236,27 +236,14 @@ module CosmosysIssueOverwritePatch
               refchapterdone = true
               refchapter = self.issue.project.issues.find_by_subject("References")
               if (refchapter == nil) then
-                rqtypefield = IssueCustomField.find_by_name('rqType')
-                rqlevelfield = IssueCustomField.find_by_name('rqLevel')
-                rqcompliancefield = IssueCustomField.find_by_name('rqComplanceState')
-                refchapter = self.issue.project.issues.new
-                refchapter.tracker = Tracker.find_by_name("rq")
-                refchapter.subject = "References"
-                rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqtypefield.id }.first
-                rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqlevelfield.id }.first
-                rqtype.value = "Info"
-                rqlevel.value = "None"
-                thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
-                thiscv.value=rqcompliancefield.default_value
-                refchapter.author = User.current
-                refchapter.save
+                refchapter = create_a_chapter("References")
               end
             end
             ref = "| " + cells[0] + " | - unknown reference - | "
             if refchapter.id != nil then
               ch = refchapter.children.find_by_subject(cells[0])
               if (ch != nil) then
-                ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + ch.description + " | "
+                ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + prepare_text(ch.description) + " | "
               end
             end
             dest += ref
@@ -299,6 +286,10 @@ module CosmosysIssueOverwritePatch
     return refchapter
   end
 
+  def prepare_text(text)
+    return text.lines.first.strip
+  end
+
   def get_compdocs_table
     rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
     rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
@@ -329,7 +320,7 @@ module CosmosysIssueOverwritePatch
             if refchapter.id != nil then
               ch = refchapter.children.find_by_subject(cells[0])
               if (ch != nil) then
-                ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + ch.description + " | "
+                ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + prepare_text(ch.description) + " | "
               end
             end
             dest += ref
