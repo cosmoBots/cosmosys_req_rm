@@ -55,6 +55,7 @@ class CsysReqController < ApplicationController
                 cvlevel = i.custom_field_values.select{|a| a.custom_field_id == cflevel.id }.first
                 cvlevel.value = "Derived"
                 i.author = User.current
+                i.csys.update_cschapter_no_bd
                 i.save
                 relation = @issue.relations_from.new
                 relation.issue_to = i
@@ -118,48 +119,51 @@ class CsysReqController < ApplicationController
             dst_cfv = i.custom_field_values.select{|a| a.custom_field_id == src_cf.id }.first
             dst_cfv.value = src_cfv.value
             end
+          end
         end
-      end
-      i.author = User.current
-      i.save
-      for src_r in @issue.relations
-        dst_r = nil
-        if src_r.issue_to != @issue then
-          dst_r = i.relations_from.new
-          dst_r.issue_to = src_r.issue_to
-        else
-          dst_r = i.relations_to.new
-          dst_r.issue_from = src_r.issue_from
+        i.author = User.current
+        i.csys.update_cschapter_no_bd
+        i.save
+        for src_r in @issue.relations
+          dst_r = nil
+          if src_r.issue_to != @issue then
+            dst_r = i.relations_from.new
+            dst_r.issue_to = src_r.issue_to
+          else
+            dst_r = i.relations_to.new
+            dst_r.issue_from = src_r.issue_from
+          end
+          dst_r.relation_type = src_r.relation_type
+          dst_r.delay = src_r.delay
+          dst_r.errors.clear
+          if (dst_r.save) then
+            #print(dst_r.to_s+" ... ok\n")
+          else
+            #print(dst_r.to_s+" ... nok\n")
+            dst_r.errors.full_messages.each  do |message|
+              print("--> " + message + "\n")
+            end                            
+          endcop
         end
-        dst_r.relation_type = src_r.relation_type
-        dst_r.delay = src_r.delay
-        dst_r.errors.clear
-        if (dst_r.save) then
+=begin
+        # Add a "copied_to" relationship
+        cp_r = @issue.relations_from.new
+        cp_r.issue_to = i
+        cp_r.relation_type = "copied_to"
+        cp_r.errors.clear
+        if (cp_r.save) then
           #print(dst_r.to_s+" ... ok\n")
         else
           #print(dst_r.to_s+" ... nok\n")
-          dst_r.errors.full_messages.each  do |message|
+          cp_r.errors.full_messages.each  do |message|
             print("--> " + message + "\n")
-          end                            
-        end
-      end
-      # Add a "copied_to" relationship
-      cp_r = @issue.relations_from.new
-      cp_r.issue_to = i
-      cp_r.relation_type = "copied_to"
-      cp_r.errors.clear
-      if (cp_r.save) then
-        #print(dst_r.to_s+" ... ok\n")
-      else
-        #print(dst_r.to_s+" ... nok\n")
-        cp_r.errors.full_messages.each  do |message|
-          print("--> " + message + "\n")
         end                            
-      end      
+=end
+      end
       # Force the identifier creation
       puts i.csys.identifier+" created!"
       flash.now[:notice] = 'Clone executed.  Check your new cloned item following the copied_to link'
-      redirect_to(issue_path(@issue))
+      redirect_to(issue_path(i))
     end    
   end
 

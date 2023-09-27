@@ -35,6 +35,14 @@
   float: left;
   text-align: center;
   margin-left: -180px;
-  width: fit-content;
   line-height: 14px;
 }
+
+#Actions > table > tbody > tr > td > form > input[type=submit] {
+  font-weight: normal;
+  color: darkslategray;
+  border-style: solid;
+  box-shadow: none;
+  border-color: thistle;
+}
+
