@@ -39,14 +39,26 @@ end
 CosmosysIssue.send(:include, CosmosysIssuePatch)
 
 module CosmosysIssueOverwritePatch
+
+  @@rqtracker = Tracker.find_by_name('rq')
+  @@cftype = IssueCustomField.find_by_name('rqType')
+  @@cflevel = IssueCustomField.find_by_name("rqLevel")
+  @@cfvar = IssueCustomField.find_by_name("rqVar")
+  @@cfvalue = IssueCustomField.find_by_name("rqValue")
+  @@cfverif = CustomField.find_by_name("rqVerif")
+  @@cfverifdescr = CustomField.find_by_name("rqVerifDescr")
+  @@cfrationale = CustomField.find_by_name("rqRationale") 
+  @@cfcomplst = IssueCustomField.find_by_name('rqComplanceState')
+  @@cfcompldoc = IssueCustomField.find_by_name('rqComplianceDocs')
+  @@cfrefdocs = IssueCustomField.find_by_name('rqRefDocs')  
+
   def is_valid?
     self.req.is_valid?
   end
   
   def is_chapter?
-    if self.issue.tracker.name == "rq" then
-      cftype = IssueCustomField.find_by_name('rqType')
-      rqtypevalues = self.issue.custom_values.where(custom_field_id: cftype.id)
+    if self.issue.tracker == @@rqtracker then
+      rqtypevalues = self.issue.custom_values.where(custom_field_id: @@cftype.id)
       if (rqtypevalues.size == 0) then
         ret = self.issue.children.size > 0
       else
@@ -59,7 +71,7 @@ module CosmosysIssueOverwritePatch
   end
 
   def shall_show_dependences?
-    if self.issue.tracker.name == "rq" then
+    if self.issue.tracker == @@rqtracker then
       not is_chapter?
     else
       super
@@ -67,6 +79,7 @@ module CosmosysIssueOverwritePatch
   end
 
   def shall_show_id
+    # TODO: move it to cosmosys_req_poris
     if self.issue.tracker.name == "prSys" or 
       self.issue.tracker.name === "prParam" or 
       self.issue.tracker.name == "prMode" or 
@@ -81,7 +94,7 @@ module CosmosysIssueOverwritePatch
   end
 
   def shall_draw
-    if self.issue.tracker.name == "rq" then
+    if self.issue.tracker == @@rqtracker then
       if self.issue.subject == "Deleted requirements" then
         return false
       else
@@ -97,6 +110,7 @@ module CosmosysIssueOverwritePatch
   end
 
   def get_fill_color
+    # TODO: Move it to cosmosys_req_poris
     i = self.issue
     if i.tracker.name == "prSys"
       colorstr = "white"
@@ -184,6 +198,7 @@ module CosmosysIssueOverwritePatch
     else
       ret = prependstr+"<?>:"+self.class.word_wrap(prependstr+i.subject, line_width: 12)
     end
+    # TODO: Move it to cosmosys_req_pors
     if i.tracker.name == "prValFloat" then
       ret += ":[min|def|max]"
     end
@@ -193,6 +208,7 @@ module CosmosysIssueOverwritePatch
   def get_label_issue(baseproj,boundary_node=false)
     i = self.issue
     trname = i.tracker.name
+    # TODO Move it to cosmosys_req_poris
     if trname == "prParam" or trname == "prSys" then
       ret = get_ancestor_based_label(baseproj,boundary_node)
     else
@@ -214,8 +230,7 @@ module CosmosysIssueOverwritePatch
   end
 
   def get_documents_table
-    rqrefdocfield = IssueCustomField.find_by_name('rqRefDocs')
-    rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+    rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfrefdocs.id }.first
     if (rqrefdoc != nil) then
       source = rqrefdoc.value
       if source == nil then
@@ -264,21 +279,18 @@ module CosmosysIssueOverwritePatch
   end
 
   def create_a_chapter(chaptername, status = nil)
-    rqtypefield = IssueCustomField.find_by_name('rqType')
-    rqlevelfield = IssueCustomField.find_by_name('rqLevel')
-    rqcompliancefield = IssueCustomField.find_by_name('rqComplanceState')
     refchapter = self.issue.project.issues.new
-    refchapter.tracker = Tracker.find_by_name("rq")
+    refchapter.tracker = @@rqtracker
     if status != nil then
       refchapter.status = status
     end
     refchapter.subject = chaptername
-    rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqtypefield.id }.first
-    rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == rqlevelfield.id }.first
+    rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == @@cftype.id }.first
+    rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == @@cflevel.id }.first
     rqtype.value = "Info"
     rqlevel.value = "None"
-    thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == rqcompliancefield.id }.first
-    thiscv.value=rqcompliancefield.default_value
+    thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == @@cfcomplst.id }.first
+    thiscv.value=@@cfcomplst.default_value
     refchapter.author = User.current
     refchapter.csys.update_cschapter_no_bd
     refchapter.save
@@ -291,8 +303,7 @@ module CosmosysIssueOverwritePatch
   end
 
   def get_compdocs_table
-    rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
-    rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+    rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfcompldoc.id }.first
     if (rqrefdoc != nil) then
       source = rqrefdoc.value
       if source == nil then
@@ -341,25 +352,21 @@ module CosmosysIssueOverwritePatch
     end
   end
 
-
-
   def csys_cfields_to_sync_with_copy
     ret = super
-    if self.issue.tracker == Tracker.find_by_name("rq")
-      cf = CustomField.find_by_name("rqType")
-      ret << cf 
-      cf = CustomField.find_by_name("rqLevel")
-      ret << cf 
-      cf = CustomField.find_by_name("rqVar")
-      ret << cf 
-      cf = CustomField.find_by_name("rqValue")
-      ret << cf 
-      cf = CustomField.find_by_name("rqVerif")
-      ret << cf 
-      cf = CustomField.find_by_name("rqVerifDescr")
-      ret << cf 
-      cf = CustomField.find_by_name("rqRationale")
-      ret << cf 
+    if self.issue.tracker == @@rqtracker
+
+      ret << @@cftype
+      ret << @@cflevel
+      ret << @@cfvar
+      ret << @@cfvalue
+      ret << @@cfverif
+      ret << @@cfverifdescr
+      ret << @@cfrefdocs
+      ret << @@cfcompldoc
+      ret << @@cfcomplst
+      ret << @@cfrationale
+
     end
     return ret
   end
@@ -372,7 +379,7 @@ module CosmosysIssueOverwritePatch
     # We can not rq_close which is already closed
     if not self.issue.status.is_closed then
       # And we can not rq_close which is not a requirement
-      if self.issue.tracker == Tracker.find_by_name("rq") then
+      if self.issue.tracker == @@rqtracker then
         # Now let's examine the issue relations        
         i = self.issue
         # We can not close anything which has children
@@ -399,13 +406,12 @@ module CosmosysIssueOverwritePatch
   end
   
   # This process handles the closing and opening actions of requirements
-
   def save_pre_process
-    puts("BEGIN save_pre_process",self.issue.to_s)
+    puts("BEGIN save_pre_process " + self.issue.to_s)
     # First check we only work on requirements
-    if self.issue.tracker == Tracker.find_by_name("rq") then
+    if self.issue.tracker == @@rqtracker then
       # Checking if opening or closing
-      puts("******** "+self.issue.status.to_s)
+      # puts("******** "+self.issue.status.to_s)
       if self.issue.status.is_closed then
         # We are closing, but were already closed?
         # In case we are creating this issue for the first time, we can simply skip 
