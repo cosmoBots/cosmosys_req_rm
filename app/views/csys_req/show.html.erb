@@ -5,7 +5,18 @@
 
 <% 
 
-if params[:sortbychapter] 
+def truthy?(value, nilistrue = false)
+  if (nilistrue and value == nil) then 
+    return true 
+  end
+  options = [1, "1", true, "true", "t","yes","y"]
+  return options.include?(value)
+end
+
+
+sort_by_chapter = truthy?(params[:sortbychapter],false)
+
+if sort_by_chapter
   requirements = @project.issues.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
 else
   requirements = @project.issues.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
@@ -25,7 +36,7 @@ rqjustiffield = IssueCustomField.find_by_name('rqComplianceJustif')
 <thead>
 <tr>
 <%
-if params[:sortbychapter] 
+if sort_by_chapter
 %>
 <th>Chapter</th>
 <th>csID</th>
@@ -59,7 +70,7 @@ requirements.each{|i|
 %>
 <td>
 <%
-if params[:sortbychapter] 
+if sort_by_chapter
 %>
 <%= i.csys.chapter_str %>
 </td><td>
@@ -76,9 +87,9 @@ end
 </td><td>
 <%= i.subject %>
 </td><td>
-<%= compl_state.value.to_s %>
+<%= if (compl_state != nil) then compl_state.value.to_s else "" end%>
 </td><td>
-<%= textilizable(compl_justif.value.to_s) %>
+<%= if (compl_justif != nil) then textilizable(compl_justif.value.to_s) else "" end%>
 </td><td>
 <div><%= if (compl_refdocs != nil and compl_refdocs.value != nil) then textilizable(i.csys.get_compdocs_table) else "" end %></div>
 </td>

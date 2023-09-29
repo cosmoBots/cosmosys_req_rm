@@ -4,9 +4,21 @@
 <% end %>
 
 <% 
+
+def truthy?(value, nilistrue = false)
+  if (nilistrue and value == nil) then 
+    return true 
+  end
+  options = [1, "1", true, "true", "t","yes","y"]
+  return options.include?(value)
+end
+
+
+sort_by_chapter = truthy?(params[:sortbychapter],false)
+
 refchapter = @project.issues.find_by_subject("References")
 if (refchapter != nil) then
-if params[:sortbychapter] 
+if sort_by_chapter
   requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
 else
   requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
