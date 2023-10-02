@@ -1,0 +1,329 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
+	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
+<% end %>
+
+<% 
+
+def truthy?(value, nilistrue = false)
+  if (nilistrue and value == nil) then 
+    return true 
+  end
+  options = [1, "1", true, "true", "t","yes","y"]
+  return options.include?(value)
+end
+
+show_images = truthy?(params[:depdiag],true)
+show_chapters = truthy?(params[:chapnums],true)
+
+# TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+rqtracker = Tracker.find_by_name("rq")
+cftype = IssueCustomField.find_by_name("rqType")
+cflevel = IssueCustomField.find_by_name("rqLevel")
+cfvar = IssueCustomField.find_by_name("rqVar")
+cfvalue = IssueCustomField.find_by_name("rqValue")
+cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")
+
+
+def calculate_heading(showchap,i)
+	if (i.csys.is_chapter?) then
+		classdiv = "cSysParentIssue"
+		chapstr = ""
+		if showchap then
+			chapstr = i.chapter_str
+		end
+	else
+		classdiv = "cSysIssue"
+		chapstr = ""
+		if showchap then
+			chapstr += i.chapter_str + " "
+		end		
+		chapstr += i.csys.get_identifier
+	end
+	if showchap then
+		chapstr += ':'
+	end
+	return chapstr,classdiv
+end
+
+
+def calculate_complete_title(showchap, i, chapstr)
+  if showchap then
+    link_to chapstr, issue_path(i.id)
+  else
+    chapstr
+  end
+end
+
+%>
+<%
+    draw_items = lambda {|item, recursion, current_level|
+      chapstr, classdiv = calculate_heading(show_chapters, item)
+      title = item.subject
+    %>
+      <div class="<%= classdiv %>">
+      <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+
+      <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+      <% if (item.csys.shall_show_dependences?) then
+        imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
+      %>
+        <% if show_images then 
+            show_this_image = false
+            thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
+            if (thisdepgraphflag != nil) then
+              if (thisdepgraphflag.value == nil) then
+                thisdepgraphflag.value = cfdepgraph.default_value
+                item.save
+              end
+              if (thisdepgraphflag.value == 'Include') then
+                show_this_image = true
+              else
+                if (thisdepgraphflag.value == 'Include if has relations') then
+                  show_this_image = (item.relations.size > 0)
+                end
+              end
+            else
+              show_this_image = (item.relations.size > 0)
+            end
+            
+            if (show_this_image) then
+        %>
+          
+          <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
+        <!---% else %> 
+          <p> (no relations) </p-->
+         <% end 
+           end
+         end %>
+      <% if not(item.csys.is_chapter?) then 
+            # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+            if (rqtracker != nil and item.tracker == rqtracker) then
+              thistype = item.custom_values.where(custom_field: cftype).first.value
+              if thistype != nil and thistype.size > 0 then thistype = "t:"+thistype end
+              thislevel = item.custom_values.where(custom_field: cflevel).first.value
+              if thislevel != nil and thislevel.size > 0 then thislevel = "l:"+thislevel end
+            end
+          end
+          # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+          if (rqtracker != nil and item.tracker == rqtracker) then
+            thisvar = item.custom_values.where(custom_field: cfvar).first.value
+            if thisvar != nil and thisvar.size > 0 then thisvar = "v:"+thisvar end
+            thisvalue = item.custom_values.where(custom_field: cfvalue).first.value
+            if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
+          end
+      %>
+      </div>
+    <%
+      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
+    }
+%>
+
+<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button></div>
+<div class="<%= "cSysProject" %>">
+
+  <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
+  <%
+  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+    if roots.size == 0 then
+      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+    end
+    roots.each { |i| 
+    draw_items.(i, draw_items,1) }
+  %>
+</div>
+
+<script>
+const getBase64StringFromDataURL = (dataURL) =>
+  dataURL.replace('data:', '').replace(/^.+,/, '');
+
+function inlineStyles(nodeElement) {
+    if (!nodeElement || nodeElement.nodeType !== 1) return; // Skip if not an element node
+
+    let computedStyle = window.getComputedStyle(nodeElement);
+
+    // List of styles to exclude
+    const excludeStyles = [
+        'text-align-last',
+        'text-anchor',
+        'text-decoration',
+        'text-decoration-color',
+        'text-decoration-line',
+        'text-decoration-skip-ink',
+        'text-decoration-style',
+        'font-family',
+        'font-size',
+        'list-style-type',
+        'font-variant-numeric',
+        'unicode-bidi'
+
+    ];
+
+    // If the element is an img, figure, or div, add width and height to the exclude list
+    let tagName = nodeElement.tagName.toLowerCase();
+    if (tagName === 'a' || tagName === 'img' || tagName === 'figure' || tagName === 'div') {
+        excludeStyles.push('width', 'height');
+    }
+
+    const pxToPtRatio = 0.68; // 1 px = 0.68 pt
+
+    let styleStr = '';
+    for (let i = 0; i < computedStyle.length; i++) {
+        let prop = computedStyle[i];
+        // Skip if the property is in the exclude list
+        if (excludeStyles.includes(prop)) continue;
+
+        let value = computedStyle.getPropertyValue(prop);
+
+        // If the value is in px and the property is font-size, convert to pt
+        if (value.includes('px') && prop === 'font-size') {
+            value = parseFloat(value) * pxToPtRatio + 'pt';
+        }
+
+        styleStr += `${prop}:${value};`;
+    }
+
+    nodeElement.setAttribute('style', styleStr);
+
+    // Recurse through children
+    Array.from(nodeElement.children).forEach(child => inlineStyles(child));
+}
+
+async function downloadReport(title) {
+  let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
+  let projectElement = document.querySelector('.cSysProject')
+
+  inlineStyles(projectElement);
+
+  let page_style_elements = document.querySelectorAll('style, link[rel="stylesheet"]');
+  var page_styles = Array.apply(null, Array(page_style_elements.length)).map(function () {})
+  let style_promises = [];
+
+  for (var i = 0; i < page_style_elements.length; i++){
+     style_or_link = page_style_elements[i];
+     let index = i;
+     if(style_or_link.tagName == "STYLE"){
+       page_styles.splice(index, 1, style_or_link.innerText);
+     } else {
+       style_promises.push(fetch(style_or_link.href)
+         .then((res) => res.blob())
+         .then((blob) => {
+           return new Promise((resolve, reject) => {
+             const reader = new FileReader();
+             reader.onloadend = () => {
+               resolve(reader.result)
+             };
+             reader.onerror = reject;
+             reader.readAsText(blob);
+           });
+         })
+         .then((text) => {
+           page_styles.splice(index, 1, text);
+           return text;
+         }))
+     }
+  }
+
+  let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
+    return fetch(img.src)
+      .then((res) => res.blob())
+      .then((blob) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result)
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      })
+      .then((dataURL) => {
+        img.src = dataURL;
+        img.setAttribute('style', "");
+        img.style.width = Math.round(img.width) + 'px';
+        img.style.height = Math.round(img.height) + 'px';
+      });
+  });
+
+  let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
+    const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
+    
+    return new Promise((resolve, reject) => {
+      let href = link.getAttribute('href');
+      if (!r.test(href)) {
+          link.setAttribute('href',
+              (href.indexOf('/')) === 0 ?
+              document.location.origin + href :
+              document.location.href + '/' + link.getAttribute('href')
+            );
+      }
+      return resolve(link.href)
+    });
+  });
+
+  let promises = image_promises.concat(link_promises).concat(style_promises);
+
+  Promise.allSettled(promises)
+    .then(() => {
+      projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
+    })
+    .then(async() => {
+      let html = projectElement.innerHTML;
+      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title><style>' + page_styles.join("\n") + '</style></head>';
+      html = head + '<body><div class="cSysProject">' + html + '</div></body>';
+
+      let file = new File([html], title + ".html");
+
+      let formData = new FormData();
+      formData.append('file', file);
+
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', '/cosmosys/convert_to/odt', true);
+
+      // When the request is loaded
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Convert the response to a Blob
+          let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+
+          // Create an object URL for the blob and create a link element to trigger the download
+          let link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = title + ".odt"; // Name of the downloaded file
+          link.style.display = 'none';
+
+          // It needs to be added to the DOM so it can be clicked
+          document.body.appendChild(link);
+          link.click();
+
+          // To make this work on Firefox we need to wait
+          // a little while before removing it.
+          setTimeout(() => {
+            URL.revokeObjectURL(link.href);
+            link.parentNode.removeChild(link);
+
+            projectElement.parentElement.insertBefore(bakupElement, projectElement);
+            projectElement.parentNode.removeChild(projectElement);
+            
+          }, 0);
+
+        } else {
+          // Handle the error
+          console.error('Server responded with an error:', xhr.statusText);
+        }
+      };
+
+      // Setting the response type to 'blob' as we are expecting a file
+      xhr.responseType = 'blob';
+
+      // Handling any error with the request
+      xhr.onerror = function () {
+        console.error('Request failed.');
+      };
+
+      // Sending the FormData with the file
+      xhr.send(formData);
+    })
+
+}
+</script>
