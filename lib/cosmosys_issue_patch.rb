@@ -51,6 +51,7 @@ module CosmosysIssueOverwritePatch
   @@cfcomplst = IssueCustomField.find_by_name('rqComplanceState')
   @@cfcompldoc = IssueCustomField.find_by_name('rqComplianceDocs')
   @@cfrefdocs = IssueCustomField.find_by_name('rqRefDocs')  
+  @@cfapldocs = IssueCustomField.find_by_name('rqAplDocs')  
 
   def is_valid?
     self.req.is_valid?
@@ -249,9 +250,9 @@ module CosmosysIssueOverwritePatch
           if cells.size > 1 then
             if not refchapterdone
               refchapterdone = true
-              refchapter = self.issue.project.issues.find_by_subject("References")
+              refchapter = self.issue.project.issues.find_by_subject("Reference documents")
               if (refchapter == nil) then
-                refchapter = create_a_chapter("References")
+                refchapter = create_a_chapter("Reference documents")
               end
             end
             ref = "| " + cells[0] + " | - unknown reference - | "
@@ -277,6 +278,56 @@ module CosmosysIssueOverwritePatch
       ""
     end
   end
+
+  def get_apl_documents_table
+    rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfapldocs.id }.first
+    if (rqrefdoc != nil) then
+      source = rqrefdoc.value
+      if source == nil then
+        ""
+      else
+        header = "|Ref|Subject|Comments|\n"
+        header += "|---|---|---|\n"
+        retdest = ""
+        refchapterdone = false
+        refchapter = nil
+        retdest = ""
+        for line in source.lines do
+          dest = ""
+          line = line.strip()
+          cells = line.split('|')
+          if cells.size > 1 then
+            if not refchapterdone
+              refchapterdone = true
+              refchapter = self.issue.project.issues.find_by_subject("Applicable documents")
+              if (refchapter == nil) then
+                refchapter = create_a_chapter("Applicable documents")
+              end
+            end
+            ref = "| " + cells[0] + " | - unknown reference - | "
+            if refchapter.id != nil then
+              ch = refchapter.children.find_by_subject(cells[0])
+              if (ch != nil) then
+                ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + prepare_text(ch.description) + " | "
+              end
+            end
+            dest += ref
+            for i in 1..cells.size-1 do
+              dest += cells[i] + " |"
+            end
+          end
+          retdest += dest + "\n"
+        end
+        if retdest != "" then
+          retdest = header + retdest
+        end
+        retdest
+      end
+    else
+      ""
+    end
+  end
+
 
   def create_a_chapter(chaptername, status = nil)
     refchapter = self.issue.project.issues.new

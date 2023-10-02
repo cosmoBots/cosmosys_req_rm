@@ -90,13 +90,16 @@ class CsysReqController < ApplicationController
   def menu
   end
 
-  def show
+  def compmatrix
   end
 
-  def showdocs
+  def refdocs
   end
 
-  def showcompdocs
+  def apldocs
+  end
+
+  def compdocs
   end
 
   def clone
