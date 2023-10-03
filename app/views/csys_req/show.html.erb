@@ -23,7 +23,9 @@ cflevel = IssueCustomField.find_by_name("rqLevel")
 cfvar = IssueCustomField.find_by_name("rqVar")
 cfvalue = IssueCustomField.find_by_name("rqValue")
 cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")
-
+rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
+rqstatefield = IssueCustomField.find_by_name('rqComplanceState')
+rqjustiffield = IssueCustomField.find_by_name('rqComplianceJustif')
 
 def calculate_heading(showchap,i)
 	if (i.csys.is_chapter?) then
@@ -57,80 +59,217 @@ end
 
 %>
 <%
-    draw_items = lambda {|item, recursion, current_level|
-      chapstr, classdiv = calculate_heading(show_chapters, item)
-      title = item.subject
-    %>
-      <div class="<%= classdiv %>">
-      <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+draw_items = lambda { |item, recursion, current_level|
+  chapstr, classdiv = calculate_heading(show_chapters, item)
+  title = item.subject
+%>
+<div class="<%= classdiv %>">
+  <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
 
-      <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
-      <% if (item.csys.shall_show_dependences?) then
-        imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
-      %>
-        <% if show_images then 
-            show_this_image = false
-            thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
-            if (thisdepgraphflag != nil) then
-              if (thisdepgraphflag.value == nil) then
-                thisdepgraphflag.value = cfdepgraph.default_value
-                item.save
-              end
-              if (thisdepgraphflag.value == 'Include') then
-                show_this_image = true
-              else
-                if (thisdepgraphflag.value == 'Include if has relations') then
-                  show_this_image = (item.relations.size > 0)
-                end
-              end
-            else
+    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+<%
+  if title != "Applicable documents" and title != "Reference documents" and title != "Compliance documents" and title != "Compliance matrix" then
+    if (item.csys.shall_show_dependences?) then
+      imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
+
+      if show_images then 
+        show_this_image = false
+        thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
+        if (thisdepgraphflag != nil) then
+          # Patch for the case the depgraphflag does not exist
+          if (thisdepgraphflag.value == nil) then thisdepgraphflag.value = cfdepgraph.default_value; item.save end
+          if (thisdepgraphflag.value == 'Include') then
+            show_this_image = true
+          else
+            if (thisdepgraphflag.value == 'Include if has relations') then
               show_this_image = (item.relations.size > 0)
             end
+          end
+        else
+          show_this_image = (item.relations.size > 0)
+        end
+              
+        if (show_this_image) then
+  %>
             
-            if (show_this_image) then
-        %>
-          
-          <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
-        <!---% else %> 
-          <p> (no relations) </p-->
-         <% end 
-           end
-         end %>
-      <% if not(item.csys.is_chapter?) then 
-            # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
-            if (rqtracker != nil and item.tracker == rqtracker) then
-              thistype = item.custom_values.where(custom_field: cftype).first.value
-              if thistype != nil and thistype.size > 0 then thistype = "t:"+thistype end
-              thislevel = item.custom_values.where(custom_field: cflevel).first.value
-              if thislevel != nil and thislevel.size > 0 then thislevel = "l:"+thislevel end
-            end
-          end
-          # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
-          if (rqtracker != nil and item.tracker == rqtracker) then
-            thisvar = item.custom_values.where(custom_field: cfvar).first.value
-            if thisvar != nil and thisvar.size > 0 then thisvar = "v:"+thisvar end
-            thisvalue = item.custom_values.where(custom_field: cfvalue).first.value
-            if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
-          end
-      %>
-      </div>
-    <%
+      <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
+  <%
+        end 
+      end
+    end 
+    if not(item.csys.is_chapter?) then 
+      # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+      if (rqtracker != nil and item.tracker == rqtracker) then
+        thistype = item.custom_values.where(custom_field: cftype).first.value
+        if thistype != nil and thistype.size > 0 then thistype = "t:"+thistype end
+        thislevel = item.custom_values.where(custom_field: cflevel).first.value
+        if thislevel != nil and thislevel.size > 0 then thislevel = "l:"+thislevel end
+      end
+    end
+    # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+    if (rqtracker != nil and item.tracker == rqtracker) then
+      thisvar = item.custom_values.where(custom_field: cfvar).first.value
+      if thisvar != nil and thisvar.size > 0 then thisvar = "v:"+thisvar end
+      thisvalue = item.custom_values.where(custom_field: cfvalue).first.value
+      if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
+    end
+
       item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
-    }
+  else
+    if title == "Applicable documents" then
+%>
+    <div class="apldocstable">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+      item.children.each{|i|
+%>
+          <tr>
+            <td><%= link_to i.subject, issue_path(i.id) %></td>
+            <td><%= textilizable(i.description) %></td>
+          </tr>
+<%
+      }
+%>
+        </tbody>
+      </table>
+    </div>
+<%
+    else
+      if title == "Reference documents" then
+%>
+    <div class="refdocstable">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+        item.children.each{|i| 
+%>
+          <tr>
+            <td><%= link_to i.subject, issue_path(i.id) %></td>
+            <td><%= textilizable(i.description) %></td>
+          </tr>
+<%
+        }
+%>
+        </tbody>
+      </table>
+    </div>
+<% 
+      else 
+        if title == "Compliance documents" then 
+%>
+    <div class="compdocstable">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+          item.children.each{|i|
+%>
+          <tr>
+            <td><%= link_to i.subject, issue_path(i.id) %></td>
+            <td><%= textilizable(i.description) %></td>
+          </tr>
+<%
+          }
+%>
+        </tbody>
+      </table>
+    </div>
+<%
+        else
+          if title == "Compliance matrix" then
+%>
+    <div class="compliancematrix">
+      <table>
+        <thead>
+          <tr>
+            <th>csID</th>
+            <th>Chapter</th>
+            <th>Subject</th>
+            <th>Sta of Compl</th>
+            <th>Justification</th>
+            <th>RefDoc</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+            @project.issues.each{|i|
+%>
+          <tr>
+<%
+              puts i.subject
+              if (i.csys.shall_draw) then
+                if (not i.csys.is_chapter?) then
+                  compl_state = i.custom_field_values.select{|a| a.custom_field_id == rqstatefield.id }.first
+                  compl_justif = i.custom_field_values.select{|a| a.custom_field_id == rqjustiffield.id }.first
+                  compl_refdocs = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+%>
+            <td><%= link_to i.csys.get_identifier, issue_path(i.id) %></td>
+            <td><%= i.csys.chapter_str %></td>
+            <td><%= i.subject %></td>
+            <td><%= if (compl_state != nil) then compl_state.value.to_s else "" end%></td>
+            <td><%= if (compl_justif != nil) then textilizable(compl_justif.value.to_s) else "" end%></td>
+            <td>
+              <div><%= if (compl_refdocs != nil and compl_refdocs.value != nil) then textilizable(i.csys.get_compdocs_table) else "" end %></div>
+            </td>
+<%
+                end
+              end
+%>
+          </tr>
+<%
+            }
+%>
+        </tbody>
+      </table>
+    </div>
+<%
+          end
+        end
+      end
+    end
+  end
+  %>
+      </div>
+  <%
+}
 %>
 
 <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button></div>
 <div class="<%= "cSysProject" %>">
 
-  <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
-  <%
-  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
-    if roots.size == 0 then
-      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
-    end
-    roots.each { |i| 
-    draw_items.(i, draw_items,1) }
-  %>
+<% 
+if show_chapters
+%>
+<h1><%= @project.csys.code %>: <%= @project.name %></h1>
+<%
+end
+
+roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+  if roots.size == 0 then
+    roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+  end
+  roots.each { |i| 
+    draw_items.(i, draw_items,1) 
+  }
+%>
 </div>
 
 <script>
