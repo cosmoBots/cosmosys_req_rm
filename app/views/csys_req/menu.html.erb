@@ -2,6 +2,7 @@
 <p>Actions:</p>
 
 <p><%= link_to 'Requirements Report', { :action => 'show'}, :method => :get %></p>
+<p><%= link_to 'Requirements Report to export', { :action => 'show', :chapnums => 'false'}, :method => :get %></p>
 <p><%= link_to 'Compliance Matrix (sorted by csID)', { :action => 'compmatrix'}, :method => :get %></p>
 <p><%= link_to 'Compliance Matrix (sorted by chapter)', { :action => 'compmatrix', :sortbychapter => 'true'}, :method => :get %></p>
 <p><%= link_to 'Reference documents table (sorted by RDx)', { :action => 'refdocs'}, :method => :get %></p>
