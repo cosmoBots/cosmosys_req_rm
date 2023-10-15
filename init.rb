@@ -17,7 +17,8 @@ Redmine::Plugin.register :cosmosys_req do
   permission :csys_req_show, :csys_req => :show
 
   menu :project_menu, :csys_req, {:controller => 'csys_req', :action => 'menu' }, :caption => 'cosmoSysReq', :after => :activity, :param => :id
-
+  menu :project_menu, :csys_req_show, {:controller => 'csys_req', :action => 'show' }, :caption => 'MainReport', :after => :activity, :param => :id
+  
 
   require 'cosmosys_req'
 

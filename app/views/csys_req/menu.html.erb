@@ -1,10 +1,14 @@
 <h2>CosmosysReqr#menu</h2>
 <p>Actions:</p>
 
-<p><%= link_to 'Compliance Matrix (sorted by csID)', { :action => 'show'}, :method => :get %></p>
-<p><%= link_to 'Compliance Matrix (sorted by chapter)', { :action => 'show', :sortbychapter => 'true'}, :method => :get %></p>
-<p><%= link_to 'Reference documents table (sorted by RDx)', { :action => 'showdocs'}, :method => :get %></p>
-<p><%= link_to 'Reference documents table (sorted by chapter)', { :action => 'showdocs', :sortbychapter => 'true'}, :method => :get %></p>
-<p><%= link_to 'Compliance documents table (sorted by CDx)', { :action => 'showcompdocs'}, :method => :get %></p>
-<p><%= link_to 'Compliance documents table (sorted by chapter)', { :action => 'showcompdocs', :sortbychapter => 'true'}, :method => :get %></p>
+<p><%= link_to 'Requirements Report', { :action => 'show'}, :method => :get %></p>
+<p><%= link_to 'Requirements Report to export', { :action => 'show', :chapnums => 'false'}, :method => :get %></p>
+<p><%= link_to 'Compliance Matrix (sorted by csID)', { :action => 'compmatrix'}, :method => :get %></p>
+<p><%= link_to 'Compliance Matrix (sorted by chapter)', { :action => 'compmatrix', :sortbychapter => 'true'}, :method => :get %></p>
+<p><%= link_to 'Reference documents table (sorted by RDx)', { :action => 'refdocs'}, :method => :get %></p>
+<p><%= link_to 'Reference documents table (sorted by chapter)', { :action => 'refdocs', :sortbychapter => 'true'}, :method => :get %></p>
+<p><%= link_to 'Aplicable documents table (sorted by RDx)', { :action => 'apldocs'}, :method => :get %></p>
+<p><%= link_to 'Aplicable documents table (sorted by chapter)', { :action => 'apldocs', :sortbychapter => 'true'}, :method => :get %></p>
+<p><%= link_to 'Compliance documents table (sorted by CDx)', { :action => 'compdocs'}, :method => :get %></p>
+<p><%= link_to 'Compliance documents table (sorted by chapter)', { :action => 'compdocs', :sortbychapter => 'true'}, :method => :get %></p>
 

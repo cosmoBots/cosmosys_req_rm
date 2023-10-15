@@ -4,10 +4,18 @@
 <div class="req-content">
   <div class="reqtabsContainer">
   <button class="reqtablink" onclick="openReqTab('Actions', this, 'steelblue')" id="defaultOpenReqTab">Actions</button>
-  <button class="reqtablink" onclick="openReqTab('Documents', this, 'steelblue')">References</button>
+  <button class="reqtablink" onclick="openReqTab('AplDocs', this, 'steelblue')">Apl. Docs.</button>
+  <button class="reqtablink" onclick="openReqTab('RefDocs', this, 'steelblue')">Ref. Docs.</button>
   <button class="reqtablink" onclick="openReqTab('ComplDocs', this, 'steelblue')">Compliance Documents</button>
   </div>
-  <div id="Documents" class="reqtabcontent">
+  <div id="AplDocs" class="reqtabcontent">
+  <% 
+    dest = @issue.csys.get_apl_documents_table
+  %>
+  <%= textilizable(dest)%>
+  <!--p><%= dest %></p-->
+  </div>
+  <div id="RefDocs" class="reqtabcontent">
   <% 
     dest = @issue.csys.get_documents_table
   %>
