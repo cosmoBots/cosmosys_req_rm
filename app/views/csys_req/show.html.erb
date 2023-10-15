@@ -252,7 +252,16 @@ draw_items = lambda { |item, recursion, current_level|
 }
 %>
 
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button></div>
+<div style="text-align: right;">
+  <label for="format">Formato:
+    <select name="format">
+      <option value="html" selected>HTML</option>
+      <option value="odt">Odt</option>
+      <option value="docx">Docx</option>
+    </select>
+  </label>
+  <button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button>
+</div>
 <div class="<%= "cSysProject" %>">
 
 <% 
@@ -328,11 +337,133 @@ function inlineStyles(nodeElement) {
     Array.from(nodeElement.children).forEach(child => inlineStyles(child));
 }
 
+function convertHeadingClassToElement(element) {
+  let elements = element.querySelectorAll("[class*='heading_']");
+
+  elements.forEach((elem) => {
+    let match = elem.className.match(/heading_(\d+)/);
+
+    if (match) {
+      let num = match[1];
+
+      let newElem = document.createElement(num > 6 ? "h6" : 'h' + num);
+      newElem.addClass = "heading_" + num;
+
+      for (let attr of elem.attributes) {
+        newElem.setAttribute(attr.name, attr.value);
+      }
+
+      while (elem.firstChild) {
+        newElem.appendChild(elem.firstChild);
+      }
+
+      elem.parentNode.replaceChild(newElem, elem);
+    }
+  });
+}
+
+function applyImageStyles(imageElement) {
+  imageElement.setAttribute('style', "");
+
+  let naturalWidth = imageElement.naturalWidth;
+  let naturalHeight = imageElement.naturalHeight;
+
+  if (naturalWidth > 1024) {
+    let newHeight = Math.round(1024 * (naturalHeight / naturalWidth));
+
+    imageElement.style.width = '1024px';
+    imageElement.style.height = newHeight + 'px';
+  } else {
+    imageElement.style.width = Math.round(naturalWidth) + 'px';
+    imageElement.style.height = Math.round(naturalHeight) + 'px';
+  }
+
+  return imageElement;
+}
+
+function applyTableStylesToAllTables(containerElement) {
+  let tables = containerElement.querySelectorAll('table');
+
+  tables.forEach(table => {
+    table.style.borderCollapse = 'collapse';
+    table.style.borderSpacing = '0';
+    table.style.border = '1px solid #000';
+
+    let rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+      let cells = row.querySelectorAll('td, th');
+      cells.forEach(cell => {
+        cell.style.border = '1px solid #000';
+      });
+    });
+  });
+}
+
+async function offerDownloadFile(title, file_or_blob, extension, callback) {
+  // Create an object URL for the blob or file and create a link element to trigger the download
+  let link = document.createElement('a');
+  link.href = window.URL.createObjectURL(file_or_blob);
+  link.download = title + "." + extension; // Name of the downloaded file
+  link.style.display = 'none';
+
+  // It needs to be added to the DOM so it can be clicked
+  document.body.appendChild(link);
+  link.click();
+
+  // To make this work on Firefox we need to wait
+  // a little while before removing it.
+  setTimeout(() => {
+    URL.revokeObjectURL(link.href);
+    link.parentNode.removeChild(link);
+    callback();
+  }, 0);
+}
+
+async function downloadFile(title, file, exportFormat, callback) {
+  if (exportFormat == "html") {
+    offerDownloadFile(title, file, exportFormat, callback);
+  } else {
+    let formData = new FormData();
+    formData.append('file', file);
+
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', '/cosmosys/convert_to/' + exportFormat, true);
+
+    // When the request is loaded
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        // Convert the response to a Blob
+        let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+
+        offerDownloadFile(title, blob, exportFormat, callback);
+      } else {
+        // Handle the error
+        console.error('Server responded with an error:', xhr.statusText);
+      }
+    };
+
+    // Setting the response type to 'blob' as we are expecting a file
+    xhr.responseType = 'blob';
+
+    // Handling any error with the request
+    xhr.onerror = function () {
+      console.error('Request failed.');
+    };
+
+    // Sending the FormData with the file
+    xhr.send(formData);
+  }
+}
+
 async function downloadReport(title) {
   let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
   let projectElement = document.querySelector('.cSysProject')
 
-  inlineStyles(projectElement);
+  // Uncomment this to enable embedding all styles as inline attributes.
+  // inlineStyles(projectElement);
+
+  convertHeadingClassToElement(projectElement);
+  applyTableStylesToAllTables(projectElement);
 
   let page_style_elements = document.querySelectorAll('style, link[rel="stylesheet"]');
   var page_styles = Array.apply(null, Array(page_style_elements.length)).map(function () {})
@@ -378,15 +509,13 @@ async function downloadReport(title) {
       })
       .then((dataURL) => {
         img.src = dataURL;
-        img.setAttribute('style', "");
-        img.style.width = Math.round(img.width) + 'px';
-        img.style.height = Math.round(img.height) + 'px';
+        applyImageStyles(img);
       });
   });
 
   let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
     const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
-    
+
     return new Promise((resolve, reject) => {
       let href = link.getAttribute('href');
       if (!r.test(href)) {
@@ -413,55 +542,13 @@ async function downloadReport(title) {
 
       let file = new File([html], title + ".html");
 
-      let formData = new FormData();
-      formData.append('file', file);
+      let selectElement = document.querySelector('select[name="format"]');
+      let exportFormat = selectElement.value;
 
-      let xhr = new XMLHttpRequest();
-      xhr.open('POST', '/cosmosys/convert_to/odt', true);
-
-      // When the request is loaded
-      xhr.onload = function () {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          // Convert the response to a Blob
-          let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
-
-          // Create an object URL for the blob and create a link element to trigger the download
-          let link = document.createElement('a');
-          link.href = window.URL.createObjectURL(blob);
-          link.download = title + ".odt"; // Name of the downloaded file
-          link.style.display = 'none';
-
-          // It needs to be added to the DOM so it can be clicked
-          document.body.appendChild(link);
-          link.click();
-
-          // To make this work on Firefox we need to wait
-          // a little while before removing it.
-          setTimeout(() => {
-            URL.revokeObjectURL(link.href);
-            link.parentNode.removeChild(link);
-
-            projectElement.parentElement.insertBefore(bakupElement, projectElement);
-            projectElement.parentNode.removeChild(projectElement);
-            
-          }, 0);
-
-        } else {
-          // Handle the error
-          console.error('Server responded with an error:', xhr.statusText);
-        }
-      };
-
-      // Setting the response type to 'blob' as we are expecting a file
-      xhr.responseType = 'blob';
-
-      // Handling any error with the request
-      xhr.onerror = function () {
-        console.error('Request failed.');
-      };
-
-      // Sending the FormData with the file
-      xhr.send(formData);
+      downloadFile(title, file, exportFormat, () => {
+        projectElement.parentElement.insertBefore(bakupElement, projectElement);
+        projectElement.parentNode.removeChild(projectElement);
+      });
     })
 
 }
