@@ -253,14 +253,14 @@ draw_items = lambda { |item, recursion, current_level|
 %>
 
 <div style="text-align: right;">
-  <label for="format">Formato:
+  <label for="format">Format:
     <select name="format">
-      <option value="html" selected>HTML</option>
+      <option value="html">HTML</option>
       <option value="odt">Odt</option>
-      <option value="docx">Docx</option>
+      <option value="docx" selected>Docx</option>
     </select>
   </label>
-  <button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button>
+  <button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button>
 </div>
 <div class="<%= "cSysProject" %>">
 
@@ -337,6 +337,43 @@ function inlineStyles(nodeElement) {
     Array.from(nodeElement.children).forEach(child => inlineStyles(child));
 }
 
+function inlineSomeStyles(nodeElement) {
+    if (!nodeElement || nodeElement.nodeType !== 1) return; // Skip if not an element node
+
+    let computedStyle = window.getComputedStyle(nodeElement);
+
+    // List of styles to exclude
+    const includeStyles = [
+        'text-align',
+        'text-anchor'
+    ];
+
+    // If the element is an img, figure, or div, add width and height to the exclude list
+    let tagName = nodeElement.tagName.toLowerCase();
+
+    let styleStr = '';
+    for (let i = 0; i < computedStyle.length; i++) {
+        let prop = computedStyle[i];
+        // Skip if the property is in the exclude list
+        if (!includeStyles.includes(prop)) continue;
+
+        let value = computedStyle.getPropertyValue(prop);
+
+        // If the value is in px and the property is font-size, convert to pt
+        if (value.includes('px') && prop === 'font-size') {
+            value = parseFloat(value) * pxToPtRatio + 'pt';
+        }
+
+        styleStr += `${prop}:${value};`;
+    }
+
+    nodeElement.setAttribute('style', styleStr);
+
+    // Recurse through children
+    Array.from(nodeElement.children).forEach(child => inlineSomeStyles(child));
+}
+
+
 function convertHeadingClassToElement(element) {
   let elements = element.querySelectorAll("[class*='heading_']");
 
@@ -367,16 +404,23 @@ function applyImageStyles(imageElement) {
 
   let naturalWidth = imageElement.naturalWidth;
   let naturalHeight = imageElement.naturalHeight;
+  let newHeight = naturalHeight;
+  let newWidth = naturalWidth;
+  let maxWidth = 917;
+  let maxHeight = 525;
 
-  if (naturalWidth > 1024) {
-    let newHeight = Math.round(1024 * (naturalHeight / naturalWidth));
-
-    imageElement.style.width = '1024px';
-    imageElement.style.height = newHeight + 'px';
-  } else {
-    imageElement.style.width = Math.round(naturalWidth) + 'px';
-    imageElement.style.height = Math.round(naturalHeight) + 'px';
+  if (newWidth > maxWidth) {
+    newWidth = maxWidth;
+    newHeight = Math.round(newWidth * (naturalHeight / naturalWidth));
   }
+
+  if (newHeight > maxHeight){
+    newHeight = maxHeight;
+    newWidth = Math.round(newHeight * (naturalWidth / naturalHeight));
+  }
+
+  imageElement.style.width = newWidth + 'px';
+  imageElement.style.height = newHeight + 'px';
 
   return imageElement;
 }
@@ -461,6 +505,7 @@ async function downloadReport(title) {
 
   // Uncomment this to enable embedding all styles as inline attributes.
   // inlineStyles(projectElement);
+  inlineSomeStyles(projectElement);
 
   convertHeadingClassToElement(projectElement);
   applyTableStylesToAllTables(projectElement);
