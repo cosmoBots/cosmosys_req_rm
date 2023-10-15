@@ -13,133 +13,531 @@ def truthy?(value, nilistrue = false)
   return options.include?(value)
 end
 
+show_images = truthy?(params[:depdiag],true)
+show_chapters = truthy?(params[:chapnums],true)
 
-sort_by_chapter = truthy?(params[:sortbychapter],false)
-
-if sort_by_chapter
-  requirements = @project.issues.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
-else
-  requirements = @project.issues.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
-end
+# TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+rqtracker = Tracker.find_by_name("rq")
 cftype = IssueCustomField.find_by_name("rqType")
-tr = Tracker.find_by_name("rq")
+cflevel = IssueCustomField.find_by_name("rqLevel")
+cfvar = IssueCustomField.find_by_name("rqVar")
+cfvalue = IssueCustomField.find_by_name("rqValue")
+cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")
 rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')
 rqstatefield = IssueCustomField.find_by_name('rqComplanceState')
 rqjustiffield = IssueCustomField.find_by_name('rqComplianceJustif')
 
-%>
-<div class="<%= "cSysProject" %>">
-<h1>Compliance table</h1>
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
-<div class="compliancetable">
-<table>
-<thead>
-<tr>
-<%
-if sort_by_chapter
-%>
-<th>Chapter</th>
-<th>csID</th>
-<%
-else
-%>
-<th>csID</th>
-<th>Chapter</th>
-<%
+def calculate_heading(showchap,i)
+	if (i.csys.is_chapter?) then
+		classdiv = "cSysParentIssue"
+		chapstr = ""
+		if showchap then
+			chapstr = i.chapter_str
+		end
+	else
+		classdiv = "cSysIssue"
+		chapstr = ""
+		if showchap then
+			chapstr += i.chapter_str + " "
+		end		
+		chapstr += i.csys.get_identifier
+	end
+	if showchap then
+		chapstr += ':'
+	end
+	return chapstr,classdiv
 end
-%>
-<th>Subject</th>
-<th>Sta of Compl</th>
-<th>Justification</th>
-<th>RefDoc</th>
-</tr>
-</thead>
-<tbody>
-<%
 
-requirements.each{|i|
-%>
-<tr>
-<%
-  puts i.subject
-  if (i.csys.shall_draw) then
-    if (not i.csys.is_chapter?) then
-      compl_state = i.custom_field_values.select{|a| a.custom_field_id == rqstatefield.id }.first
-      compl_justif = i.custom_field_values.select{|a| a.custom_field_id == rqjustiffield.id }.first
-      compl_refdocs = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
-%>
-<td>
-<%
-if sort_by_chapter
-%>
-<%= i.csys.chapter_str %>
-</td><td>
-<%= link_to i.csys.get_identifier, issue_path(i.id) %>
-<%
-else
-%>
-<%= link_to i.csys.get_identifier, issue_path(i.id) %>
-</td><td>
-<%= i.csys.chapter_str %>
-<%
+
+def calculate_complete_title(showchap, i, chapstr)
+  if showchap then
+    link_to chapstr, issue_path(i.id)
+  else
+    chapstr
+  end
 end
+
 %>
-</td><td>
-<%= i.subject %>
-</td><td>
-<%= if (compl_state != nil) then compl_state.value.to_s else "" end%>
-</td><td>
-<%= if (compl_justif != nil) then textilizable(compl_justif.value.to_s) else "" end%>
-</td><td>
-<div><%= if (compl_refdocs != nil and compl_refdocs.value != nil) then textilizable(i.csys.get_compdocs_table) else "" end %></div>
-</td>
 <%
+draw_items = lambda { |item, recursion, current_level|
+  chapstr, classdiv = calculate_heading(show_chapters, item)
+  title = item.subject
+%>
+<div class="<%= classdiv %>">
+  <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+
+    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+<%
+  if title != "Applicable documents" and title != "Reference documents" and title != "Compliance documents" and title != "Compliance matrix" then
+    if (item.csys.shall_show_dependences?) then
+      imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
+
+      if show_images then 
+        show_this_image = false
+        thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
+        if (thisdepgraphflag != nil) then
+          # Patch for the case the depgraphflag does not exist
+          if (thisdepgraphflag.value == nil) then thisdepgraphflag.value = cfdepgraph.default_value; item.save end
+          if (thisdepgraphflag.value == 'Include') then
+            show_this_image = true
+          else
+            if (thisdepgraphflag.value == 'Include if has relations') then
+              show_this_image = (item.relations.size > 0)
+            end
+          end
+        else
+          show_this_image = (item.relations.size > 0)
+        end
+              
+        if (show_this_image) then
+  %>
+            
+      <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
+  <%
+        end 
+      end
+    end 
+    if not(item.csys.is_chapter?) then 
+      # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+      if (rqtracker != nil and item.tracker == rqtracker) then
+        thistype = item.custom_values.where(custom_field: cftype).first.value
+        if thistype != nil and thistype.size > 0 then thistype = "t:"+thistype end
+        thislevel = item.custom_values.where(custom_field: cflevel).first.value
+        if thislevel != nil and thislevel.size > 0 then thislevel = "l:"+thislevel end
+      end
+    end
+    # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+    if (rqtracker != nil and item.tracker == rqtracker) then
+      thisvar = item.custom_values.where(custom_field: cfvar).first.value
+      if thisvar != nil and thisvar.size > 0 then thisvar = "v:"+thisvar end
+      thisvalue = item.custom_values.where(custom_field: cfvalue).first.value
+      if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
+    end
+
+      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
+  else
+    if title == "Applicable documents" then
+%>
+    <div class="apldocstable">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+      item.children.each{|i|
+%>
+          <tr>
+            <td><%= link_to i.subject, issue_path(i.id) %></td>
+            <td><%= textilizable(i.description) %></td>
+          </tr>
+<%
+      }
+%>
+        </tbody>
+      </table>
+    </div>
+<%
+    else
+      if title == "Reference documents" then
+%>
+    <div class="refdocstable">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+        item.children.each{|i| 
+%>
+          <tr>
+            <td><%= link_to i.subject, issue_path(i.id) %></td>
+            <td><%= textilizable(i.description) %></td>
+          </tr>
+<%
+        }
+%>
+        </tbody>
+      </table>
+    </div>
+<% 
+      else 
+        if title == "Compliance documents" then 
+%>
+    <div class="compdocstable">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+          item.children.each{|i|
+%>
+          <tr>
+            <td><%= link_to i.subject, issue_path(i.id) %></td>
+            <td><%= textilizable(i.description) %></td>
+          </tr>
+<%
+          }
+%>
+        </tbody>
+      </table>
+    </div>
+<%
+        else
+          if title == "Compliance matrix" then
+%>
+    <div class="compliancematrix">
+      <table>
+        <thead>
+          <tr>
+            <th>csID</th>
+            <th>Chapter</th>
+            <th>Subject</th>
+            <th>Sta of Compl</th>
+            <th>Justification</th>
+            <th>RefDoc</th>
+          </tr>
+        </thead>
+        <tbody>
+<%
+            @project.issues.each{|i|
+%>
+          <tr>
+<%
+              puts i.subject
+              if (i.csys.shall_draw) then
+                if (not i.csys.is_chapter?) then
+                  compl_state = i.custom_field_values.select{|a| a.custom_field_id == rqstatefield.id }.first
+                  compl_justif = i.custom_field_values.select{|a| a.custom_field_id == rqjustiffield.id }.first
+                  compl_refdocs = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
+%>
+            <td><%= link_to i.csys.get_identifier, issue_path(i.id) %></td>
+            <td><%= i.csys.chapter_str %></td>
+            <td><%= i.subject %></td>
+            <td><%= if (compl_state != nil) then compl_state.value.to_s else "" end%></td>
+            <td><%= if (compl_justif != nil) then textilizable(compl_justif.value.to_s) else "" end%></td>
+            <td>
+              <div><%= if (compl_refdocs != nil and compl_refdocs.value != nil) then textilizable(i.csys.get_compdocs_table) else "" end %></div>
+            </td>
+<%
+                end
+              end
+%>
+          </tr>
+<%
+            }
+%>
+        </tbody>
+      </table>
+    </div>
+<%
+          end
+        end
+      end
     end
   end
-%>
-</tr>
-<%
+  %>
+      </div>
+  <%
 }
 %>
-</tbody>
-</table>
-</div>
-</div>
 
+<div style="text-align: right;">
+  <label for="format">Format:
+    <select name="format">
+      <option value="html">HTML</option>
+      <option value="odt">Odt</option>
+      <option value="docx" selected>Docx</option>
+    </select>
+  </label>
+  <button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button>
+</div>
+<div class="<%= "cSysProject" %>">
+
+<% 
+if show_chapters
+%>
+<h1><%= @project.csys.code %>: <%= @project.name %></h1>
+<%
+end
+
+roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+  if roots.size == 0 then
+    roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+  end
+  roots.each { |i| 
+    draw_items.(i, draw_items,1) 
+  }
+%>
+</div>
 
 <script>
 const getBase64StringFromDataURL = (dataURL) =>
   dataURL.replace('data:', '').replace(/^.+,/, '');
 
-function readFile(file){
-  return new Promise((resolve, reject) => {
-    var fr = new FileReader();  
-    fr.onload = () => {
-      resolve(fr.result )
-    };
-    fr.onerror = reject;
-    fr.readAsText(file.blob);
+function inlineStyles(nodeElement) {
+    if (!nodeElement || nodeElement.nodeType !== 1) return; // Skip if not an element node
+
+    let computedStyle = window.getComputedStyle(nodeElement);
+
+    // List of styles to exclude
+    const excludeStyles = [
+        'text-align-last',
+        'text-anchor',
+        'text-decoration',
+        'text-decoration-color',
+        'text-decoration-line',
+        'text-decoration-skip-ink',
+        'text-decoration-style',
+        'font-family',
+        'font-size',
+        'list-style-type',
+        'font-variant-numeric',
+        'unicode-bidi'
+
+    ];
+
+    // If the element is an img, figure, or div, add width and height to the exclude list
+    let tagName = nodeElement.tagName.toLowerCase();
+    if (tagName === 'a' || tagName === 'img' || tagName === 'figure' || tagName === 'div') {
+        excludeStyles.push('width', 'height');
+    }
+
+    const pxToPtRatio = 0.68; // 1 px = 0.68 pt
+
+    let styleStr = '';
+    for (let i = 0; i < computedStyle.length; i++) {
+        let prop = computedStyle[i];
+        // Skip if the property is in the exclude list
+        if (excludeStyles.includes(prop)) continue;
+
+        let value = computedStyle.getPropertyValue(prop);
+
+        // If the value is in px and the property is font-size, convert to pt
+        if (value.includes('px') && prop === 'font-size') {
+            value = parseFloat(value) * pxToPtRatio + 'pt';
+        }
+
+        styleStr += `${prop}:${value};`;
+    }
+
+    nodeElement.setAttribute('style', styleStr);
+
+    // Recurse through children
+    Array.from(nodeElement.children).forEach(child => inlineStyles(child));
+}
+
+function inlineSomeStyles(nodeElement) {
+    if (!nodeElement || nodeElement.nodeType !== 1) return; // Skip if not an element node
+
+    let computedStyle = window.getComputedStyle(nodeElement);
+
+    // List of styles to exclude
+    const includeStyles = [
+        'text-align',
+        'text-anchor'
+    ];
+
+    // If the element is an img, figure, or div, add width and height to the exclude list
+    let tagName = nodeElement.tagName.toLowerCase();
+
+    let styleStr = '';
+    for (let i = 0; i < computedStyle.length; i++) {
+        let prop = computedStyle[i];
+        // Skip if the property is in the exclude list
+        if (!includeStyles.includes(prop)) continue;
+
+        let value = computedStyle.getPropertyValue(prop);
+
+        // If the value is in px and the property is font-size, convert to pt
+        if (value.includes('px') && prop === 'font-size') {
+            value = parseFloat(value) * pxToPtRatio + 'pt';
+        }
+
+        styleStr += `${prop}:${value};`;
+    }
+
+    nodeElement.setAttribute('style', styleStr);
+
+    // Recurse through children
+    Array.from(nodeElement.children).forEach(child => inlineSomeStyles(child));
+}
+
+
+function convertHeadingClassToElement(element) {
+  let elements = element.querySelectorAll("[class*='heading_']");
+
+  elements.forEach((elem) => {
+    let match = elem.className.match(/heading_(\d+)/);
+
+    if (match) {
+      let num = match[1];
+
+      let newElem = document.createElement(num > 6 ? "h6" : 'h' + num);
+      newElem.addClass = "heading_" + num;
+
+      for (let attr of elem.attributes) {
+        newElem.setAttribute(attr.name, attr.value);
+      }
+
+      while (elem.firstChild) {
+        newElem.appendChild(elem.firstChild);
+      }
+
+      elem.parentNode.replaceChild(newElem, elem);
+    }
   });
 }
 
-    function transferComputedStyle(node) {
-        var cs = getComputedStyle(node, null);
-        var i;
-        for (i = 0; i < cs.length; i++) {
-            var s = cs[i] + "";
-              node.style[s] = cs[s];
-        }
-    }
-    function transferAll() {
-        var all = document.getElementsByTagName("*");
-        var i;
-        for (i = 0; i < all.length; i++) {
-            transferComputedStyle(all[i]);
-        }
-    }
+function applyImageStyles(imageElement) {
+  imageElement.setAttribute('style', "");
 
-function downloadReport(title) {
-  let projectElement = document.querySelector('.cSysProject').cloneNode(true);
+  let naturalWidth = imageElement.naturalWidth;
+  let naturalHeight = imageElement.naturalHeight;
+  let newHeight = naturalHeight;
+  let newWidth = naturalWidth;
+  let maxWidth = 917;
+  let maxHeight = 525;
+
+  if (newWidth > maxWidth) {
+    newWidth = maxWidth;
+    newHeight = Math.round(newWidth * (naturalHeight / naturalWidth));
+  }
+
+  if (newHeight > maxHeight){
+    newHeight = maxHeight;
+    newWidth = Math.round(newHeight * (naturalWidth / naturalHeight));
+  }
+
+  imageElement.style.width = newWidth + 'px';
+  imageElement.style.height = newHeight + 'px';
+
+  return imageElement;
+}
+
+function applyTableStylesToAllTables(containerElement) {
+  let tables = containerElement.querySelectorAll('table');
+
+  tables.forEach(table => {
+    table.style.borderCollapse = 'collapse';
+    table.style.borderSpacing = '0';
+    table.style.border = '1px solid #000';
+
+    let rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+      let cells = row.querySelectorAll('td, th');
+      cells.forEach(cell => {
+        cell.style.border = '1px solid #000';
+      });
+    });
+  });
+}
+
+async function offerDownloadFile(title, file_or_blob, extension, callback) {
+  // Create an object URL for the blob or file and create a link element to trigger the download
+  let link = document.createElement('a');
+  link.href = window.URL.createObjectURL(file_or_blob);
+  link.download = title + "." + extension; // Name of the downloaded file
+  link.style.display = 'none';
+
+  // It needs to be added to the DOM so it can be clicked
+  document.body.appendChild(link);
+  link.click();
+
+  // To make this work on Firefox we need to wait
+  // a little while before removing it.
+  setTimeout(() => {
+    URL.revokeObjectURL(link.href);
+    link.parentNode.removeChild(link);
+    callback();
+  }, 0);
+}
+
+async function downloadFile(title, file, exportFormat, callback) {
+  if (exportFormat == "html") {
+    offerDownloadFile(title, file, exportFormat, callback);
+  } else {
+    let formData = new FormData();
+    formData.append('file', file);
+
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', '/cosmosys/convert_to/' + exportFormat, true);
+
+    // When the request is loaded
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        // Convert the response to a Blob
+        let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+
+        offerDownloadFile(title, blob, exportFormat, callback);
+      } else {
+        // Handle the error
+        console.error('Server responded with an error:', xhr.statusText);
+      }
+    };
+
+    // Setting the response type to 'blob' as we are expecting a file
+    xhr.responseType = 'blob';
+
+    // Handling any error with the request
+    xhr.onerror = function () {
+      console.error('Request failed.');
+    };
+
+    // Sending the FormData with the file
+    xhr.send(formData);
+  }
+}
+
+async function downloadReport(title) {
+  let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
+  let projectElement = document.querySelector('.cSysProject')
+
+  // Uncomment this to enable embedding all styles as inline attributes.
+  // inlineStyles(projectElement);
+  inlineSomeStyles(projectElement);
+
+  convertHeadingClassToElement(projectElement);
+  applyTableStylesToAllTables(projectElement);
+
+  let page_style_elements = document.querySelectorAll('style, link[rel="stylesheet"]');
+  var page_styles = Array.apply(null, Array(page_style_elements.length)).map(function () {})
+  let style_promises = [];
+
+  for (var i = 0; i < page_style_elements.length; i++){
+     style_or_link = page_style_elements[i];
+     let index = i;
+     if(style_or_link.tagName == "STYLE"){
+       page_styles.splice(index, 1, style_or_link.innerText);
+     } else {
+       style_promises.push(fetch(style_or_link.href)
+         .then((res) => res.blob())
+         .then((blob) => {
+           return new Promise((resolve, reject) => {
+             const reader = new FileReader();
+             reader.onloadend = () => {
+               resolve(reader.result)
+             };
+             reader.onerror = reject;
+             reader.readAsText(blob);
+           });
+         })
+         .then((text) => {
+           page_styles.splice(index, 1, text);
+           return text;
+         }))
+     }
+  }
 
   let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
     return fetch(img.src)
@@ -156,14 +554,13 @@ function downloadReport(title) {
       })
       .then((dataURL) => {
         img.src = dataURL;
-        img.style.width = Math.round(2 * img.width) + 'px';
-        img.style.height = Math.round(2 * img.height) + 'px';
+        applyImageStyles(img);
       });
   });
 
   let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
     const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
-    
+
     return new Promise((resolve, reject) => {
       let href = link.getAttribute('href');
       if (!r.test(href)) {
@@ -177,35 +574,26 @@ function downloadReport(title) {
     });
   });
 
-  let promises = image_promises.concat(link_promises);
+  let promises = image_promises.concat(link_promises).concat(style_promises);
 
   Promise.allSettled(promises)
     .then(() => {
       projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
     })
-    .then(() => {
+    .then(async() => {
       let html = projectElement.innerHTML;
-      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title></head>';
-        html = head + '<body><div class="cSysProject">' + html + '</div></body>';
+      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title><style>' + page_styles.join("\n") + '</style></head>';
+      html = head + '<body><div class="cSysProject">' + html + '</div></body>';
 
       let file = new File([html], title + ".html");
-      
-      // Create a link and set the URL using `createObjectURL`
-      const link = document.createElement("a");
-      link.style.display = "none";
-      link.href = URL.createObjectURL(file);
-      link.download = file.name;
 
-      // It needs to be added to the DOM so it can be clicked
-      document.body.appendChild(link);
-      link.click();
+      let selectElement = document.querySelector('select[name="format"]');
+      let exportFormat = selectElement.value;
 
-      // To make this work on Firefox we need to wait
-      // a little while before removing it.
-      setTimeout(() => {
-        URL.revokeObjectURL(link.href);
-        link.parentNode.removeChild(link);
-      }, 0);
+      downloadFile(title, file, exportFormat, () => {
+        projectElement.parentElement.insertBefore(bakupElement, projectElement);
+        projectElement.parentNode.removeChild(projectElement);
+      });
     })
 
 }
