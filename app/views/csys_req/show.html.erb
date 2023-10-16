@@ -256,8 +256,8 @@ draw_items = lambda { |item, recursion, current_level|
   <label for="format">Format:
     <select name="format">
       <option value="html">HTML</option>
-      <option value="odt">Odt</option>
-      <option value="docx" selected>Docx</option>
+      <option value="odt" selected>Odt</option>
+      <!--option value="docx" selected>Docx</option-->
     </select>
   </label>
   <button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button>
@@ -345,29 +345,27 @@ function inlineSomeStyles(nodeElement) {
     // List of styles to exclude
     const includeStyles = [
         'text-align',
-        'text-anchor'
     ];
 
     // If the element is an img, figure, or div, add width and height to the exclude list
     let tagName = nodeElement.tagName.toLowerCase();
+    if (tagName === 'a') {
+      let styleStr = '';
+      for (let i = 0; i < computedStyle.length; i++) {
+          let prop = computedStyle[i];
+          // Skip if the property is in the exclude list
+          if (!includeStyles.includes(prop)) continue;
 
-    let styleStr = '';
-    for (let i = 0; i < computedStyle.length; i++) {
-        let prop = computedStyle[i];
-        // Skip if the property is in the exclude list
-        if (!includeStyles.includes(prop)) continue;
+          let value = computedStyle.getPropertyValue(prop);
 
-        let value = computedStyle.getPropertyValue(prop);
-
-        // If the value is in px and the property is font-size, convert to pt
-        if (value.includes('px') && prop === 'font-size') {
-            value = parseFloat(value) * pxToPtRatio + 'pt';
-        }
-
-        styleStr += `${prop}:${value};`;
+          // If the value is in px and the property is font-size, convert to pt
+          if (value.includes('px') && prop === 'font-size') {
+              value = parseFloat(value) * pxToPtRatio + 'pt';
+          }
+          styleStr += `${prop}:${value};`;
+      }
+      nodeElement.setAttribute('style', styleStr);
     }
-
-    nodeElement.setAttribute('style', styleStr);
 
     // Recurse through children
     Array.from(nodeElement.children).forEach(child => inlineSomeStyles(child));
