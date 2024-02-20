@@ -29,7 +29,7 @@ end
 %>
 <div class="<%= "cSysProject" %>">
 <h1>Compliance reference documents</h1>
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button></div>
 <div class="compdocstable">
   <table>
     <thead>
