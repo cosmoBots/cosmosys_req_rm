@@ -21,7 +21,7 @@ if (refchapter != nil) then
 if sort_by_chapter
   requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
 else
-  requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
+  requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.subject}
 end
 else
     requirements = []
