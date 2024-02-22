@@ -21,7 +21,7 @@ if (refchapter != nil) then
 if sort_by_chapter
   requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
 else
-  requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.csys.get_identifier}
+  requirements = refchapter.children.select{|obj| not obj.csys.is_chapter? == nil and obj.csys.shall_draw}.sort_by{|obj| obj.subject}
 end
 else
     requirements = []
@@ -29,7 +29,7 @@ end
 %>
 <div class="<%= "cSysProject" %>">
 <h1>Compliance reference documents</h1>
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button></div>
 <div class="compdocstable">
   <table>
     <thead>
