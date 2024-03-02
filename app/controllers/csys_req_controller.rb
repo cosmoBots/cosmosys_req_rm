@@ -4,33 +4,33 @@ class CsysReqController < ApplicationController
 
   def zombie
     if request.get? then
-      print("zombie GET!!!!!")
+      # print("zombie GET!!!!!")
     else
-      print("zombie POST!!!!!")
+      # print("zombie POST!!!!!")
       st = IssueStatus.find_by_name("rqZombie")
       @issue.status = st
       @issue.save
       redirect_to issue_path(@issue)
-    end    
+    end
   end
 
   def erase
     if request.get? then
-      print("erase GET!!!!!")
+      # print("erase GET!!!!!")
     else
-      print("erase POST!!!!!")
+      # print("erase POST!!!!!")
       st = IssueStatus.find_by_name("rqErased")
       @issue.status = st
       @issue.save
       redirect_to issue_path(@issue)
-    end    
+    end
   end
 
   def derive
     if request.get? then
-      print("derive GET!!!!!")
+      # print("derive GET!!!!!")
     else
-      print("derive POST!!!!!")
+      # print("derive POST!!!!!")
       if @issue.tracker.name == "rq" then
         cftype = IssueCustomField.find_by_name("rqType")
         thistype = @issue.custom_values.where(custom_field: cftype).first.value
@@ -84,7 +84,7 @@ class CsysReqController < ApplicationController
         flash.now[:error] = 'This item is not a requirement'
       end
       redirect_to(issue_path(@issue))
-    end    
+    end
   end
 
   def menu
@@ -104,9 +104,9 @@ class CsysReqController < ApplicationController
 
   def clone
     if request.get? then
-      print("clone GET!!!!!")
+      # print("clone GET!!!!!")
     else
-      print("clone POST!!!!!")
+      # print("clone POST!!!!!")
       puts(params)
       pr = @issue.project
       par = @issue.parent
@@ -145,7 +145,7 @@ class CsysReqController < ApplicationController
             #print(dst_r.to_s+" ... nok\n")
             dst_r.errors.full_messages.each  do |message|
               print("--> " + message + "\n")
-            end                            
+            end
           endcop
         end
 =begin
@@ -160,14 +160,14 @@ class CsysReqController < ApplicationController
           #print(dst_r.to_s+" ... nok\n")
           cp_r.errors.full_messages.each  do |message|
             print("--> " + message + "\n")
-        end                            
+        end
 =end
       end
       # Force the identifier creation
       puts i.csys.identifier+" created!"
       flash.now[:notice] = 'Clone executed.  Check your new cloned item following the copied_to link'
       redirect_to(issue_path(i))
-    end    
+    end
   end
 
 
@@ -188,14 +188,14 @@ class CsysReqController < ApplicationController
       raise ::Unauthorized
     end
     if request.get? then
-      print("GET!!!!!")
+      # print("GET!!!!!")
       respond_to do |format|
         format.html {
-          # calculate 
+          # calculate
           @key = User.current.api_key
           @treeviewpath = "/cosmosys/"+@project.identifier+"/treeview"
         }
-        format.json { 
+        format.json {
           treedata = []
           if (@issue) then
             thisnodeid = params[:issue_id]
@@ -230,20 +230,20 @@ class CsysReqController < ApplicationController
           #print("\nserver_addr ",request.server_addr)
           #print("\nhost ",request.host)
           #print("\nremote_host ",request.remote_host)
-    
+
           tree_node = create_tree(thisnode,root_url,is_project,@project,u.api_key)
-    
+
           #print treedata
           treedata << tree_node
 
           require 'json'
           ActiveSupport.escape_html_entities_in_json = false
           render json: treedata
-          ActiveSupport.escape_html_entities_in_json = true        
+          ActiveSupport.escape_html_entities_in_json = true
         }
       end
     end
-   
+
   end
 
 
@@ -261,6 +261,6 @@ class CsysReqController < ApplicationController
       end
     end
     #print("Project: "+@project.to_s+"\n")
-  end  
+  end
 
 end
