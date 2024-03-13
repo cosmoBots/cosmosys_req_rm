@@ -3,11 +3,11 @@
 	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
 <% end %>
 
-<% 
+<%
 
 def truthy?(value, nilistrue = false)
-  if (nilistrue and value == nil) then 
-    return true 
+  if (nilistrue and value == nil) then
+    return true
   end
   options = [1, "1", true, "true", "t","yes","y"]
   return options.include?(value)
@@ -29,7 +29,7 @@ end
 %>
 <div class="<%= "cSysProject" %>">
 <h1>Reference documents</h1>
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button></div>
+<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.identifier}','#{@project.name}','#{@project.csys.code}')" %>">Download</button></div>
 <div class="refdocstable">
   <table>
     <thead>
@@ -60,7 +60,7 @@ const getBase64StringFromDataURL = (dataURL) =>
 
 function readFile(file){
   return new Promise((resolve, reject) => {
-    var fr = new FileReader();  
+    var fr = new FileReader();
     fr.onload = () => {
       resolve(fr.result )
     };
@@ -85,7 +85,7 @@ function readFile(file){
         }
     }
 
-function downloadReport(title) {
+function downloadReport(identifier, title) {
   let projectElement = document.querySelector('.cSysProject').cloneNode(true);
 
   let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
@@ -110,7 +110,7 @@ function downloadReport(title) {
 
   let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
     const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
-    
+
     return new Promise((resolve, reject) => {
       let href = link.getAttribute('href');
       if (!r.test(href)) {
@@ -136,7 +136,7 @@ function downloadReport(title) {
         html = head + '<body><div class="cSysProject">' + html + '</div></body>';
 
       let file = new File([html], title + ".html");
-      
+
       // Create a link and set the URL using `createObjectURL`
       const link = document.createElement("a");
       link.style.display = "none";
