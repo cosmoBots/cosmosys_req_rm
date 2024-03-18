@@ -1,4 +1,4 @@
-<% 
+<%
  %>
 <%= stylesheet_link_tag 'cosmosys_req', plugin: 'cosmosys_req' %>
 <div class="req-content">
@@ -6,24 +6,24 @@
   <button class="reqtablink" onclick="openReqTab('Actions', this, 'steelblue')" id="defaultOpenReqTab">Actions</button>
   <button class="reqtablink" onclick="openReqTab('AplDocs', this, 'steelblue')">Apl. Docs.</button>
   <button class="reqtablink" onclick="openReqTab('RefDocs', this, 'steelblue')">Ref. Docs.</button>
-  <button class="reqtablink" onclick="openReqTab('ComplDocs', this, 'steelblue')">Compliance Documents</button>
+  <button class="reqtablink" onclick="openReqTab('ComplDocs', this, 'steelblue')">Compliance documents</button>
   </div>
   <div id="AplDocs" class="reqtabcontent">
-  <% 
+  <%
     dest = @issue.csys.get_apl_documents_table
   %>
   <%= textilizable(dest)%>
   <!--p><%= dest %></p-->
   </div>
   <div id="RefDocs" class="reqtabcontent">
-  <% 
+  <%
     dest = @issue.csys.get_documents_table
   %>
   <%= textilizable(dest)%>
   <!--p><%= dest %></p-->
   </div>
   <div id="ComplDocs" class="reqtabcontent">
-  <% 
+  <%
     dest = @issue.csys.get_compdocs_table
   %>
   <%= textilizable(dest)%>
@@ -69,7 +69,7 @@
     <%= submit_tag l(:button_clone) %>
     <% end %>
   </td>
-  
+
   <% if @issue.csys.can_be_rq_closed? then %>
 
   <td>
@@ -93,10 +93,9 @@
   <% end %>
 
   <% end %>
-  
+
   </tr>
   </table>
   </div>
 </div>
 <%= javascript_include_tag 'cosmosys_req', :plugin => 'cosmosys_req' %>
-
