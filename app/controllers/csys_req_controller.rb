@@ -1,6 +1,6 @@
 class CsysReqController < ApplicationController
   before_action :find_this_project
-  #before_action :authorize, :except => [:find_this_project]
+  before_action :authorize, :except => [:find_this_project]
 
   def zombie
     if request.get? then
