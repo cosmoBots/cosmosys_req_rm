@@ -130,7 +130,11 @@ module CosmosysIssueOverwritePatch
             if self.issue.tracker.name == "prCmd" then
               colorstr = "darkseagreen1"
             else
-              colorstr = self.inner_get_fill_color
+              if self.issue.tracker.name == "rq" then
+                colorstr = "lightyellow"
+              else
+                colorstr = self.inner_get_fill_color
+              end
             end
           end
         end
