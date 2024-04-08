@@ -131,7 +131,29 @@ module CosmosysIssueOverwritePatch
               colorstr = "darkseagreen1"
             else
               if self.issue.tracker.name == "rq" then
-                colorstr = "lightyellow"
+                rqtype =  self.issue.custom_field_values.select{|a| a.custom_field_id == @@cftype.id }.first
+                typ = rqtype.value
+                if (typ == "Complex") then
+                  colorstr = "lightyellow"
+                else
+                  if (typ == nil || typ == "Info") then
+                    colorstr = "white"
+                  else
+                    if (typ == "Opt") then
+                      colorstr = "lightcyan"
+                    else
+                      if (typ == "Sw") then
+                        colorstr = "darkseagreen1"
+                      else
+                        if (typ == "Mech") then
+                          colorstr = "antiquewhite2"
+                        else
+                          colorstr = "lavenderblush2"
+                        end
+                      end
+                    end
+                  end
+                end
               else
                 colorstr = self.inner_get_fill_color
               end
