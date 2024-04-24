@@ -52,6 +52,7 @@ module CosmosysIssueOverwritePatch
   @@cfcompldoc = IssueCustomField.find_by_name('rqComplianceDocs')
   @@cfrefdocs = IssueCustomField.find_by_name('rqRefDocs')
   @@cfapldocs = IssueCustomField.find_by_name('rqAplDocs')
+  @@csinfotracker = Tracker.find_by_name('csInfo')
 
   def is_valid?
     self.req.is_valid?
@@ -95,34 +96,34 @@ module CosmosysIssueOverwritePatch
   end
 
   def shall_draw
-    if self.issue.tracker == @@rqtracker then
-      if self.issue.subject == "Deleted requirements" then
-        return false
+    if self.issue.subject == "Deleted requirements" then
+      return false
+    else
+      if self.issue.subject == "Undeleted requirements" then
+        return self.issue.children.size > 0
       else
-        if self.issue.subject == "Undeleted requirements" then
-          return self.issue.children.size > 0
-        else
+        if self.issue.tracker == @@rqtracker then
           return not(self.issue.status.is_closed)
+        else
+          return true
         end
       end
-    else
-      return true
     end
   end
 
   def shall_report
-    if self.issue.tracker == @@rqtracker then
-      if self.issue.subject == "Deleted requirements" then
+    if self.issue.subject == "Deleted requirements" then
+      return self.issue.children.size > 0
+    else
+      if self.issue.subject == "Undeleted requirements" then
         return self.issue.children.size > 0
       else
-        if self.issue.subject == "Undeleted requirements" then
-          return self.issue.children.size > 0
-        else
+        if self.issue.tracker == @@rqtracker then
           return not(self.issue.status.is_closed)
+        else
+          return true
         end
       end
-    else
-      return true
     end
   end
 
@@ -373,17 +374,11 @@ module CosmosysIssueOverwritePatch
 
   def create_a_chapter(chaptername, status = nil)
     refchapter = self.issue.project.issues.new
-    refchapter.tracker = @@rqtracker
+    refchapter.tracker = @@csinfotracker
     if status != nil then
       refchapter.status = status
     end
     refchapter.subject = chaptername
-    rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == @@cftype.id }.first
-    rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == @@cflevel.id }.first
-    rqtype.value = "Info"
-    rqlevel.value = "None"
-    thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == @@cfcomplst.id }.first
-    thiscv.value=@@cfcomplst.default_value
     refchapter.author = User.current
     refchapter.csys.update_cschapter_no_bd
     refchapter.save
