@@ -110,6 +110,22 @@ module CosmosysIssueOverwritePatch
     end
   end
 
+  def shall_report
+    if self.issue.tracker == @@rqtracker then
+      if self.issue.subject == "Deleted requirements" then
+        return self.issue.children.size > 0
+      else
+        if self.issue.subject == "Undeleted requirements" then
+          return self.issue.children.size > 0
+        else
+          return not(self.issue.status.is_closed)
+        end
+      end
+    else
+      return true
+    end
+  end
+
   def get_fill_color
     # TODO: Move it to cosmosys_req_poris
     i = self.issue
