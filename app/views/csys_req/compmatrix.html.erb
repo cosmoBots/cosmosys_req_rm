@@ -3,11 +3,11 @@
 	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
 <% end %>
 
-<% 
+<%
 
 def truthy?(value, nilistrue = false)
-  if (nilistrue and value == nil) then 
-    return true 
+  if (nilistrue and value == nil) then
+    return true
   end
   options = [1, "1", true, "true", "t","yes","y"]
   return options.include?(value)
@@ -30,7 +30,6 @@ rqjustiffield = IssueCustomField.find_by_name('rqComplianceJustif')
 %>
 <div class="<%= "cSysProject" %>">
 <h1>Compliance table</h1>
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button></div>
 <div class="compliancematrix">
 <table>
 <thead>
@@ -105,108 +104,3 @@ end
 </table>
 </div>
 </div>
-
-
-<script>
-const getBase64StringFromDataURL = (dataURL) =>
-  dataURL.replace('data:', '').replace(/^.+,/, '');
-
-function readFile(file){
-  return new Promise((resolve, reject) => {
-    var fr = new FileReader();  
-    fr.onload = () => {
-      resolve(fr.result )
-    };
-    fr.onerror = reject;
-    fr.readAsText(file.blob);
-  });
-}
-
-    function transferComputedStyle(node) {
-        var cs = getComputedStyle(node, null);
-        var i;
-        for (i = 0; i < cs.length; i++) {
-            var s = cs[i] + "";
-              node.style[s] = cs[s];
-        }
-    }
-    function transferAll() {
-        var all = document.getElementsByTagName("*");
-        var i;
-        for (i = 0; i < all.length; i++) {
-            transferComputedStyle(all[i]);
-        }
-    }
-
-function downloadReport(title) {
-  let projectElement = document.querySelector('.cSysProject').cloneNode(true);
-
-  let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
-    return fetch(img.src)
-      .then((res) => res.blob())
-      .then((blob) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            resolve(reader.result)
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      })
-      .then((dataURL) => {
-        img.src = dataURL;
-        img.style.width = Math.round(2 * img.width) + 'px';
-        img.style.height = Math.round(2 * img.height) + 'px';
-      });
-  });
-
-  let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
-    const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
-    
-    return new Promise((resolve, reject) => {
-      let href = link.getAttribute('href');
-      if (!r.test(href)) {
-          link.setAttribute('href',
-              (href.indexOf('/')) === 0 ?
-              document.location.origin + href :
-              document.location.href + '/' + link.getAttribute('href')
-            );
-      }
-      return resolve(link.href)
-    });
-  });
-
-  let promises = image_promises.concat(link_promises);
-
-  Promise.allSettled(promises)
-    .then(() => {
-      projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
-    })
-    .then(() => {
-      let html = projectElement.innerHTML;
-      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title></head>';
-        html = head + '<body><div class="cSysProject">' + html + '</div></body>';
-
-      let file = new File([html], title + ".html");
-      
-      // Create a link and set the URL using `createObjectURL`
-      const link = document.createElement("a");
-      link.style.display = "none";
-      link.href = URL.createObjectURL(file);
-      link.download = file.name;
-
-      // It needs to be added to the DOM so it can be clicked
-      document.body.appendChild(link);
-      link.click();
-
-      // To make this work on Firefox we need to wait
-      // a little while before removing it.
-      setTimeout(() => {
-        URL.revokeObjectURL(link.href);
-        link.parentNode.removeChild(link);
-      }, 0);
-    })
-
-}
-</script>

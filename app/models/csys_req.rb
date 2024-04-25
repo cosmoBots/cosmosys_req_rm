@@ -10,7 +10,7 @@ class CsysReq < ActiveRecord::Base
         'rqErased': 0,
         'rqZombie': 0
       }
-    
+
     def is_valid?
         result = true
         i = self.cosmosys_issue.issue
@@ -25,8 +25,15 @@ class CsysReq < ActiveRecord::Base
                             rel_issue = r.issue_from
                             result = rel_issue.csys.is_valid?
                             if (result) then
-                                if (@@req_status_maturity[rel_issue.status.name.to_sym] < 
-                                    @@req_status_maturity[i.status.name.to_sym]) then
+                                mat_rel = @@req_status_maturity[rel_issue.status.name.to_sym]
+                                if mat_rel == nil then
+                                    mat_rel = 0
+                                end
+                                mat = @@req_status_maturity[i.status.name.to_sym]
+                                if mat == nil then
+                                    mat = 0
+                                end
+                                if ( mat_rel < mat) then
                                 #print("\n\n**************")
                                 #print(i.id,": ",i.subject,": ",i.status,"/\n",@@req_status_maturity[i.status.name].to_s)
                                 #print("\t-",r.relation_type,"-> ",rel_issue.subject," : ",rel_issue.status,"/\n",@@req_status_maturity[rel_issue.status.name].to_s)
@@ -38,7 +45,7 @@ class CsysReq < ActiveRecord::Base
                     end
                 end
             }
-            return result 
+            return result
         else
             return true
         end

@@ -7,25 +7,25 @@ module CosmosysIssuePatch
 
     base.send(:include, InstanceMethods)
 
-    # Same as typing in the class 
+    # Same as typing in the class
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
-      
+
       has_one :csys_req
 
     end
 
   end
-  
+
   module ClassMethods
   end
-  
+
   module InstanceMethods
 
     def req
       if self.csys_req == nil then
         CsysReq.create!(cosmosys_issue:self)
-      end      
+      end
       self.csys_req
     end
 
@@ -33,7 +33,7 @@ module CosmosysIssuePatch
         #super.merge({'identifier' => identifier})
     end
 
-  end    
+  end
 end
 # Add module to Issue
 CosmosysIssue.send(:include, CosmosysIssuePatch)
@@ -47,16 +47,17 @@ module CosmosysIssueOverwritePatch
   @@cfvalue = IssueCustomField.find_by_name("rqValue")
   @@cfverif = CustomField.find_by_name("rqVerif")
   @@cfverifdescr = CustomField.find_by_name("rqVerifDescr")
-  @@cfrationale = CustomField.find_by_name("rqRationale") 
+  @@cfrationale = CustomField.find_by_name("rqRationale")
   @@cfcomplst = IssueCustomField.find_by_name('rqComplanceState')
   @@cfcompldoc = IssueCustomField.find_by_name('rqComplianceDocs')
-  @@cfrefdocs = IssueCustomField.find_by_name('rqRefDocs')  
-  @@cfapldocs = IssueCustomField.find_by_name('rqAplDocs')  
+  @@cfrefdocs = IssueCustomField.find_by_name('rqRefDocs')
+  @@cfapldocs = IssueCustomField.find_by_name('rqAplDocs')
+  @@csinfotracker = Tracker.find_by_name('csInfo')
 
   def is_valid?
     self.req.is_valid?
   end
-  
+
   def is_chapter?
     if self.issue.tracker == @@rqtracker then
       rqtypevalues = self.issue.custom_values.where(custom_field_id: @@cftype.id)
@@ -81,13 +82,13 @@ module CosmosysIssueOverwritePatch
 
   def shall_show_id
     # TODO: move it to cosmosys_req_poris
-    if self.issue.tracker.name == "prSys" or 
-      self.issue.tracker.name === "prParam" or 
-      self.issue.tracker.name == "prMode" or 
-      self.issue.tracker.name == "prCmd" or 
-      self.issue.tracker.name == "prValue" or 
-      self.issue.tracker.name == "prValFloat" or 
-      self.issue.tracker.name == "prValText" then 
+    if self.issue.tracker.name == "prSys" or
+      self.issue.tracker.name === "prParam" or
+      self.issue.tracker.name == "prMode" or
+      self.issue.tracker.name == "prCmd" or
+      self.issue.tracker.name == "prValue" or
+      self.issue.tracker.name == "prValFloat" or
+      self.issue.tracker.name == "prValText" then
       return true
     else
         return not(self.is_chapter?)
@@ -95,18 +96,34 @@ module CosmosysIssueOverwritePatch
   end
 
   def shall_draw
-    if self.issue.tracker == @@rqtracker then
-      if self.issue.subject == "Deleted requirements" then
-        return false
+    if self.issue.subject == "Deleted requirements" then
+      return false
+    else
+      if self.issue.subject == "Undeleted requirements" then
+        return self.issue.children.size > 0
       else
-        if self.issue.subject == "Undeleted requirements" then
-          return self.issue.children.size > 0
-        else
+        if self.issue.tracker == @@rqtracker then
           return not(self.issue.status.is_closed)
+        else
+          return true
         end
       end
+    end
+  end
+
+  def shall_report
+    if self.issue.subject == "Deleted requirements" then
+      return self.issue.children.size > 0
     else
-      return true
+      if self.issue.subject == "Undeleted requirements" then
+        return self.issue.children.size > 0
+      else
+        if self.issue.tracker == @@rqtracker then
+          return not(self.issue.status.is_closed)
+        else
+          return true
+        end
+      end
     end
   end
 
@@ -119,9 +136,9 @@ module CosmosysIssueOverwritePatch
       if self.issue.tracker.name === "prParam" then
         colorstr = "skyblue2"
       else
-        if self.issue.tracker.name == "prValue" or 
-          self.issue.tracker.name == "prValFloat" or 
-          self.issue.tracker.name == "prValText" then 
+        if self.issue.tracker.name == "prValue" or
+          self.issue.tracker.name == "prValFloat" or
+          self.issue.tracker.name == "prValText" then
           colorstr = "lightcyan"
         else
           if self.issue.tracker.name == "prMode" then
@@ -130,7 +147,33 @@ module CosmosysIssueOverwritePatch
             if self.issue.tracker.name == "prCmd" then
               colorstr = "darkseagreen1"
             else
-              colorstr = self.inner_get_fill_color
+              if self.issue.tracker.name == "rq" then
+                rqtype =  self.issue.custom_field_values.select{|a| a.custom_field_id == @@cftype.id }.first
+                typ = rqtype.value
+                if (typ == "Complex") then
+                  colorstr = "lightyellow"
+                else
+                  if (typ == nil || typ == "Info") then
+                    colorstr = "white"
+                  else
+                    if (typ == "Opt") then
+                      colorstr = "lightcyan"
+                    else
+                      if (typ == "Sw") then
+                        colorstr = "darkseagreen1"
+                      else
+                        if (typ == "Mech") then
+                          colorstr = "antiquewhite2"
+                        else
+                          colorstr = "lavenderblush2"
+                        end
+                      end
+                    end
+                  end
+                end
+              else
+                colorstr = self.inner_get_fill_color
+              end
             end
           end
         end
@@ -179,7 +222,7 @@ module CosmosysIssueOverwritePatch
       else
         ret = "{"+prependstr+"<?>|"+self.class.word_wrap(prependstr+i.subject, line_width: 12) + "}"
       end
-      end        
+      end
     return ret
   end
 
@@ -203,9 +246,9 @@ module CosmosysIssueOverwritePatch
     if i.tracker.name == "prValFloat" then
       ret += ":[min|def|max]"
     end
-    return ret    
+    return ret
   end
-  
+
   def get_label_issue(baseproj,boundary_node=false)
     i = self.issue
     trname = i.tracker.name
@@ -213,7 +256,7 @@ module CosmosysIssueOverwritePatch
     if trname == "prParam" or trname == "prSys" then
       ret = get_ancestor_based_label(baseproj,boundary_node)
     else
-      if trname == "prValue" or trname == "prValFloat" or trname == "prValText" then 
+      if trname == "prValue" or trname == "prValFloat" or trname == "prValText" then
         ret = get_ancestor_based_label(baseproj,boundary_node)
       else
         if trname == "prMode" then
@@ -331,17 +374,11 @@ module CosmosysIssueOverwritePatch
 
   def create_a_chapter(chaptername, status = nil)
     refchapter = self.issue.project.issues.new
-    refchapter.tracker = @@rqtracker
+    refchapter.tracker = @@csinfotracker
     if status != nil then
       refchapter.status = status
     end
     refchapter.subject = chaptername
-    rqtype =  refchapter.custom_field_values.select{|a| a.custom_field_id == @@cftype.id }.first
-    rqlevel =  refchapter.custom_field_values.select{|a| a.custom_field_id == @@cflevel.id }.first
-    rqtype.value = "Info"
-    rqlevel.value = "None"
-    thiscv = refchapter.custom_field_values.select{|a| a.custom_field_id == @@cfcomplst.id }.first
-    thiscv.value=@@cfcomplst.default_value
     refchapter.author = User.current
     refchapter.csys.update_cschapter_no_bd
     refchapter.save
@@ -373,9 +410,9 @@ module CosmosysIssueOverwritePatch
           if cells.size > 1 then
             if not refchapterdone
               refchapterdone = true
-              refchapter = self.issue.project.issues.find_by_subject("Compliance Documents")
+              refchapter = self.issue.project.issues.find_by_subject("Compliance documents")
               if (refchapter == nil) then
-                refchapter = create_a_chapter("Compliance Documents")
+                refchapter = create_a_chapter("Compliance documents")
               end
             end
             ref = "| " + cells[0] + " | - unknown reference - | "
@@ -431,7 +468,7 @@ module CosmosysIssueOverwritePatch
     if not self.issue.status.is_closed then
       # And we can not rq_close which is not a requirement
       if self.issue.tracker == @@rqtracker then
-        # Now let's examine the issue relations        
+        # Now let's examine the issue relations
         i = self.issue
         # We can not close anything which has children
         if (i.children.size > 0) then
@@ -455,7 +492,7 @@ module CosmosysIssueOverwritePatch
     return false
     puts("END can_be_rq_closed")
   end
-  
+
   # This process handles the closing and opening actions of requirements
   def save_pre_process
     puts("BEGIN save_pre_process " + self.issue.to_s)
@@ -465,7 +502,7 @@ module CosmosysIssueOverwritePatch
       # puts("******** "+self.issue.status.to_s)
       if self.issue.status.is_closed then
         # We are closing, but were already closed?
-        # In case we are creating this issue for the first time, we can simply skip 
+        # In case we are creating this issue for the first time, we can simply skip
         # relationships
         if (self.issue.id != nil) then
           oldreq = Issue.find(self.issue.id)
@@ -583,7 +620,7 @@ module CosmosysIssueOverwritePatch
                 # As the chapter does not exist, let's create it
                 refchapter = create_a_chapter("Undeleted requirements")
               end
-              # And now let's move the requirement to that section the 
+              # And now let's move the requirement to that section the
               self.issue.parent = refchapter
             end
             # If the parent is closed, we shall open it!
