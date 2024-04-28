@@ -286,6 +286,7 @@ module CosmosysIssueOverwritePatch
         refchapterdone = false
         refchapter = nil
         retdest = ""
+        relations_to_check = []
         for line in source.lines do
           dest = ""
           line = line.strip()
@@ -303,6 +304,9 @@ module CosmosysIssueOverwritePatch
               ch = refchapter.children.find_by_subject(cells[0])
               if (ch != nil) then
                 ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + prepare_text(ch.description) + " | "
+                # At this moment we know we the related document, let's see if we already have a relationship there
+                # In case we don't have the relationship, we'll create it
+                relations_to_check += [ch.id]
               end
             end
             dest += ref
@@ -312,9 +316,36 @@ module CosmosysIssueOverwritePatch
           end
           retdest += dest + "\n"
         end
+
+
+        puts "reltocheck: " + relations_to_check.to_s
+
+        # Now let's create the missing relations
+        if relations_to_check.size > 0 then
+          self.issue.relations.each {|r|
+            if r.issue_from = self.issue then
+              ir = r.issue_to
+            else
+              ir = r.issue_from
+            end
+            if relations_to_check.include?(ir.id) then
+              relations_to_check.delete(ir.id)
+            end
+          }
+          # All pre-existing relationships should be removed from relations_to_check
+          relations_to_check.each {|rid|
+            r = self.issue.relations_from.new
+            r.relation_type = "relates"
+            r.issue_to_id = rid
+            r.save
+          }
+        end
+
         if retdest != "" then
           retdest = header + retdest
         end
+        puts(retdest)
+
         retdest
       end
     else
@@ -335,6 +366,7 @@ module CosmosysIssueOverwritePatch
         refchapterdone = false
         refchapter = nil
         retdest = ""
+        relations_to_check = []
         for line in source.lines do
           dest = ""
           line = line.strip()
@@ -352,6 +384,9 @@ module CosmosysIssueOverwritePatch
               ch = refchapter.children.find_by_subject(cells[0])
               if (ch != nil) then
                 ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + prepare_text(ch.description) + " | "
+                # At this moment we know we the related document, let's see if we already have a relationship there
+                # In case we don't have the relationship, we'll create it
+                relations_to_check += [ch.id]
               end
             end
             dest += ref
@@ -361,9 +396,37 @@ module CosmosysIssueOverwritePatch
           end
           retdest += dest + "\n"
         end
+
+
+
+        puts "reltocheck: " + relations_to_check.to_s
+
+        # Now let's create the missing relations
+        if relations_to_check.size > 0 then
+          self.issue.relations.each {|r|
+            if r.issue_from = self.issue then
+              ir = r.issue_to
+            else
+              ir = r.issue_from
+            end
+            if relations_to_check.include?(ir.id) then
+              relations_to_check.delete(ir.id)
+            end
+          }
+          # All pre-existing relationships should be removed from relations_to_check
+          relations_to_check.each {|rid|
+            r = self.issue.relations_from.new
+            r.relation_type = "relates"
+            r.issue_to_id = rid
+            r.save
+          }
+        end
+
+
         if retdest != "" then
           retdest = header + retdest
         end
+        puts(retdest)
         retdest
       end
     else
@@ -403,6 +466,7 @@ module CosmosysIssueOverwritePatch
         refchapterdone = false
         refchapter = nil
         retdest = ""
+        relations_to_check = []
         for line in source.lines do
           dest = ""
           line = line.strip()
@@ -420,6 +484,9 @@ module CosmosysIssueOverwritePatch
               ch = refchapter.children.find_by_subject(cells[0])
               if (ch != nil) then
                 ref = "| [" + ch.subject + "](/issues/" + ch.id.to_s + ") | " + prepare_text(ch.description) + " | "
+                # At this moment we know we the related document, let's see if we already have a relationship there
+                # In case we don't have the relationship, we'll create it
+                relations_to_check += [ch.id]
               end
             end
             dest += ref
@@ -429,6 +496,32 @@ module CosmosysIssueOverwritePatch
           end
           retdest += dest + "\n"
         end
+
+
+        puts "reltocheck: " + relations_to_check.to_s
+
+        # Now let's create the missing relations
+        if relations_to_check.size > 0 then
+          self.issue.relations.each {|r|
+            if r.issue_from = self.issue then
+              ir = r.issue_to
+            else
+              ir = r.issue_from
+            end
+            if relations_to_check.include?(ir.id) then
+              relations_to_check.delete(ir.id)
+            end
+          }
+          # All pre-existing relationships should be removed from relations_to_check
+          relations_to_check.each {|rid|
+            r = self.issue.relations_from.new
+            r.relation_type = "relates"
+            r.issue_to_id = rid
+            r.save
+          }
+        end
+
+
         if retdest != "" then
           retdest = header + retdest
         end
@@ -478,7 +571,7 @@ module CosmosysIssueOverwritePatch
         # We can not close anything which is blocking or being precedent to another requirement
         # Same with requirement copies, which need the master being "alive".  Other relations like the 'relates' ones, are irrelevant.
         i.relations_from.each{|r|
-          if (r.relation_type == 'blocks' or r.relation_type == 'precedes' or r.relation_type = 'copied_to') then
+          if (r.relation_type == 'blocks' or r.relation_type == 'precedes' or r.relation_type == 'copied_to') then
             puts("END can_be_rq_closed r 0 " + r.relation_type + " " + r.attributes.to_s)
             return false
           end
