@@ -25,7 +25,7 @@ module CosmosysTrackerPatch
           else
             # Do nothing
             i.project.trackers.map{|t| t.name}
-          end              
+          end
         end
       end
     end
@@ -50,6 +50,12 @@ module CosmosysTrackerPatch
           'relates' => 'grey',
           'copied_to' => 'orange'
         },
+        :relation_dir => {
+          'blocks' => :foward,
+          'precedes' => :forward,
+          'relates' => :none,
+          'copied_to' => :none
+        },
         :shall_draw_relation => {
           'blocks' => true,
           'precedes' => true,
@@ -63,7 +69,7 @@ module CosmosysTrackerPatch
         },
         :issue_shape => 'record',
         :chapter_shape => 'note',
-        :hierankdir => 'TB',   
+        :hierankdir => 'TB',
         :deprankdir => 'LR'
       }
     else
@@ -74,6 +80,12 @@ module CosmosysTrackerPatch
             'precedes' => 'grey',
             'relates' => 'grey',
             'copied_to' => 'grey'
+          },
+          :relation_dir => {
+            'blocks' => :foward,
+            'precedes' => :forward,
+            'relates' => :none,
+            'copied_to' => :none
           },
           :shall_draw_relation => {
             'blocks' => true,
@@ -100,17 +112,23 @@ module CosmosysTrackerPatch
               'relates' => 'grey',
               'copied_to' => 'grey'
             },
+            :relation_dir => {
+              'blocks' => :foward,
+              'precedes' => :forward,
+              'relates' => :none,
+              'copied_to' => :none
+            },
             :shall_draw_relation => {
               'blocks' => true,
               'precedes' => false,
               'relates' => false,
               'copied_to' => false
-            },          
+            },
             :issue_color => {
               'normal' => 'black',
               'invalid' => 'red',
               'own' => 'black',
-            },        
+            },
             :issue_shape => 'record',
             :chapter_shape => 'note',
             :hierankdir => 'TB',
@@ -125,25 +143,31 @@ module CosmosysTrackerPatch
                 'relates' => 'grey',
                 'copied_to' => 'grey'
                 },
+              :relation_dir => {
+                'blocks' => :foward,
+                'precedes' => :forward,
+                'relates' => :none,
+                'copied_to' => :none
+              },
               :shall_draw_relation => {
                 'blocks' => true,
                 'precedes' => false,
                 'relates' => false,
                 'copied_to' => false
-              },          
+              },
               :issue_color => {
                 'normal' => 'black',
                 'invalid' => 'red',
                 'own' => 'black',
-              },        
+              },
               :issue_shape => 'Mrecord',
               :chapter_shape => 'note',
               :hierankdir => 'TB',
               :deprankdir => 'RL'
             }
           else
-            if self.tracker.name == "prValFloat" or 
-              self.tracker.name == "prValText" or 
+            if self.tracker.name == "prValFloat" or
+              self.tracker.name == "prValText" or
               self.tracker.name == "prValue" then
                 return {
                   :relation_color => {
@@ -152,17 +176,23 @@ module CosmosysTrackerPatch
                     'relates' => 'grey',
                     'copied_to' => 'grey'
                   },
+                  :relation_dir => {
+                    'blocks' => :foward,
+                    'precedes' => :forward,
+                    'relates' => :none,
+                    'copied_to' => :none
+                  },
                   :shall_draw_relation => {
                     'blocks' => true,
                     'precedes' => false,
                     'relates' => false,
                     'copied_to' => false
-                  },          
+                  },
                   :issue_color => {
                     'normal' => 'black',
                     'invalid' => 'red',
                     'own' => 'black',
-                  },        
+                  },
                   :issue_shape => 'record',
                   :chapter_shape => 'note',
                   :hierankdir => 'TB',
@@ -177,17 +207,23 @@ module CosmosysTrackerPatch
                       'relates' => 'grey',
                       'copied_to' => 'grey'
                     },
+                    :relation_dir => {
+                      'blocks' => :foward,
+                      'precedes' => :forward,
+                      'relates' => :none,
+                      'copied_to' => :none
+                    },
                     :shall_draw_relation => {
                       'blocks' => true,
                       'precedes' => false,
                       'relates' => false,
                       'copied_to' => false
-                    },          
+                    },
                     :issue_color => {
                       'normal' => 'black',
                       'invalid' => 'red',
                       'own' => 'black',
-                    },        
+                    },
                     :issue_shape => 'Mrecord',
                     :chapter_shape => 'note',
                     :hierankdir => 'TB',
