@@ -323,7 +323,7 @@ module CosmosysIssueOverwritePatch
         # Now let's create the missing relations
         if relations_to_check.size > 0 then
           self.issue.relations.each {|r|
-            if r.issue_from = self.issue then
+            if r.issue_from == self.issue then
               ir = r.issue_to
             else
               ir = r.issue_from
@@ -352,6 +352,17 @@ module CosmosysIssueOverwritePatch
       ""
     end
   end
+
+  def get_documents_field
+    return self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfrefdocs.id }.first
+  end
+  def get_apl_field
+    return self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfapldocs.id }.first
+  end
+  def get_compl_field
+    return self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfcompldoc.id }.first
+  end
+
 
   def get_apl_documents_table
     rqrefdoc = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfapldocs.id }.first
@@ -404,7 +415,7 @@ module CosmosysIssueOverwritePatch
         # Now let's create the missing relations
         if relations_to_check.size > 0 then
           self.issue.relations.each {|r|
-            if r.issue_from = self.issue then
+            if r.issue_from == self.issue then
               ir = r.issue_to
             else
               ir = r.issue_from
@@ -415,9 +426,9 @@ module CosmosysIssueOverwritePatch
           }
           # All pre-existing relationships should be removed from relations_to_check
           relations_to_check.each {|rid|
-            r = self.issue.relations_from.new
-            r.relation_type = "relates"
-            r.issue_to_id = rid
+            r = self.issue.relations_to.new
+            r.relation_type = "blocks"
+            r.issue_from_id = rid
             r.save
           }
         end
@@ -503,7 +514,7 @@ module CosmosysIssueOverwritePatch
         # Now let's create the missing relations
         if relations_to_check.size > 0 then
           self.issue.relations.each {|r|
-            if r.issue_from = self.issue then
+            if r.issue_from == self.issue then
               ir = r.issue_to
             else
               ir = r.issue_from
