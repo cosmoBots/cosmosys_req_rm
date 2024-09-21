@@ -14,15 +14,12 @@ Redmine::Plugin.register :cosmosys_req do
   permission :csys_req_clone, :csys_req => :derive
   permission :csys_req_derive, :csys_req => :derive
   permission :csys_req_menu, :csys_req => :menu
-  permission :csys_req_show, :csys_req => :show
   permission :csys_req_compmatrix, :csys_req => :compmatrix
   permission :csys_req_refdocs, :csys_req => :refdocs
   permission :csys_req_apldocs, :csys_req => :apldocs
   permission :csys_req_compdocs, :csys_req => :compdocs
 
   menu :project_menu, :csys_req, {:controller => 'csys_req', :action => 'menu' }, :caption => 'cosmoSysReq', :after => :activity, :param => :id
-  menu :project_menu, :csys_req_show, {:controller => 'csys_req', :action => 'show' }, :caption => 'MainReport', :after => :activity, :param => :id
-
 
   require 'cosmosys_req'
 
